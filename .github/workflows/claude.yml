@@ -36,6 +36,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: 'claude[bot]'
+          # Upstream default (41898282) is actually github-actions[bot]'s ID, which
+          # misattributes claude[bot]'s commits. See anthropics/claude-code-action#759.
+          bot_id: "209825114"
 
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
