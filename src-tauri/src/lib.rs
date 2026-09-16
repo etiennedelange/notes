@@ -443,6 +443,7 @@ fn file_mtime_ms(path: String, state: tauri::State<ConsentedPaths>) -> Result<u6
 #[serde(rename_all = "camelCase")]
 struct AppStateDto {
     theme: Option<String>,
+    zoom: Option<f64>,
     last_folder: Option<String>,
     recent_files: Vec<String>,
     open_tabs: Vec<String>,

@@ -26,6 +26,13 @@ import { unsavedChangesModal, showModal } from "./modal";
 
 const RECENT_LIMIT = 30;
 const NOTE_EXT = /\.(txt|md|markdown)$/i;
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 2.0;
+const ZOOM_STEP = 0.1;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
 
 export class App {
   tabs = new Map<string, Tab>();
@@ -37,6 +44,7 @@ export class App {
   looseFiles: string[] = [];
   recentFiles: string[] = [];
   theme: ThemeId = "nord";
+  zoom = 1;
   expandedDirs = new Set<string>();
   untitledCounter = 1;
 
@@ -64,6 +72,11 @@ export class App {
       this.theme = persisted.theme as ThemeId;
     }
     applyChromeTheme(THEMES[this.theme]);
+
+    if (typeof persisted?.zoom === "number" && Number.isFinite(persisted.zoom)) {
+      this.zoom = clamp(persisted.zoom, ZOOM_MIN, ZOOM_MAX);
+    }
+    document.getElementById("app")!.style.zoom = String(this.zoom);
 
     if (persisted?.recentFiles) this.recentFiles = persisted.recentFiles;
 
@@ -97,6 +110,7 @@ export class App {
 
     this.renderAll();
     this.wireGlobalShortcuts();
+    this.wireZoomWheel();
     this.wireWindowClose();
     this.wireDragDrop();
   }
@@ -124,6 +138,7 @@ export class App {
     const openTabs = this.order.filter((k) => !this.tabs.get(k)!.isUntitled).map((k) => this.tabs.get(k)!.path!);
     saveState({
       theme: this.theme,
+      zoom: this.zoom,
       lastFolder: this.openFolder ?? undefined,
       recentFiles: this.recentFiles,
       openTabs,
@@ -495,7 +510,29 @@ export class App {
     this.persist();
   }
 
+  // ---------- zoom ----------
+
+  setZoom(level: number) {
+    const clamped = Math.round(clamp(level, ZOOM_MIN, ZOOM_MAX) * 100) / 100;
+    if (clamped === this.zoom) return;
+    this.zoom = clamped;
+    document.getElementById("app")!.style.zoom = String(this.zoom);
+    this.persist();
+  }
+
   // ---------- shortcuts / lifecycle ----------
+
+  private wireZoomWheel() {
+    window.addEventListener(
+      "wheel",
+      (e) => {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+        this.setZoom(this.zoom - Math.sign(e.deltaY) * ZOOM_STEP);
+      },
+      { passive: false },
+    );
+  }
 
   private wireGlobalShortcuts() {
     window.addEventListener("keydown", (e) => {
@@ -526,6 +563,15 @@ export class App {
       } else if (key === "tab") {
         e.preventDefault();
         this.cycleTab(e.shiftKey ? -1 : 1);
+      } else if (key === "=" || key === "+") {
+        e.preventDefault();
+        this.setZoom(this.zoom + ZOOM_STEP);
+      } else if (key === "-") {
+        e.preventDefault();
+        this.setZoom(this.zoom - ZOOM_STEP);
+      } else if (key === "0") {
+        e.preventDefault();
+        this.setZoom(1);
       }
     });
   }
