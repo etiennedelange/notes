@@ -1,5 +1,6 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { platformName } from "./fs";
+import { showToast } from "./toast";
 
 export async function initTitlebar() {
   const win = getCurrentWindow();
@@ -22,15 +23,27 @@ export async function initTitlebar() {
     maximizeBtn.title = isMax ? "Restore" : "Maximize";
   }
 
-  minimizeBtn.addEventListener("click", () => win.minimize());
-  closeBtn.addEventListener("click", () => win.close());
+  minimizeBtn.addEventListener("click", () => {
+    win.minimize().catch((e) => showToast(`Minimize failed: ${e}`, "error"));
+  });
+  closeBtn.addEventListener("click", () => {
+    win.close().catch((e) => showToast(`Close failed: ${e}`, "error"));
+  });
   maximizeBtn.addEventListener("click", async () => {
-    await win.toggleMaximize();
-    syncMaximizeIcon();
+    try {
+      await win.toggleMaximize();
+      syncMaximizeIcon();
+    } catch (e) {
+      showToast(`Maximize failed: ${e}`, "error");
+    }
   });
   dragRegion.addEventListener("dblclick", async () => {
-    await win.toggleMaximize();
-    syncMaximizeIcon();
+    try {
+      await win.toggleMaximize();
+      syncMaximizeIcon();
+    } catch (e) {
+      showToast(`Maximize failed: ${e}`, "error");
+    }
   });
 
   win.onResized(() => syncMaximizeIcon()).catch(() => {});
