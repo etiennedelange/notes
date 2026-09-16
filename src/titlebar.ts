@@ -14,7 +14,6 @@ export async function initTitlebar() {
   const minimizeBtn = document.getElementById("tb-minimize")!;
   const maximizeBtn = document.getElementById("tb-maximize")!;
   const closeBtn = document.getElementById("tb-close")!;
-  const dragRegion = document.querySelector<HTMLElement>(".titlebar-drag")!;
   const maximizeIcon = maximizeBtn.querySelector("use")!;
 
   async function syncMaximizeIcon() {
@@ -37,15 +36,10 @@ export async function initTitlebar() {
       showToast(`Maximize failed: ${e}`, "error");
     }
   });
-  dragRegion.addEventListener("dblclick", async () => {
-    try {
-      await win.toggleMaximize();
-      syncMaximizeIcon();
-    } catch (e) {
-      showToast(`Maximize failed: ${e}`, "error");
-    }
-  });
-
+  // Tauri's own drag-region handler (drag.js) owns double-click-to-maximize
+  // now that the region is `data-tauri-drag-region="deep"`; a manual
+  // `dblclick` listener here raced its `mousedown` handling and made the
+  // gesture flaky.
   win.onResized(() => syncMaximizeIcon()).catch(() => {});
   syncMaximizeIcon();
 }

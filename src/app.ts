@@ -6,7 +6,9 @@ import {
   readTextFile,
   writeTextFile,
   pathExists,
+  pathIsDir,
   fileMtimeMs,
+  grantPathAccess,
   loadState,
   saveState,
   type DirNode,
@@ -63,6 +65,16 @@ export class App {
     applyChromeTheme(THEMES[this.theme]);
 
     if (persisted?.recentFiles) this.recentFiles = persisted.recentFiles;
+
+    // Our own previously-persisted state is a trusted grant source, on the same
+    // footing as a dialog pick or a drag-drop payload: it reflects paths the
+    // user already consented to in an earlier session, not attacker-chosen
+    // strings arriving fresh over IPC. Re-grant them before touching disk.
+    const rememberedPaths = new Set<string>();
+    if (persisted?.lastFolder) rememberedPaths.add(persisted.lastFolder);
+    for (const p of persisted?.openTabs ?? []) rememberedPaths.add(p);
+    for (const p of this.recentFiles) rememberedPaths.add(p);
+    await Promise.all(Array.from(rememberedPaths).map((p) => grantPathAccess(p).catch(() => {})));
 
     if (persisted?.lastFolder && (await pathExists(persisted.lastFolder))) {
       await this.setOpenFolder(persisted.lastFolder, { skipPersist: true });
@@ -122,7 +134,10 @@ export class App {
 
   async openFolderDialog() {
     const picked = await openDialog({ directory: true, multiple: false });
-    if (typeof picked === "string") await this.setOpenFolder(picked);
+    if (typeof picked === "string") {
+      await grantPathAccess(picked).catch(() => {});
+      await this.setOpenFolder(picked);
+    }
   }
 
   async setOpenFolder(path: string, opts: { skipPersist?: boolean } = {}) {
@@ -158,7 +173,10 @@ export class App {
       multiple: false,
       filters: [{ name: "Notes", extensions: ["txt", "md", "markdown"] }],
     });
-    if (typeof picked === "string") await this.openFile(picked);
+    if (typeof picked === "string") {
+      await grantPathAccess(picked).catch(() => {});
+      await this.openFile(picked);
+    }
   }
 
   async openFile(
@@ -172,7 +190,11 @@ export class App {
     }
     let content: string;
     try {
-      content = await readTextFile(path);
+      const result = await readTextFile(path);
+      content = result.contents;
+      if (result.lossy) {
+        showToast(`${basename(path)} isn't valid UTF-8; opened with replacement characters. Saving will rewrite the encoding.`, "error");
+      }
     } catch (e) {
       showToast(`Couldn't open ${basename(path)}: ${e}`, "error");
       return;
@@ -321,24 +343,37 @@ export class App {
     // notably doesn't), and the backend refuses to write non-note files.
     const target = NOTE_EXT.test(picked) ? picked : `${picked}.md`;
 
-    if (tab.isUntitled) {
-      this.tabs.delete(key);
-      this.order = this.order.map((k) => (k === key ? target : k));
-      tab.key = target;
-      tab.path = target;
-      tab.isUntitled = false;
-      this.tabs.set(target, tab);
-      if (this.activeKey === key) this.activeKey = target;
-      if (!this.openFolder || !isDescendant(this.openFolder, target)) this.looseFiles.push(target);
-      this.touchRecent(target);
-    } else {
-      tab.path = target;
-      tab.key = target;
+    // Refuse to save onto a path that's already open in another tab: silently
+    // re-keying onto it would orphan that tab's Map entry, dropping its
+    // buffer (including unsaved edits) with no warning.
+    const existing = this.tabs.get(target);
+    if (existing && existing !== tab) {
+      showToast(`"${basename(target)}" is already open in another tab`, "error");
+      return null;
     }
+
+    await grantPathAccess(target).catch(() => {});
+    this.rekeyTab(tab, key, target);
+    if (!this.openFolder || !isDescendant(this.openFolder, target)) {
+      if (!this.looseFiles.includes(target)) this.looseFiles.push(target);
+    }
+    this.touchRecent(target);
+
     const ok = await this.writeTab(tab);
     renderTabs(this);
     renderSidebar(this);
     return ok ? tab : null;
+  }
+
+  /** Re-keys a tab's Map entry and order slot after Save As changes its path. */
+  private rekeyTab(tab: Tab, oldKey: string, newKey: string) {
+    this.tabs.delete(oldKey);
+    this.order = this.order.map((k) => (k === oldKey ? newKey : k));
+    tab.key = newKey;
+    tab.path = newKey;
+    tab.isUntitled = false;
+    if (this.activeKey === oldKey) this.activeKey = newKey;
+    this.tabs.set(newKey, tab);
   }
 
   private async writeTab(tab: Tab): Promise<boolean> {
@@ -380,15 +415,18 @@ export class App {
 
   private async reloadTabFromDisk(tab: Tab) {
     try {
-      const content = await readTextFile(tab.path!);
+      const result = await readTextFile(tab.path!);
       const mtime = await fileMtimeMs(tab.path!).catch(() => Date.now());
-      tab.state = createTabEditorState(content, tab.path!, THEMES[this.theme], () => this.markDirty(tab.key), this.handleCursorUpdate);
+      tab.state = createTabEditorState(result.contents, tab.path!, THEMES[this.theme], () => this.markDirty(tab.key), this.handleCursorUpdate);
       tab.dirty = false;
       tab.diskMtime = mtime;
       if (this.activeKey === tab.key) this.view.setState(tab.state);
       renderTabs(this);
       renderStatusBar(this);
       showToast(`Reloaded ${basename(tab.path!)} from disk`);
+      if (result.lossy) {
+        showToast(`${basename(tab.path!)} isn't valid UTF-8; reloaded with replacement characters.`, "error");
+      }
     } catch (e) {
       showToast(`Couldn't reload: ${e}`, "error");
     }
@@ -437,6 +475,8 @@ export class App {
     window.addEventListener("keydown", (e) => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
+      const overlay = document.getElementById("confirm-overlay");
+      if (overlay && !overlay.classList.contains("hidden")) return;
       const key = e.key.toLowerCase();
 
       if (key === "p" && !e.shiftKey) {
@@ -499,9 +539,10 @@ export class App {
         if (event.payload.type !== "drop") return;
         const paths = event.payload.paths;
         for (const p of paths) {
+          await grantPathAccess(p).catch(() => {});
           if (NOTE_EXT.test(p)) {
             await this.openFile(p);
-          } else if (await pathExists(p)) {
+          } else if (await pathIsDir(p)) {
             await this.setOpenFolder(p);
           }
         }

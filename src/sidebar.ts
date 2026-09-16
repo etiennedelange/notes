@@ -43,7 +43,11 @@ export function renderSidebar(app: App) {
   if (app.openFolder && app.tree) {
     label.textContent = basename(app.openFolder);
     closeBtn.classList.remove("hidden");
-    treeEl.innerHTML = (app.tree.children ?? []).map((c) => renderNode(app, c, 0)).join("") || `<p class="tree-empty">No .txt or .md files here</p>`;
+    const rows = (app.tree.children ?? []).map((c) => renderNode(app, c, 0)).join("");
+    treeEl.innerHTML = rows || `<p class="tree-empty">No .txt or .md files here</p>`;
+    if (app.tree.truncated) {
+      treeEl.innerHTML += `<p class="tree-empty">Folder is too large to show fully — some files are hidden.</p>`;
+    }
   } else {
     label.textContent = "Open Folder";
     closeBtn.classList.add("hidden");

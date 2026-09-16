@@ -1,6 +1,7 @@
 import type { App } from "./app";
 import { THEMES } from "./themes";
 import { isMarkdownPath } from "./editor";
+import { escapeHtml } from "./html";
 
 let currentApp: App | null = null;
 let wired = false;
@@ -41,9 +42,9 @@ export function renderStatusBar(app: App) {
       const t = THEMES[id];
       const active = id === app.theme;
       return `
-        <button class="theme-swatch ${active ? "active" : ""}" data-theme="${id}" title="${t.label}" aria-label="${t.label} theme" aria-pressed="${active}">
-          <span class="swatch-dot" style="background:${t.accent}"></span>
-          <span class="swatch-bg" style="background:${t.bg}; border-color:${t.border}"></span>
+        <button class="theme-swatch ${active ? "active" : ""}" data-theme="${escapeHtml(id)}" title="${escapeHtml(t.label)}" aria-label="${escapeHtml(t.label)} theme" aria-pressed="${active}">
+          <span class="swatch-dot" style="background:${escapeHtml(t.accent)}"></span>
+          <span class="swatch-bg" style="background:${escapeHtml(t.bg)}; border-color:${escapeHtml(t.border)}"></span>
         </button>`;
     })
     .join("");
@@ -55,8 +56,6 @@ export function renderStatusBar(app: App) {
       if (btn) currentApp?.setTheme(btn.dataset.theme as any);
     });
   }
-
-  updateCursorLabel(1, 1);
 }
 
 export function updateCursorLabel(line: number, col: number) {
