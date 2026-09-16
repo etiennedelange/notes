@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notes</title>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="icon-folder" viewBox="0 0 20 20">
+          <path
+            d="M2.5 5.5c0-.83.67-1.5 1.5-1.5h3.34c.35 0 .68.14.93.38l1.1 1.12H16c.83 0 1.5.67 1.5 1.5v7.5c0 .83-.67 1.5-1.5 1.5H4c-.83 0-1.5-.67-1.5-1.5v-9z"
+            fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
+          />
+        </symbol>
+        <symbol id="icon-folder-open" viewBox="0 0 20 20">
+          <path
+            d="M2.5 6.2V5.5c0-.83.67-1.5 1.5-1.5h3.34c.35 0 .68.14.93.38l1.1 1.12H16c.83 0 1.5.67 1.5 1.5v.2M2.5 6.2h15.3a1 1 0 0 1 .97 1.24l-1.3 5.5a1.5 1.5 0 0 1-1.46 1.16H4.29a1.5 1.5 0 0 1-1.46-1.16l-1.3-5.5A1 1 0 0 1 2.5 6.2z"
+            fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="icon-file" viewBox="0 0 20 20">
+          <path
+            d="M5.5 2.75h6l3 3v10.5a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1V3.75a1 1 0 0 1 1-1z"
+            fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
+          />
+          <path d="M11.5 2.75v3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+          <path d="M7 11h6M7 13.5h6M7 8.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+        </symbol>
+        <symbol id="icon-chevron" viewBox="0 0 20 20">
+          <path d="M7.5 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+        </symbol>
+        <symbol id="icon-close" viewBox="0 0 20 20">
+          <path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </symbol>
+        <symbol id="icon-search" viewBox="0 0 20 20">
+          <circle cx="8.5" cy="8.5" r="5" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <path d="M12.4 12.4L17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </symbol>
+        <symbol id="icon-plus" viewBox="0 0 20 20">
+          <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </symbol>
+        <symbol id="icon-pin" viewBox="0 0 20 20">
+          <path
+            d="M8 3.5h4l.4 4.2 2.1 2.6a1 1 0 0 1-.78 1.63H12v3.3l-2 1.7-2-1.7v-3.3H6.28a1 1 0 0 1-.78-1.63l2.1-2.6L8 3.5z"
+            fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"
+          />
+        </symbol>
+        <symbol id="icon-tb-minimize" viewBox="0 0 10 10">
+          <path d="M1.5 5h7" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
+        </symbol>
+        <symbol id="icon-tb-maximize" viewBox="0 0 10 10">
+          <rect x="1.5" y="1.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1" />
+        </symbol>
+        <symbol id="icon-tb-restore" viewBox="0 0 10 10">
+          <rect x="1.5" y="3" width="5.5" height="5.5" fill="none" stroke="currentColor" stroke-width="1" />
+          <path d="M3 3V1.5h5.5V7H7" fill="none" stroke="currentColor" stroke-width="1" />
+        </symbol>
+        <symbol id="icon-tb-close" viewBox="0 0 10 10">
+          <path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <div id="root">
+      <div id="titlebar">
+        <div class="titlebar-drag" data-tauri-drag-region>
+          <span class="titlebar-mark" aria-hidden="true"></span>
+          <span class="titlebar-title" id="titlebar-title-text">Notes</span>
+        </div>
+        <div class="titlebar-controls" id="titlebar-controls">
+          <button class="tb-btn" id="tb-minimize" title="Minimize" aria-label="Minimize">
+            <svg width="10" height="10"><use href="#icon-tb-minimize" /></svg>
+          </button>
+          <button class="tb-btn" id="tb-maximize" title="Maximize" aria-label="Maximize">
+            <svg width="10" height="10"><use href="#icon-tb-maximize" /></svg>
+          </button>
+          <button class="tb-btn tb-btn-close" id="tb-close" title="Close" aria-label="Close">
+            <svg width="10" height="10"><use href="#icon-tb-close" /></svg>
+          </button>
+        </div>
+      </div>
+
+    <div id="app">
+      <aside id="sidebar" aria-label="Files">
+        <div class="sidebar-section" id="folder-section">
+          <div class="sidebar-header">
+            <button id="open-folder-btn" class="sidebar-title-btn" title="Open a folder">
+              <svg class="icon" width="15" height="15"><use href="#icon-folder-open" /></svg>
+              <span id="folder-label">Open Folder</span>
+            </button>
+            <button id="close-folder-btn" class="icon-btn hidden" title="Close folder">
+              <svg class="icon" width="14" height="14"><use href="#icon-close" /></svg>
+            </button>
+          </div>
+          <div id="folder-tree" class="tree"></div>
+        </div>
+
+        <div class="sidebar-section" id="loose-files-section">
+          <div class="sidebar-header">
+            <span class="sidebar-title-static">
+              <svg class="icon" width="14" height="14"><use href="#icon-pin" /></svg>
+              Pinned Files
+            </span>
+          </div>
+          <div id="loose-files" class="tree"></div>
+        </div>
+
+        <div class="sidebar-footer">
+          <kbd>Ctrl</kbd><kbd>P</kbd> <span>quick open</span>
+        </div>
+      </aside>
+
+      <div id="main">
+        <div id="tab-strip" role="tablist" aria-label="Open files"></div>
+
+        <div id="editor-area">
+          <div id="editor-host"></div>
+          <div id="empty-state">
+            <svg width="44" height="44" viewBox="0 0 20 20" class="empty-icon"><use href="#icon-file" /></svg>
+            <p>No file open</p>
+            <div class="empty-actions">
+              <button id="empty-open-file" class="ghost-btn">Open File <kbd>Ctrl</kbd><kbd>O</kbd></button>
+              <button id="empty-quick-open" class="ghost-btn">Quick Open <kbd>Ctrl</kbd><kbd>P</kbd></button>
+            </div>
+          </div>
+        </div>
+
+        <footer id="status-bar">
+          <div class="status-left">
+            <span id="status-path"></span>
+            <span id="status-dirty" class="hidden">&bull; unsaved</span>
+          </div>
+          <div class="status-right">
+            <span id="status-cursor"></span>
+            <span id="status-lang"></span>
+            <div id="theme-switcher" class="theme-switcher"></div>
+          </div>
+        </footer>
+      </div>
+    </div>
+    </div>
+
+    <div id="command-palette-overlay" class="hidden">
+      <div id="command-palette" role="dialog" aria-label="Quick open">
+        <div class="cp-input-row">
+          <svg class="icon" width="16" height="16"><use href="#icon-search" /></svg>
+          <input id="command-palette-input" placeholder="Search files by name…" autocomplete="off" spellcheck="false" />
+        </div>
+        <div id="command-palette-results" role="listbox"></div>
+        <div class="cp-footer">
+          <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> navigate</span>
+          <span><kbd>&crarr;</kbd> open</span>
+          <span><kbd>Esc</kbd> close</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirm-overlay" class="hidden">
+      <div id="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+        <div class="confirm-icon" id="confirm-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 20 20">
+            <path d="M10 3.2l8 14H2l8-14z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+            <path d="M10 8v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <circle cx="10" cy="14.6" r="0.9" fill="currentColor" stroke="none" />
+          </svg>
+        </div>
+        <h2 id="confirm-title"></h2>
+        <p id="confirm-message"></p>
+        <div class="confirm-actions" id="confirm-actions"></div>
+      </div>
+    </div>
+
+    <div id="toast-container" aria-live="polite"></div>
+  </body>
+</html>
