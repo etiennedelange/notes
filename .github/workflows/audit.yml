@@ -1,0 +1,41 @@
+name: Security audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src-tauri/Cargo.toml"
+      - "src-tauri/Cargo.lock"
+      - ".github/workflows/audit.yml"
+  pull_request:
+    paths:
+      - "src-tauri/Cargo.toml"
+      - "src-tauri/Cargo.lock"
+      - ".github/workflows/audit.yml"
+  # Advisories get published against dependencies that haven't changed, so the
+  # scheduled run is the one that actually catches things. Mondays, 06:00 UTC.
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Prebuilt binary — `cargo install cargo-audit` compiles for minutes.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      # Fails only on vulnerabilities. The lockfile currently carries seven
+      # `unmaintained`/`unsound` warnings (glib, proc-macro-error, unic-*), all
+      # pinned transitively by Tauri's GTK stack and not fixable from here — so
+      # denying warnings would mean a permanently red build no one can green.
+      # Warnings still print in the log.
+      - name: cargo audit
+        run: cargo audit --file src-tauri/Cargo.lock
