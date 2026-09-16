@@ -12,9 +12,10 @@ export function renderTabs(app: App) {
     .map((key) => {
       const tab = app.tabs.get(key)!;
       const active = key === app.activeKey;
+      const preview = key === app.previewKey;
       const label = app.tabLabel(tab);
       return `
-        <div class="tab ${active ? "active" : ""} ${tab.dirty ? "dirty" : ""}" data-tab="${escapeHtml(key)}" role="tab" aria-selected="${active}" title="${escapeHtml(tab.path ?? "Untitled")}">
+        <div class="tab ${active ? "active" : ""} ${tab.dirty ? "dirty" : ""} ${preview ? "preview" : ""}" data-tab="${escapeHtml(key)}" role="tab" aria-selected="${active}" title="${escapeHtml(tab.path ?? "Untitled")}">
           <span class="tab-label">${escapeHtml(label)}</span>
           <span class="dot" aria-hidden="true"></span>
           <button class="tab-close" data-close="${escapeHtml(key)}" title="Close ${tab.dirty ? "(unsaved)" : ""}">
@@ -42,6 +43,18 @@ function wireOnce(strip: HTMLElement) {
     }
     const tabEl = target.closest<HTMLElement>("[data-tab]");
     if (tabEl) currentApp?.activateTab(tabEl.dataset.tab!);
+  });
+  strip.addEventListener("dblclick", (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest<HTMLElement>("[data-close]")) return;
+    const tabEl = target.closest<HTMLElement>("[data-tab]");
+    if (tabEl) currentApp?.pinTab(tabEl.dataset.tab!);
+  });
+  // The browser's default middle-click behavior is to start autoscrolling
+  // (the "scrolling cursor"), which swallows the click auxclick would
+  // otherwise receive. Suppress it at mousedown so the tab actually closes.
+  strip.addEventListener("mousedown", (e) => {
+    if (e.button === 1) e.preventDefault();
   });
   strip.addEventListener(
     "auxclick",

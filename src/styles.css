@@ -463,6 +463,9 @@ kbd {
   white-space: nowrap;
   font-size: 12.5px;
 }
+.tab.preview .tab-label {
+  font-style: italic;
+}
 .tab .dot {
   display: block;
 }

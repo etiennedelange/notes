@@ -92,7 +92,12 @@ function wireOnce() {
     const dirBtn = target.closest<HTMLElement>("[data-dir]");
     const fileBtn = target.closest<HTMLElement>("[data-file]");
     if (dirBtn) currentApp?.toggleDir(dirBtn.dataset.dir!);
-    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!);
+    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!, { preview: true });
+  });
+  document.getElementById("folder-tree")!.addEventListener("dblclick", (e) => {
+    const target = e.target as HTMLElement;
+    const fileBtn = target.closest<HTMLElement>("[data-file]");
+    if (fileBtn) currentApp?.pinTab(fileBtn.dataset.file!);
   });
 
   document.getElementById("loose-files")!.addEventListener("click", (e) => {
@@ -100,7 +105,12 @@ function wireOnce() {
     const unpin = target.closest<HTMLElement>("[data-unpin]");
     const fileBtn = target.closest<HTMLElement>("[data-file]");
     if (unpin) currentApp?.closeLooseFile(unpin.dataset.unpin!);
-    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!);
+    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!, { preview: true });
+  });
+  document.getElementById("loose-files")!.addEventListener("dblclick", (e) => {
+    const target = e.target as HTMLElement;
+    const fileBtn = target.closest<HTMLElement>("[data-file]");
+    if (fileBtn) currentApp?.pinTab(fileBtn.dataset.file!);
   });
 }
 

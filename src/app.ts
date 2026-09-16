@@ -31,6 +31,7 @@ export class App {
   tabs = new Map<string, Tab>();
   order: string[] = [];
   activeKey: string | null = null;
+  previewKey: string | null = null;
   openFolder: string | null = null;
   tree: DirNode | null = null;
   looseFiles: string[] = [];
@@ -181,10 +182,11 @@ export class App {
 
   async openFile(
     path: string,
-    opts: { activate?: boolean; skipPersist?: boolean; skipRecent?: boolean } = {},
+    opts: { activate?: boolean; skipPersist?: boolean; skipRecent?: boolean; preview?: boolean } = {},
   ) {
     const activate = opts.activate ?? true;
     if (this.tabs.has(path)) {
+      if (!opts.preview && this.previewKey === path) this.pinTab(path);
       if (activate) this.activateTab(path);
       return;
     }
@@ -209,8 +211,22 @@ export class App {
     );
 
     const tab: Tab = { key: path, path, isUntitled: false, state, dirty: false, diskMtime: mtime };
+
+    // A preview tab takes the slot of the previous preview tab (if any and
+    // not dirty) instead of piling up a new tab, matching editors like VS
+    // Code: browsing files from the sidebar reuses one "peek" tab until the
+    // user commits to it by editing or double-clicking.
+    const replaceIdx = opts.preview && this.previewKey && !this.tabs.get(this.previewKey)?.dirty
+      ? this.order.indexOf(this.previewKey)
+      : -1;
+    if (replaceIdx !== -1) {
+      this.tabs.delete(this.previewKey!);
+      this.order[replaceIdx] = path;
+    } else {
+      this.order.push(path);
+    }
     this.tabs.set(path, tab);
-    this.order.push(path);
+    if (opts.preview) this.previewKey = path;
 
     if (!this.openFolder || !isDescendant(this.openFolder, path)) {
       if (!this.looseFiles.includes(path)) this.looseFiles.push(path);
@@ -223,6 +239,13 @@ export class App {
       renderSidebar(this);
     }
     if (!opts.skipPersist) this.persist();
+  }
+
+  /** Promotes a preview tab to a fully pinned tab (no-op if it isn't one). */
+  pinTab(key: string) {
+    if (this.previewKey !== key) return;
+    this.previewKey = null;
+    renderTabs(this);
   }
 
   newUntitledTab() {
@@ -274,6 +297,7 @@ export class App {
     }
     this.tabs.delete(key);
     this.order = this.order.filter((k) => k !== key);
+    if (this.previewKey === key) this.previewKey = null;
     if (this.activeKey === key) {
       const next = this.order[this.order.length - 1] ?? null;
       this.activeKey = null;
@@ -308,6 +332,7 @@ export class App {
     const tab = this.tabs.get(key);
     if (!tab || tab.dirty) return;
     tab.dirty = true;
+    if (this.previewKey === key) this.previewKey = null;
     renderTabs(this);
   }
 
@@ -373,6 +398,7 @@ export class App {
     tab.path = newKey;
     tab.isUntitled = false;
     if (this.activeKey === oldKey) this.activeKey = newKey;
+    if (this.previewKey === oldKey) this.previewKey = newKey;
     this.tabs.set(newKey, tab);
   }
 
