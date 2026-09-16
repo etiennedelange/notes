@@ -408,6 +408,7 @@ kbd {
   height: var(--status-h);
   padding: 0 14px;
   border-top: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 var(--accent-soft);
   color: var(--fg-subtle);
   font-size: 11.5px;
 }
