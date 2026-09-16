@@ -267,7 +267,7 @@ fn read_dir_tree(root: String, state: tauri::State<ConsentedPaths>) -> Result<Di
     read_dir_tree_impl(root, &state.0.lock().unwrap())
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct ReadFileResult {
     contents: String,
@@ -282,7 +282,7 @@ fn read_text_file_impl(path: String, granted: &HashSet<PathBuf>) -> Result<ReadF
     // Stat the open file handle, not a separate fs::metadata call: checking
     // the size and then reading the path again is TOCTOU — a file that grows
     // in between is read in full regardless of MAX_FILE_BYTES.
-    let mut file = fs::File::open(&path).map_err(|source| Error::Stat {
+    let file = fs::File::open(&path).map_err(|source| Error::Stat {
         path: path.clone(),
         source,
     })?;
