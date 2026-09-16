@@ -148,6 +148,9 @@ export function editorTheme(theme: ThemeTokens): Extension {
         height: "100%",
         fontSize: "14.5px",
       },
+      "&.cm-focused": {
+        outline: "none",
+      },
       ".cm-content": {
         caretColor: theme.caret,
         fontFamily: "var(--font-mono)",
