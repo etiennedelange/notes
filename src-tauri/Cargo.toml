@@ -33,5 +33,7 @@ opt-level = 3
 panic = "abort"
 strip = true
 # Cheap at this size, and it turns a silently-wrapped bounds check into a loud
-# abort rather than an unbounded directory walk.
+# abort rather than an unbounded directory walk. The cost: in release, any
+# overflow anywhere — not just the budget arithmetic this was added for —
+# now aborts the whole process, taking every unsaved buffer with it.
 overflow-checks = true

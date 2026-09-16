@@ -43,7 +43,7 @@ export function showModal(opts: ModalOptions): Promise<string> {
       (b) => `
       <button
         class="${b.variant === "ghost" ? "ghost-btn" : "solid-btn"} ${b.danger ? "btn-danger" : ""}"
-        data-action="${b.id}"
+        data-action="${escapeHtml(b.id)}"
       >${escapeHtml(b.label)}</button>`,
     )
     .join("");
