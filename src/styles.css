@@ -405,7 +405,8 @@ kbd {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 14px;
+  height: var(--status-h);
+  padding: 0 14px;
   border-top: 1px solid var(--border);
   color: var(--fg-subtle);
   font-size: 11.5px;
