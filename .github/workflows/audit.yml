@@ -6,11 +6,13 @@ on:
     paths:
       - "src-tauri/Cargo.toml"
       - "src-tauri/Cargo.lock"
+      - "src-tauri/.cargo/audit.toml"
       - ".github/workflows/audit.yml"
   pull_request:
     paths:
       - "src-tauri/Cargo.toml"
       - "src-tauri/Cargo.lock"
+      - "src-tauri/.cargo/audit.toml"
       - ".github/workflows/audit.yml"
   # Advisories get published against dependencies that haven't changed, so the
   # scheduled run is the one that actually catches things. Mondays, 06:00 UTC.
@@ -32,10 +34,14 @@ jobs:
         with:
           tool: cargo-audit
 
-      # Fails only on vulnerabilities. The lockfile currently carries seven
-      # `unmaintained`/`unsound` warnings (glib, proc-macro-error, unic-*), all
-      # pinned transitively by Tauri's GTK stack and not fixable from here — so
-      # denying warnings would mean a permanently red build no one can green.
-      # Warnings still print in the log.
+      # Must run from src-tauri: cargo-audit resolves .cargo/audit.toml relative
+      # to the working directory, NOT to --file. Running from the repo root
+      # silently ignores the config and the deny list below stops meaning
+      # anything.
+      #
+      # -D warnings makes any *new* unmaintained/unsound advisory fail too. The
+      # seven currently pinned by Tauri's dependency graph are listed in
+      # .cargo/audit.toml; everything else is a red build on purpose.
       - name: cargo audit
-        run: cargo audit --file src-tauri/Cargo.lock
+        working-directory: src-tauri
+        run: cargo audit --deny warnings
