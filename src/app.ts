@@ -29,6 +29,9 @@ const NOTE_EXT = /\.(txt|md|markdown)$/i;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.0;
 const ZOOM_STEP = 0.1;
+const SIDEBAR_W_MIN = 160;
+const SIDEBAR_W_MAX = 480;
+const SIDEBAR_W_DEFAULT = 240;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -45,6 +48,7 @@ export class App {
   recentFiles: string[] = [];
   theme: ThemeId = "nord";
   zoom = 1;
+  sidebarWidth = SIDEBAR_W_DEFAULT;
   expandedDirs = new Set<string>();
   untitledCounter = 1;
 
@@ -77,6 +81,11 @@ export class App {
       this.zoom = clamp(persisted.zoom, ZOOM_MIN, ZOOM_MAX);
     }
     document.getElementById("app")!.style.zoom = String(this.zoom);
+
+    if (typeof persisted?.sidebarWidth === "number" && Number.isFinite(persisted.sidebarWidth)) {
+      this.sidebarWidth = clamp(persisted.sidebarWidth, SIDEBAR_W_MIN, SIDEBAR_W_MAX);
+    }
+    document.getElementById("app")!.style.setProperty("--sidebar-w", `${this.sidebarWidth}px`);
 
     if (persisted?.recentFiles) this.recentFiles = persisted.recentFiles;
 
@@ -111,6 +120,7 @@ export class App {
     this.renderAll();
     this.wireGlobalShortcuts();
     this.wireZoomWheel();
+    this.wireSidebarResize();
     this.wireWindowClose();
     this.wireDragDrop();
   }
@@ -139,6 +149,7 @@ export class App {
     saveState({
       theme: this.theme,
       zoom: this.zoom,
+      sidebarWidth: this.sidebarWidth,
       lastFolder: this.openFolder ?? undefined,
       recentFiles: this.recentFiles,
       openTabs,
@@ -518,6 +529,41 @@ export class App {
     this.zoom = clamped;
     document.getElementById("app")!.style.zoom = String(this.zoom);
     this.persist();
+  }
+
+  // ---------- sidebar resize ----------
+
+  setSidebarWidth(width: number) {
+    const clamped = Math.round(clamp(width, SIDEBAR_W_MIN, SIDEBAR_W_MAX));
+    if (clamped === this.sidebarWidth) return;
+    this.sidebarWidth = clamped;
+    document.getElementById("app")!.style.setProperty("--sidebar-w", `${this.sidebarWidth}px`);
+  }
+
+  private wireSidebarResize() {
+    const handle = document.getElementById("sidebar-resizer")!;
+    handle.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      handle.classList.add("dragging");
+      document.body.style.cursor = "col-resize";
+
+      const onMove = (moveEvent: MouseEvent) => {
+        this.setSidebarWidth(moveEvent.clientX / this.zoom);
+      };
+      const onUp = () => {
+        handle.classList.remove("dragging");
+        document.body.style.cursor = "";
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        this.persist();
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    });
+    handle.addEventListener("dblclick", () => {
+      this.setSidebarWidth(SIDEBAR_W_DEFAULT);
+      this.persist();
+    });
   }
 
   // ---------- shortcuts / lifecycle ----------

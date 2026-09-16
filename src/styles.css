@@ -199,7 +199,7 @@ kbd {
 
 #app {
   display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-columns: var(--sidebar-w) 4px 1fr;
   grid-template-rows: 1fr;
   min-height: 0;
   flex: 1;
@@ -212,6 +212,15 @@ kbd {
   flex-direction: column;
   min-height: 0;
   user-select: none;
+}
+
+#sidebar-resizer {
+  cursor: col-resize;
+  background: transparent;
+}
+#sidebar-resizer:hover,
+#sidebar-resizer.dragging {
+  background: var(--accent);
 }
 
 .sidebar-section {

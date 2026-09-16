@@ -12,6 +12,7 @@ export interface DirNode {
 export interface PersistedState {
   theme?: string;
   zoom?: number;
+  sidebarWidth?: number;
   lastFolder?: string;
   recentFiles: string[];
   openTabs: string[];

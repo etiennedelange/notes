@@ -444,6 +444,7 @@ fn file_mtime_ms(path: String, state: tauri::State<ConsentedPaths>) -> Result<u6
 struct AppStateDto {
     theme: Option<String>,
     zoom: Option<f64>,
+    sidebar_width: Option<f64>,
     last_folder: Option<String>,
     recent_files: Vec<String>,
     open_tabs: Vec<String>,
