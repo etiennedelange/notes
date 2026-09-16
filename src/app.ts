@@ -312,11 +312,14 @@ export class App {
   private async saveTabAs(key: string): Promise<Tab | null> {
     const tab = this.tabs.get(key);
     if (!tab) return null;
-    const target = await saveDialog({
+    const picked = await saveDialog({
       filters: [{ name: "Markdown", extensions: ["md"] }, { name: "Text", extensions: ["txt"] }],
       defaultPath: tab.isUntitled ? "Untitled.md" : tab.path!,
     });
-    if (!target) return null;
+    if (!picked) return null;
+    // Not every platform's save dialog appends the filter's extension (GTK
+    // notably doesn't), and the backend refuses to write non-note files.
+    const target = NOTE_EXT.test(picked) ? picked : `${picked}.md`;
 
     if (tab.isUntitled) {
       this.tabs.delete(key);

@@ -1,5 +1,6 @@
 import type { App } from "./app";
 import type { DirNode } from "./fs";
+import { escapeHtml } from "./html";
 import { basename } from "./pathutil";
 
 function iconFor(isDir: boolean, expanded: boolean): string {
@@ -13,7 +14,7 @@ function renderNode(app: App, node: DirNode, depth: number): string {
     const children = node.children ?? [];
     return `
       <div class="tree-node">
-        <button class="tree-row tree-row-dir" data-dir="${escapeAttr(node.path)}" style="--depth:${depth}">
+        <button class="tree-row tree-row-dir" data-dir="${escapeHtml(node.path)}" style="--depth:${depth}">
           <svg class="chevron ${expanded ? "chevron-open" : ""}" width="12" height="12"><use href="#icon-chevron" /></svg>
           <svg class="icon" width="14" height="14"><use href="${iconFor(true, expanded)}" /></svg>
           <span class="tree-label">${escapeHtml(node.name)}</span>
@@ -24,7 +25,7 @@ function renderNode(app: App, node: DirNode, depth: number): string {
   const active = app.activeKey === node.path;
   const dirty = app.tabs.get(node.path)?.dirty;
   return `
-    <button class="tree-row tree-row-file ${active ? "active" : ""}" data-file="${escapeAttr(node.path)}" style="--depth:${depth}" title="${escapeAttr(node.path)}">
+    <button class="tree-row tree-row-file ${active ? "active" : ""}" data-file="${escapeHtml(node.path)}" style="--depth:${depth}" title="${escapeHtml(node.path)}">
       <svg class="icon" width="14" height="14"><use href="${iconFor(false, false)}" /></svg>
       <span class="tree-label">${escapeHtml(node.name)}</span>
       ${dirty ? '<span class="dot" aria-hidden="true"></span>' : ""}
@@ -59,12 +60,12 @@ export function renderSidebar(app: App) {
         const dirty = app.tabs.get(path)?.dirty;
         return `
           <div class="tree-row tree-row-file loose-row ${active ? "active" : ""}" style="--depth:0">
-            <button class="loose-open" data-file="${escapeAttr(path)}" title="${escapeAttr(path)}">
+            <button class="loose-open" data-file="${escapeHtml(path)}" title="${escapeHtml(path)}">
               <svg class="icon" width="14" height="14"><use href="#icon-file" /></svg>
               <span class="tree-label">${escapeHtml(basename(path))}</span>
               ${dirty ? '<span class="dot" aria-hidden="true"></span>' : ""}
             </button>
-            <button class="unpin-btn" data-unpin="${escapeAttr(path)}" title="Remove from list">
+            <button class="unpin-btn" data-unpin="${escapeHtml(path)}" title="Remove from list">
               <svg class="icon" width="11" height="11"><use href="#icon-close" /></svg>
             </button>
           </div>`;
@@ -100,10 +101,3 @@ function wireOnce() {
 }
 
 let currentApp: App | null = null;
-
-function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-}
-function escapeAttr(s: string) {
-  return escapeHtml(s);
-}

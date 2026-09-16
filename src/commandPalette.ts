@@ -1,5 +1,6 @@
 import type { App } from "./app";
 import { fuzzyFilter, type FuzzyMatch } from "./fuzzy";
+import { escapeHtml } from "./html";
 import { basename, dirname } from "./pathutil";
 
 interface Candidate {
@@ -151,8 +152,4 @@ function wireOnce() {
   overlay.addEventListener("mousedown", (e) => {
     if (e.target === overlay) closeCommandPalette();
   });
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }

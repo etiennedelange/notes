@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "tauri-dev": "tauri dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -19,8 +20,6 @@
     "@lezer/highlight": "^1.2.3",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.7.3",
-    "@tauri-apps/plugin-fs": "^2.5.2",
-    "@tauri-apps/plugin-opener": "^2",
     "codemirror": "^6.0.2"
   },
   "devDependencies": {

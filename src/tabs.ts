@@ -1,4 +1,5 @@
 import type { App } from "./app";
+import { escapeHtml } from "./html";
 
 let currentApp: App | null = null;
 let wired = false;
@@ -13,10 +14,10 @@ export function renderTabs(app: App) {
       const active = key === app.activeKey;
       const label = app.tabLabel(tab);
       return `
-        <div class="tab ${active ? "active" : ""} ${tab.dirty ? "dirty" : ""}" data-tab="${escapeAttr(key)}" role="tab" aria-selected="${active}" title="${escapeAttr(tab.path ?? "Untitled")}">
+        <div class="tab ${active ? "active" : ""} ${tab.dirty ? "dirty" : ""}" data-tab="${escapeHtml(key)}" role="tab" aria-selected="${active}" title="${escapeHtml(tab.path ?? "Untitled")}">
           <span class="tab-label">${escapeHtml(label)}</span>
           <span class="dot" aria-hidden="true"></span>
-          <button class="tab-close" data-close="${escapeAttr(key)}" title="Close ${tab.dirty ? "(unsaved)" : ""}">
+          <button class="tab-close" data-close="${escapeHtml(key)}" title="Close ${tab.dirty ? "(unsaved)" : ""}">
             <svg class="icon" width="11" height="11"><use href="#icon-close" /></svg>
           </button>
         </div>`;
@@ -51,11 +52,4 @@ function wireOnce(strip: HTMLElement) {
       if (tabEl) currentApp?.closeTab(tabEl.dataset.tab!);
     },
   );
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-}
-function escapeAttr(s: string) {
-  return escapeHtml(s);
 }
