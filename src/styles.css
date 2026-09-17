@@ -494,7 +494,8 @@ kbd {
   pointer-events: none;
 }
 .tab:not(.dirty) .dot,
-.tab:hover .dot {
+.tab:hover .dot,
+.tab:has(.tab-close:focus-visible) .dot {
   display: none;
 }
 .tab-close {
