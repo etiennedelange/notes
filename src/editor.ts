@@ -4,6 +4,7 @@ import { basicSetup } from "codemirror";
 import { indentWithTab } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import { editorTheme, type ThemeTokens } from "./themes";
+import { codeSnippetPasteHandler } from "./pasteCode";
 
 export const themeCompartment = new Compartment();
 export const languageCompartment = new Compartment();
@@ -13,7 +14,7 @@ export function isMarkdownPath(path: string): boolean {
 }
 
 function languageExtension(path: string): Extension {
-  return isMarkdownPath(path) ? markdown() : [];
+  return isMarkdownPath(path) ? [markdown(), codeSnippetPasteHandler()] : [];
 }
 
 export function createTabEditorState(
