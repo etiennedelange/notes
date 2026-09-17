@@ -484,17 +484,21 @@ kbd {
 .tab.preview .tab-label {
   font-style: italic;
 }
+/* The dot sits on top of the close button's slot, so neither changes the tab width. */
 .tab .dot {
   display: block;
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  margin-top: -3px;
+  pointer-events: none;
 }
-.tab:not(.dirty) .dot {
-  display: none;
-}
-.tab.dirty:hover .dot {
+.tab:not(.dirty) .dot,
+.tab:hover .dot {
   display: none;
 }
 .tab-close {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 20px;
@@ -505,10 +509,13 @@ kbd {
   color: var(--fg-subtle);
   cursor: pointer;
   flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 .tab:hover .tab-close,
-.tab.dirty:hover .tab-close {
-  display: flex;
+.tab-close:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 .tab-close:hover {
   background: var(--border);
