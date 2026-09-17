@@ -20,11 +20,12 @@ import { showToast } from "./toast";
 import type { Tab } from "./types";
 import { renderSidebar } from "./sidebar";
 import { renderTabs } from "./tabs";
-import { renderStatusBar, updateCursorLabel } from "./statusbar";
+import { renderStatusBar, updateCursorLabel, updateDocStats } from "./statusbar";
 import { openCommandPalette } from "./commandPalette";
 import { unsavedChangesModal, showModal } from "./modal";
 
 const RECENT_LIMIT = 30;
+const CLOSED_TABS_LIMIT = 20;
 const NOTE_EXT = /\.(txt|md|markdown)$/i;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.0;
@@ -55,6 +56,7 @@ export class App {
   sidebarWidth = SIDEBAR_W_DEFAULT;
   expandedDirs = new Set<string>();
   untitledCounter = 1;
+  private closedTabs: string[] = [];
 
   view: EditorView;
 
@@ -70,6 +72,7 @@ export class App {
     const pos = update.state.selection.main.head;
     const line = update.state.doc.lineAt(pos);
     updateCursorLabel(line.number, pos - line.from + 1);
+    if (update.docChanged) updateDocStats(update.state.doc.toString());
   };
 
   // ---------- boot ----------
@@ -107,6 +110,11 @@ export class App {
     for (const p of persisted?.openTabs ?? []) rememberedPaths.add(p);
     for (const p of this.recentFiles) rememberedPaths.add(p);
     await Promise.all(Array.from(rememberedPaths).map((p) => grantPathAccess(p).catch(() => {})));
+
+    if (this.recentFiles.length > 0) {
+      const exists = await Promise.all(this.recentFiles.map((p) => pathExists(p).catch(() => false)));
+      this.recentFiles = this.recentFiles.filter((_, i) => exists[i]);
+    }
 
     if (persisted?.lastFolder && (await pathExists(persisted.lastFolder))) {
       await this.setOpenFolder(persisted.lastFolder, { skipPersist: true });
@@ -153,7 +161,20 @@ export class App {
     }
   }
 
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Debounced: rapid successive calls (e.g. cycling tabs) collapse into one disk write. */
   private persist() {
+    if (this.persistTimer !== null) clearTimeout(this.persistTimer);
+    this.persistTimer = setTimeout(() => this.flushPersist(), 300);
+  }
+
+  /** Cancels any pending debounce and writes state immediately. */
+  private flushPersist() {
+    if (this.persistTimer !== null) {
+      clearTimeout(this.persistTimer);
+      this.persistTimer = null;
+    }
     const openTabs = this.order.filter((k) => !this.tabs.get(k)!.isUntitled).map((k) => this.tabs.get(k)!.path!);
     saveState({
       theme: this.theme,
@@ -331,6 +352,10 @@ export class App {
         key = saved.key;
       }
     }
+    if (!tab.isUntitled && tab.path) {
+      this.closedTabs.push(tab.path);
+      if (this.closedTabs.length > CLOSED_TABS_LIMIT) this.closedTabs.shift();
+    }
     this.tabs.delete(key);
     this.order = this.order.filter((k) => k !== key);
     if (this.previewKey === key) this.previewKey = null;
@@ -348,6 +373,13 @@ export class App {
       renderTabs(this);
     }
     this.persist();
+  }
+
+  reopenLastClosedTab() {
+    let path = this.closedTabs.pop();
+    while (path && this.tabs.has(path)) path = this.closedTabs.pop();
+    if (!path) return;
+    this.openFile(path);
   }
 
   cycleTab(direction: 1 | -1) {
@@ -380,6 +412,11 @@ export class App {
   async saveActiveTab() {
     if (!this.activeKey) return;
     await this.saveTab(this.activeKey);
+  }
+
+  async saveActiveTabAs() {
+    if (!this.activeKey) return;
+    await this.saveTabAs(this.activeKey);
   }
 
   /** Saves a tab (prompting Save As for untitled tabs). Returns the saved Tab on success, null if cancelled/failed. */
@@ -614,9 +651,15 @@ export class App {
       if (key === "p" && !e.shiftKey) {
         e.preventDefault();
         openCommandPalette(this);
+      } else if (key === "s" && e.shiftKey) {
+        e.preventDefault();
+        this.saveActiveTabAs();
       } else if (key === "s") {
         e.preventDefault();
         this.saveActiveTab();
+      } else if (key === "t" && e.shiftKey) {
+        e.preventDefault();
+        this.reopenLastClosedTab();
       } else if (key === "o" && e.shiftKey) {
         e.preventDefault();
         this.openFolderDialog();
@@ -669,6 +712,7 @@ export class App {
             if (!saved) return; // a Save As was cancelled — abort quitting
           }
         }
+        this.flushPersist();
         getCurrentWebviewWindow().destroy();
       })
       .catch(() => {});

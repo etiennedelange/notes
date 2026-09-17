@@ -2,6 +2,7 @@ import type { App } from "./app";
 import { THEMES } from "./themes";
 import { isMarkdownPath } from "./editor";
 import { escapeHtml } from "./html";
+import { computeDocStats } from "./docStats";
 
 let currentApp: App | null = null;
 let wired = false;
@@ -29,12 +30,14 @@ export function renderStatusBar(app: App) {
     const pos = tab.state.selection.main.head;
     const line = tab.state.doc.lineAt(pos);
     updateCursorLabel(line.number, pos - line.from + 1);
+    updateDocStats(tab.state.doc.toString());
   } else {
     pathEl.textContent = "";
     dirtyEl.classList.add("hidden");
     langEl.textContent = "";
     if (titlebarTitle) titlebarTitle.textContent = "Notes";
     updateCursorLabel(1, 1);
+    updateDocStats("");
   }
 
   switcher.innerHTML = app.themeIds()
@@ -61,4 +64,15 @@ export function renderStatusBar(app: App) {
 export function updateCursorLabel(line: number, col: number) {
   const el = document.getElementById("status-cursor");
   if (el) el.textContent = `Ln ${line}, Col ${col}`;
+}
+
+export function updateDocStats(text: string) {
+  const el = document.getElementById("status-wordcount");
+  if (!el) return;
+  if (text === "") {
+    el.textContent = "";
+    return;
+  }
+  const { chars, words } = computeDocStats(text);
+  el.textContent = `${words} words, ${chars} chars`;
 }

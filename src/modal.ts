@@ -17,6 +17,7 @@ interface ModalOptions {
 
 let wired = false;
 let resolver: ((value: string) => void) | null = null;
+let previouslyFocused: HTMLElement | null = null;
 
 function els() {
   return {
@@ -48,6 +49,7 @@ export function showModal(opts: ModalOptions): Promise<string> {
     )
     .join("");
 
+  previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   overlay.classList.remove("hidden");
 
   const autofocusId = opts.buttons.find((b) => b.autofocus)?.id ?? opts.buttons[opts.buttons.length - 1]?.id;
@@ -100,6 +102,8 @@ export function unsavedChangesModal(opts: { title: string; message: string; save
 function settle(value: string) {
   const { overlay } = els();
   overlay.classList.add("hidden");
+  previouslyFocused?.focus();
+  previouslyFocused = null;
   resolver?.(value);
   resolver = null;
 }
