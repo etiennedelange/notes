@@ -138,6 +138,17 @@ function markdownHighlightStyle(theme: ThemeTokens) {
     { tag: t.processingInstruction, color: theme.fgSubtle },
     { tag: t.meta, color: theme.fgSubtle },
     { tag: t.comment, color: theme.fgSubtle, fontStyle: "italic" },
+    { tag: [t.keyword, t.controlKeyword, t.moduleKeyword], color: theme.accent, fontWeight: "600" },
+    { tag: [t.string, t.special(t.string)], color: theme.success },
+    { tag: [t.number, t.bool, t.null], color: theme.warning },
+    { tag: [t.function(t.variableName), t.function(t.propertyName)], color: theme.accentText },
+    { tag: [t.className, t.typeName], color: theme.danger },
+    { tag: t.propertyName, color: theme.accent },
+    { tag: t.operator, color: theme.fgMuted },
+    { tag: t.definition(t.variableName), color: theme.fg },
+    { tag: t.angleBracket, color: theme.fgSubtle },
+    { tag: t.tagName, color: theme.accent },
+    { tag: t.attributeName, color: theme.warning },
   ]);
 }
 
@@ -193,6 +204,9 @@ export function editorTheme(theme: ThemeTokens): Extension {
         backgroundColor: theme.bgHighlight,
         border: `1px solid ${theme.border}`,
         color: theme.fgMuted,
+      },
+      ".cm-fenced-code-line": {
+        backgroundColor: theme.bgElevated,
       },
       ".cm-tooltip": {
         backgroundColor: theme.bgElevated,
