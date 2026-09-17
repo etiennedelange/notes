@@ -35,6 +35,14 @@ function patchLegacyModesFrozenPrototype(): Plugin {
 export default defineConfig(() => ({
   plugins: [patchLegacyModesFrozenPrototype()],
 
+  // In dev, Vite pre-bundles dependencies into node_modules/.vite/deps
+  // *before* running plugin transform hooks, so the patch above would never
+  // reach @codemirror/legacy-modes there. Exclude it from pre-bundling so it
+  // always flows through the normal (patched) transform pipeline.
+  optimizeDeps: {
+    exclude: ["@codemirror/legacy-modes"],
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors
