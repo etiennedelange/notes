@@ -38,6 +38,9 @@ Confirmed for v1:
 - Ctrl+P quick-open / fuzzy file search.
 - Deliberately minimal scope for v1 — no markdown live preview, no full-text/grep search, no vault/index, no plugin system. These are explicitly deferred, not rejected forever.
 
+Future enhancements (deferred, not rejected):
+- Paste image from clipboard: save to disk and insert a markdown `![]()` reference. No paste handling for image/file clipboard data exists yet — only plain-text paste is handled (for code-block auto-fencing).
+
 Delivered in v1 build so far:
 - Sidebar: open-folder tree (loose, non-owning view) + pinned "loose files" section for individually opened files.
 - Tabs with dirty-state indicator, close/cycle shortcuts.
