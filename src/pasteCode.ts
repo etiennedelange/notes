@@ -1,23 +1,100 @@
 import { EditorView } from "@codemirror/view";
 
-const LANGUAGE_HINTS: Array<[RegExp, string]> = [
-  [/^\s*(import|export)\s.+from\s+["']|:\s*(string|number|boolean)\b|interface\s+\w+\s*\{/m, "ts"],
-  [/^\s*(function|const|let|var)\s+\w+.*[;{]|=>\s*\{|console\.log\(/m, "js"],
-  [/^\s*def\s+\w+\(.*\):|^\s*import\s+\w+|^\s*from\s+\w+\s+import|print\(/m, "python"],
-  [/^\s*(public|private|protected)\s+(static\s+)?(class|void|int|String)\b/m, "java"],
-  [/^\s*#include\s*<|std::\w+|->\s*\w+\s*\{/m, "cpp"],
-  [/^\s*fn\s+\w+\(.*\)\s*(->\s*\w+\s*)?\{|let\s+mut\s+/m, "rust"],
-  [/^\s*func\s+\w+\(.*\)\s*\{|package\s+main/m, "go"],
-  [/^\s*\.[\w-]+\s*\{|^\s*[\w-]+\s*:\s*[\w#].*;\s*$/m, "css"],
-  [/^\s*<\/?[a-z][\w-]*(\s|>|\/>)/im, "html"],
-  [/^\s*[{[]\s*$|^\s*"[\w-]+"\s*:\s*/m, "json"],
+// Ordered by how distinctive a language's syntax is: languages with signals
+// that only they use (e.g. C#'s nullable `Type? name = null`) are checked
+// with narrower patterns than catch-all C-style languages like JS, whose
+// `var`/`const` + semicolon shape also matches C#, Java, etc. Detection is
+// scored (see guessLanguage) rather than first-match, so the most-matched
+// language wins even when a looser pattern (like JS's) also fires.
+const LANGUAGE_PATTERNS: Array<{ lang: string; patterns: RegExp[] }> = [
+  {
+    lang: "csharp",
+    patterns: [
+      /\bnamespace\s+[\w.]+/,
+      /\busing\s+System\b/,
+      /\w+\?\s+\w+\s*=\s*null\b/,
+      /\bnew\s+[A-Z]\w*\s*\r?\n\s*\{/,
+      /\bpublic\s+(class|interface|struct|enum|readonly)\b/,
+      /\bGuard\.\w+\(/,
+      /\bFunc<[^>]+>/,
+      /\bTask<[^>]*>/,
+      /\?\?=/,
+      /\bvar\s+\w+\s*=\s*new\s+[A-Z]\w*/,
+    ],
+  },
+  {
+    lang: "ts",
+    patterns: [
+      /^\s*(import|export)\s.+from\s+["']/m,
+      /:\s*(string|number|boolean)\b/,
+      /interface\s+\w+\s*\{/,
+    ],
+  },
+  {
+    lang: "java",
+    patterns: [
+      /\bpublic\s+static\s+void\s+main\b/,
+      /\bSystem\.out\.println\(/,
+      /^\s*import\s+java\./m,
+      /\b(public|private|protected)\s+(static\s+)?(class|void|int|String)\b/,
+    ],
+  },
+  {
+    lang: "python",
+    patterns: [
+      /^\s*def\s+\w+\(.*\):/m,
+      /^\s*import\s+\w+/m,
+      /^\s*from\s+\w+\s+import/m,
+      /\bprint\(/,
+    ],
+  },
+  {
+    lang: "cpp",
+    patterns: [/^\s*#include\s*</m, /\bstd::\w+/, /->\s*\w+\s*\{/],
+  },
+  {
+    lang: "rust",
+    patterns: [/^\s*fn\s+\w+\(/m, /\blet\s+mut\s+/, /->\s*\w+\s*\{/],
+  },
+  {
+    lang: "go",
+    patterns: [/^\s*func\s+\w+\(/m, /\bpackage\s+main\b/],
+  },
+  {
+    lang: "css",
+    patterns: [/^\s*\.[\w-]+\s*\{/m, /^\s*[\w-]+\s*:\s*[\w#].*;\s*$/m],
+  },
+  {
+    lang: "html",
+    patterns: [/^\s*<\/?[a-z][\w-]*(\s|>|\/>)/im],
+  },
+  {
+    lang: "json",
+    patterns: [/^\s*[{[]\s*$/m, /^\s*"[\w-]+"\s*:\s*/m],
+  },
+  {
+    lang: "js",
+    patterns: [
+      /\bconsole\.log\(/,
+      /\brequire\(/,
+      /\bmodule\.exports\b/,
+      /=>\s*\{/,
+      /^\s*(function|const|let|var)\s+\w+.*[;{]/m,
+    ],
+  },
 ];
 
 export function guessLanguage(text: string): string {
-  for (const [pattern, lang] of LANGUAGE_HINTS) {
-    if (pattern.test(text)) return lang;
+  let best = "";
+  let bestScore = 0;
+  for (const { lang, patterns } of LANGUAGE_PATTERNS) {
+    const score = patterns.reduce((count, pattern) => count + (pattern.test(text) ? 1 : 0), 0);
+    if (score > bestScore) {
+      best = lang;
+      bestScore = score;
+    }
   }
-  return "";
+  return best;
 }
 
 /**
