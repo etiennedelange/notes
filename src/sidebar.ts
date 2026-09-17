@@ -3,6 +3,14 @@ import type { DirNode } from "./fs";
 import { escapeHtml } from "./html";
 import { basename } from "./pathutil";
 
+function iconForFile(name: string): string {
+  const dot = name.lastIndexOf(".");
+  const ext = dot === -1 ? "" : name.slice(dot + 1).toLowerCase();
+  if (ext === "md" || ext === "markdown") return "#icon-file-md";
+  if (ext === "txt") return "#icon-file";
+  return "#icon-file-unknown";
+}
+
 function iconFor(isDir: boolean, expanded: boolean): string {
   if (!isDir) return "#icon-file";
   return expanded ? "#icon-folder-open" : "#icon-folder";
@@ -26,7 +34,7 @@ function renderNode(app: App, node: DirNode, depth: number): string {
   const dirty = app.tabs.get(node.path)?.dirty;
   return `
     <button class="tree-row tree-row-file ${active ? "active" : ""}" data-file="${escapeHtml(node.path)}" style="--depth:${depth}" title="${escapeHtml(node.path)}">
-      <svg class="icon" width="14" height="14"><use href="${iconFor(false, false)}" /></svg>
+      <svg class="icon" width="14" height="14"><use href="${iconForFile(node.name)}" /></svg>
       <span class="tree-label">${escapeHtml(node.name)}</span>
       ${dirty ? '<span class="dot" aria-hidden="true"></span>' : ""}
     </button>`;
@@ -65,7 +73,7 @@ export function renderSidebar(app: App) {
         return `
           <div class="tree-row tree-row-file loose-row ${active ? "active" : ""}" style="--depth:0">
             <button class="loose-open" data-file="${escapeHtml(path)}" title="${escapeHtml(path)}">
-              <svg class="icon" width="14" height="14"><use href="#icon-file" /></svg>
+              <svg class="icon" width="14" height="14"><use href="${iconForFile(basename(path))}" /></svg>
               <span class="tree-label">${escapeHtml(basename(path))}</span>
               ${dirty ? '<span class="dot" aria-hidden="true"></span>' : ""}
             </button>

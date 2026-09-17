@@ -50,6 +50,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-ui);
@@ -236,12 +237,14 @@ kbd {
   flex: 1 1 auto;
   min-height: 80px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 #loose-files-section {
   flex: 0 0 auto;
   max-height: 40%;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-bottom: 6px;
 }
 
@@ -711,6 +714,7 @@ kbd {
 
 #command-palette-results {
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 6px;
 }
 

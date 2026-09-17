@@ -5,6 +5,8 @@ import type { Extension } from "@codemirror/state";
 
 export type ThemeId = "nord" | "tokyo-night" | "noctis-lux";
 
+export const BASE_EDITOR_FONT_PX = 14.5;
+
 export interface ThemeTokens {
   id: ThemeId;
   label: string;
@@ -146,7 +148,7 @@ export function editorTheme(theme: ThemeTokens): Extension {
         color: theme.fg,
         backgroundColor: theme.bg,
         height: "100%",
-        fontSize: "14.5px",
+        fontSize: "var(--editor-font-size, 14.5px)",
       },
       "&.cm-focused": {
         outline: "none",
@@ -159,6 +161,7 @@ export function editorTheme(theme: ThemeTokens): Extension {
       ".cm-scroller": {
         lineHeight: "1.65",
         overflow: "auto",
+        overscrollBehavior: "contain",
       },
       "&.cm-focused .cm-cursor": {
         borderLeftColor: theme.caret,

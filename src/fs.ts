@@ -12,6 +12,7 @@ export interface DirNode {
 export interface PersistedState {
   theme?: string;
   zoom?: number;
+  editorZoom?: number;
   sidebarWidth?: number;
   lastFolder?: string;
   recentFiles: string[];

@@ -14,7 +14,7 @@ import {
   type DirNode,
 } from "./fs";
 import { createTabEditorState, withTheme } from "./editor";
-import { THEMES, THEME_ORDER, applyChromeTheme, type ThemeId } from "./themes";
+import { THEMES, THEME_ORDER, applyChromeTheme, BASE_EDITOR_FONT_PX, type ThemeId } from "./themes";
 import { basename, isDescendant } from "./pathutil";
 import { showToast } from "./toast";
 import type { Tab } from "./types";
@@ -29,6 +29,9 @@ const NOTE_EXT = /\.(txt|md|markdown)$/i;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.0;
 const ZOOM_STEP = 0.1;
+const EDITOR_ZOOM_MIN = 0.5;
+const EDITOR_ZOOM_MAX = 2.5;
+const EDITOR_ZOOM_STEP = 0.1;
 const SIDEBAR_W_MIN = 160;
 const SIDEBAR_W_MAX = 480;
 const SIDEBAR_W_DEFAULT = 240;
@@ -48,6 +51,7 @@ export class App {
   recentFiles: string[] = [];
   theme: ThemeId = "nord";
   zoom = 1;
+  editorZoom = 1;
   sidebarWidth = SIDEBAR_W_DEFAULT;
   expandedDirs = new Set<string>();
   untitledCounter = 1;
@@ -81,6 +85,11 @@ export class App {
       this.zoom = clamp(persisted.zoom, ZOOM_MIN, ZOOM_MAX);
     }
     document.getElementById("app")!.style.zoom = String(this.zoom);
+
+    if (typeof persisted?.editorZoom === "number" && Number.isFinite(persisted.editorZoom)) {
+      this.editorZoom = clamp(persisted.editorZoom, EDITOR_ZOOM_MIN, EDITOR_ZOOM_MAX);
+    }
+    this.editorHost.style.setProperty("--editor-font-size", `${(BASE_EDITOR_FONT_PX * this.editorZoom).toFixed(2)}px`);
 
     if (typeof persisted?.sidebarWidth === "number" && Number.isFinite(persisted.sidebarWidth)) {
       this.sidebarWidth = clamp(persisted.sidebarWidth, SIDEBAR_W_MIN, SIDEBAR_W_MAX);
@@ -149,6 +158,7 @@ export class App {
     saveState({
       theme: this.theme,
       zoom: this.zoom,
+      editorZoom: this.editorZoom,
       sidebarWidth: this.sidebarWidth,
       lastFolder: this.openFolder ?? undefined,
       recentFiles: this.recentFiles,
@@ -531,6 +541,14 @@ export class App {
     this.persist();
   }
 
+  setEditorZoom(level: number) {
+    const clamped = Math.round(clamp(level, EDITOR_ZOOM_MIN, EDITOR_ZOOM_MAX) * 100) / 100;
+    if (clamped === this.editorZoom) return;
+    this.editorZoom = clamped;
+    this.editorHost.style.setProperty("--editor-font-size", `${(BASE_EDITOR_FONT_PX * this.editorZoom).toFixed(2)}px`);
+    this.persist();
+  }
+
   // ---------- sidebar resize ----------
 
   setSidebarWidth(width: number) {
@@ -574,7 +592,12 @@ export class App {
       (e) => {
         if (!e.ctrlKey) return;
         e.preventDefault();
-        this.setZoom(this.zoom - Math.sign(e.deltaY) * ZOOM_STEP);
+        const overEditor = e.target instanceof Node && this.editorHost.contains(e.target);
+        if (overEditor) {
+          this.setEditorZoom(this.editorZoom - Math.sign(e.deltaY) * EDITOR_ZOOM_STEP);
+        } else {
+          this.setZoom(this.zoom - Math.sign(e.deltaY) * ZOOM_STEP);
+        }
       },
       { passive: false },
     );
