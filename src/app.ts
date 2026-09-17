@@ -1,6 +1,7 @@
 import { EditorView, type ViewUpdate } from "@codemirror/view";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { availableMonitors, PhysicalPosition, PhysicalSize } from "@tauri-apps/api/window";
 import {
   readDirTree,
   readTextFile,
@@ -12,6 +13,7 @@ import {
   loadState,
   saveState,
   type DirNode,
+  type PersistedState,
 } from "./fs";
 import { createTabEditorState, withTheme } from "./editor";
 import { THEMES, THEME_ORDER, applyChromeTheme, BASE_EDITOR_FONT_PX, type ThemeId } from "./themes";
@@ -57,6 +59,7 @@ export class App {
   expandedDirs = new Set<string>();
   untitledCounter = 1;
   private closedTabs: string[] = [];
+  private windowGeom: { x: number; y: number; width: number; height: number; maximized: boolean } | null = null;
 
   view: EditorView;
 
@@ -79,6 +82,8 @@ export class App {
 
   async init() {
     const persisted = await loadState().catch(() => null);
+    await this.restoreWindowGeometry(persisted);
+
     if (persisted?.theme && persisted.theme in THEMES) {
       this.theme = persisted.theme as ThemeId;
     }
@@ -128,6 +133,13 @@ export class App {
       }
     }
 
+    if (persisted?.pinnedTabs?.length) {
+      for (const key of persisted.pinnedTabs) {
+        const tab = this.tabs.get(key);
+        if (tab) tab.pinned = true;
+      }
+    }
+
     if (persisted?.activeTab && this.tabs.has(persisted.activeTab)) {
       this.activateTab(persisted.activeTab);
     } else if (this.order.length > 0) {
@@ -139,6 +151,7 @@ export class App {
     this.wireZoomWheel();
     this.wireSidebarResize();
     this.wireWindowClose();
+    this.wireWindowGeometry();
     this.wireDragDrop();
   }
 
@@ -169,14 +182,16 @@ export class App {
     this.persistTimer = setTimeout(() => this.flushPersist(), 300);
   }
 
-  /** Cancels any pending debounce and writes state immediately. */
-  private flushPersist() {
+  /** Cancels any pending debounce and writes state immediately, awaiting the write. */
+  private async flushPersist(): Promise<void> {
     if (this.persistTimer !== null) {
       clearTimeout(this.persistTimer);
       this.persistTimer = null;
     }
-    const openTabs = this.order.filter((k) => !this.tabs.get(k)!.isUntitled).map((k) => this.tabs.get(k)!.path!);
-    saveState({
+    const persistableKeys = this.order.filter((k) => !this.tabs.get(k)!.isUntitled);
+    const openTabs = persistableKeys.map((k) => this.tabs.get(k)!.path!);
+    const pinnedTabs = persistableKeys.filter((k) => this.tabs.get(k)!.pinned).map((k) => this.tabs.get(k)!.path!);
+    await saveState({
       theme: this.theme,
       zoom: this.zoom,
       editorZoom: this.editorZoom,
@@ -185,6 +200,12 @@ export class App {
       recentFiles: this.recentFiles,
       openTabs,
       activeTab: this.activeKey && !this.tabs.get(this.activeKey)?.isUntitled ? this.activeKey : undefined,
+      pinnedTabs,
+      windowX: this.windowGeom?.x,
+      windowY: this.windowGeom?.y,
+      windowWidth: this.windowGeom?.width,
+      windowHeight: this.windowGeom?.height,
+      windowMaximized: this.windowGeom?.maximized,
     }).catch(() => {});
   }
 
@@ -253,7 +274,7 @@ export class App {
   ): Promise<void> {
     const activate = opts.activate ?? true;
     if (this.tabs.has(path)) {
-      if (!opts.preview && this.previewKey === path) this.pinTab(path);
+      if (!opts.preview && this.previewKey === path) this.promoteTab(path);
       if (activate) this.activateTab(path);
       return;
     }
@@ -296,7 +317,7 @@ export class App {
       this.handleCursorUpdate,
     );
 
-    const tab: Tab = { key: path, path, isUntitled: false, state, dirty: false, diskMtime: mtime };
+    const tab: Tab = { key: path, path, isUntitled: false, state, dirty: false, diskMtime: mtime, pinned: false };
 
     // A preview tab takes the slot of the previous preview tab (if any and
     // not dirty) instead of piling up a new tab, matching editors like VS
@@ -327,11 +348,42 @@ export class App {
     if (!opts.skipPersist) this.persist();
   }
 
-  /** Promotes a preview tab to a fully pinned tab (no-op if it isn't one). */
-  pinTab(key: string) {
+  /** Promotes a preview ("peek") tab to a full, persistent tab. No-op if it isn't a preview tab. */
+  promoteTab(key: string) {
     if (this.previewKey !== key) return;
     this.previewKey = null;
     renderTabs(this);
+  }
+
+  /**
+   * Toggles a tab's pinned state. Pinned tabs move to (and stay at) the front
+   * of the strip and are skipped by "Close Others" / "Close All", distinct
+   * from `promoteTab`'s unrelated preview-tab promotion.
+   */
+  togglePinTab(key: string) {
+    const tab = this.tabs.get(key);
+    if (!tab) return;
+    tab.pinned = !tab.pinned;
+    if (tab.pinned) {
+      if (this.previewKey === key) this.previewKey = null;
+      this.order = this.order.filter((k) => k !== key);
+      const firstUnpinnedIdx = this.order.findIndex((k) => !this.tabs.get(k)!.pinned);
+      this.order.splice(firstUnpinnedIdx === -1 ? this.order.length : firstUnpinnedIdx, 0, key);
+    }
+    renderTabs(this);
+    this.persist();
+  }
+
+  /** Closes every tab except `key`, leaving pinned tabs untouched. */
+  async closeOtherTabs(key: string) {
+    const toClose = this.order.filter((k) => k !== key && !this.tabs.get(k)!.pinned);
+    for (const k of toClose) await this.closeTab(k);
+  }
+
+  /** Closes every unpinned tab. */
+  async closeAllTabs() {
+    const toClose = this.order.filter((k) => !this.tabs.get(k)!.pinned);
+    for (const k of toClose) await this.closeTab(k);
   }
 
   newUntitledTab() {
@@ -343,7 +395,7 @@ export class App {
       () => this.markDirty(key),
       this.handleCursorUpdate,
     );
-    const tab: Tab = { key, path: null, isUntitled: true, state, dirty: false, diskMtime: null };
+    const tab: Tab = { key, path: null, isUntitled: true, state, dirty: false, diskMtime: null, pinned: false };
     this.tabs.set(key, tab);
     this.order.push(key);
     this.activateTab(key);
@@ -720,31 +772,103 @@ export class App {
   private wireWindowClose() {
     getCurrentWebviewWindow()
       .onCloseRequested(async (event) => {
-        const dirtyKeys = this.order.filter((k) => this.tabs.get(k)!.dirty);
-        if (dirtyKeys.length === 0) return;
+        // Always prevented and re-driven manually below: the default close
+        // proceeds immediately and would tear the webview down before the
+        // async state flush (window geometry, zoom, etc.) below ever reaches
+        // disk, silently losing whatever changed since the last debounce.
         event.preventDefault();
 
-        const plural = dirtyKeys.length > 1;
-        const names = dirtyKeys.map((k) => `"${this.tabLabel(this.tabs.get(k)!)}"`).join(", ");
-        const choice = await unsavedChangesModal({
-          title: "Unsaved changes",
-          message: plural
-            ? `You have ${dirtyKeys.length} files with unsaved changes: ${names}. Save them before quitting?`
-            : `${names} has unsaved changes. Save it before quitting?`,
-          saveLabel: plural ? "Save All" : "Save",
-        });
+        const dirtyKeys = this.order.filter((k) => this.tabs.get(k)!.dirty);
+        if (dirtyKeys.length > 0) {
+          const plural = dirtyKeys.length > 1;
+          const names = dirtyKeys.map((k) => `"${this.tabLabel(this.tabs.get(k)!)}"`).join(", ");
+          const choice = await unsavedChangesModal({
+            title: "Unsaved changes",
+            message: plural
+              ? `You have ${dirtyKeys.length} files with unsaved changes: ${names}. Save them before quitting?`
+              : `${names} has unsaved changes. Save it before quitting?`,
+            saveLabel: plural ? "Save All" : "Save",
+          });
 
-        if (choice === "cancel") return;
-        if (choice === "save") {
-          for (const key of dirtyKeys) {
-            const saved = await this.saveTab(key);
-            if (!saved) return; // a Save As was cancelled — abort quitting
+          if (choice === "cancel") return;
+          if (choice === "save") {
+            for (const key of dirtyKeys) {
+              const saved = await this.saveTab(key);
+              if (!saved) return; // a Save As was cancelled — abort quitting
+            }
           }
         }
-        this.flushPersist();
+        await this.captureWindowGeom();
+        await this.flushPersist();
         getCurrentWebviewWindow().destroy();
       })
       .catch(() => {});
+  }
+
+  // ---------- window geometry ----------
+
+  /** Applies persisted size/position/maximized state before the (still-hidden) window is shown. */
+  private async restoreWindowGeometry(persisted: PersistedState | null): Promise<void> {
+    const win = getCurrentWebviewWindow();
+    const width = persisted?.windowWidth;
+    const height = persisted?.windowHeight;
+    if (typeof width === "number" && typeof height === "number") {
+      await win.setSize(new PhysicalSize(width, height)).catch(() => {});
+    }
+    const x = persisted?.windowX;
+    const y = persisted?.windowY;
+    if (typeof x === "number" && typeof y === "number" && (await this.rectOnAnyMonitor(x, y, width ?? 0, height ?? 0))) {
+      await win.setPosition(new PhysicalPosition(x, y)).catch(() => {});
+    }
+    if (persisted?.windowMaximized) {
+      await win.maximize().catch(() => {});
+    }
+    await this.captureWindowGeom();
+  }
+
+  /** True if the given physical-pixel rect overlaps a currently-connected monitor's bounds. */
+  private async rectOnAnyMonitor(x: number, y: number, width: number, height: number): Promise<boolean> {
+    try {
+      const monitors = await availableMonitors();
+      return monitors.some((m) => {
+        const mx2 = m.position.x + m.size.width;
+        const my2 = m.position.y + m.size.height;
+        return x < mx2 && x + width > m.position.x && y < my2 && y + height > m.position.y;
+      });
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Records the window's current bounds for persistence. While maximized, the
+   * last known restored (un-maximized) bounds are kept as-is — only the
+   * `maximized` flag flips — so unmaximizing next launch has somewhere to
+   * return to instead of snapping to the maximized size.
+   */
+  private async captureWindowGeom(): Promise<void> {
+    const win = getCurrentWebviewWindow();
+    try {
+      const maximized = await win.isMaximized();
+      if (maximized) {
+        this.windowGeom = { ...(this.windowGeom ?? { x: 0, y: 0, width: 0, height: 0 }), maximized: true };
+        return;
+      }
+      const pos = await win.outerPosition();
+      const size = await win.outerSize();
+      this.windowGeom = { x: pos.x, y: pos.y, width: size.width, height: size.height, maximized: false };
+    } catch {
+      /* window may already be closing; leave the last known geometry as-is */
+    }
+  }
+
+  private wireWindowGeometry() {
+    const win = getCurrentWebviewWindow();
+    const onChange = () => {
+      this.captureWindowGeom().then(() => this.persist());
+    };
+    win.onResized(onChange).catch(() => {});
+    win.onMoved(onChange).catch(() => {});
   }
 
   private wireDragDrop() {

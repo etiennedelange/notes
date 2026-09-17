@@ -484,6 +484,14 @@ kbd {
 .tab.preview .tab-label {
   font-style: italic;
 }
+.tab.pinned {
+  min-width: auto;
+  max-width: 160px;
+}
+.tab-pin-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
 /* The dot sits on top of the close button's slot, so neither changes the tab width. */
 .tab .dot {
   display: block;

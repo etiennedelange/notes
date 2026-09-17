@@ -9,6 +9,7 @@ export interface Tab {
   state: EditorState;
   dirty: boolean;
   diskMtime: number | null;
+  pinned: boolean;
 }
 
 export interface AppSnapshot {

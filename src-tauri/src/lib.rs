@@ -444,11 +444,18 @@ fn file_mtime_ms(path: String, state: tauri::State<ConsentedPaths>) -> Result<u6
 struct AppStateDto {
     theme: Option<String>,
     zoom: Option<f64>,
+    editor_zoom: Option<f64>,
     sidebar_width: Option<f64>,
     last_folder: Option<String>,
     recent_files: Vec<String>,
     open_tabs: Vec<String>,
     active_tab: Option<String>,
+    pinned_tabs: Vec<String>,
+    window_x: Option<f64>,
+    window_y: Option<f64>,
+    window_width: Option<f64>,
+    window_height: Option<f64>,
+    window_maximized: Option<bool>,
 }
 
 fn state_path(app: &tauri::AppHandle) -> Result<PathBuf, Error> {
@@ -503,6 +510,8 @@ pub fn run() {
     tauri::Builder::default()
         .manage(ConsentedPaths(Mutex::new(HashSet::new())))
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .invoke_handler(tauri::generate_handler![
             read_dir_tree,
             read_text_file,

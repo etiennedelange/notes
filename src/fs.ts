@@ -18,6 +18,12 @@ export interface PersistedState {
   recentFiles: string[];
   openTabs: string[];
   activeTab?: string;
+  pinnedTabs: string[];
+  windowX?: number;
+  windowY?: number;
+  windowWidth?: number;
+  windowHeight?: number;
+  windowMaximized?: boolean;
 }
 
 export interface ReadFileResult {
