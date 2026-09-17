@@ -238,6 +238,7 @@ kbd {
   min-height: 80px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  contain: content;
 }
 
 #loose-files-section {
@@ -246,6 +247,7 @@ kbd {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-bottom: 6px;
+  contain: content;
 }
 
 .sidebar-header {
@@ -332,6 +334,8 @@ kbd {
   text-align: left;
   cursor: pointer;
   position: relative;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 26px;
 }
 .tree-row:hover {
   background: var(--bg-highlight);
