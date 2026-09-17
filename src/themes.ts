@@ -181,7 +181,11 @@ export function editorTheme(theme: ThemeTokens): Extension {
         backgroundColor: theme.selection + " !important",
       },
       ".cm-activeLine": {
-        backgroundColor: theme.bgHighlight,
+        // Must stay translucent: the selection layer paints behind .cm-line
+        // (negative z-index), so an opaque active-line background here would
+        // fully hide the selection highlight whenever the cursor's line is
+        // also the selected line — which is effectively always.
+        backgroundColor: `color-mix(in srgb, ${theme.bgHighlight} 55%, transparent)`,
       },
       ".cm-activeLineGutter": {
         backgroundColor: theme.bgHighlight,
