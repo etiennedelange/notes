@@ -237,16 +237,45 @@ export class App {
     }
   }
 
+  /**
+   * Tracks in-flight reads per path. A fast double-click fires two `click`s
+   * and a `dblclick` before the first disk read resolves; without this, each
+   * would see `tabs.has(path)` as false and race to create its own tab. Every
+   * call but the first now awaits that one real read, then re-enters
+   * `openFile` to apply its own preview/pin/activate semantics against the
+   * tab the first call created.
+   */
+  private opening = new Map<string, Promise<void>>();
+
   async openFile(
     path: string,
     opts: { activate?: boolean; skipPersist?: boolean; skipRecent?: boolean; preview?: boolean } = {},
-  ) {
+  ): Promise<void> {
     const activate = opts.activate ?? true;
     if (this.tabs.has(path)) {
       if (!opts.preview && this.previewKey === path) this.pinTab(path);
       if (activate) this.activateTab(path);
       return;
     }
+    const pending = this.opening.get(path);
+    if (pending) {
+      await pending;
+      return this.openFile(path, opts);
+    }
+    const task = this.loadAndCreateTab(path, opts);
+    this.opening.set(path, task);
+    try {
+      await task;
+    } finally {
+      this.opening.delete(path);
+    }
+  }
+
+  private async loadAndCreateTab(
+    path: string,
+    opts: { activate?: boolean; skipPersist?: boolean; skipRecent?: boolean; preview?: boolean },
+  ) {
+    const activate = opts.activate ?? true;
     let content: string;
     try {
       const result = await readTextFile(path);

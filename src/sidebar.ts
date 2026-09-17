@@ -95,17 +95,16 @@ function wireOnce() {
   document.getElementById("open-folder-btn")!.addEventListener("click", () => currentApp?.openFolderDialog());
   document.getElementById("close-folder-btn")!.addEventListener("click", () => currentApp?.closeFolder());
 
+  // Double-click is detected via click count (e.detail), not a dblclick
+  // listener: the first click re-renders this container's innerHTML, which
+  // destroys the clicked node, and Chromium won't dispatch dblclick when the
+  // node changes between the two clicks. The click event still counts them.
   document.getElementById("folder-tree")!.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
     const dirBtn = target.closest<HTMLElement>("[data-dir]");
     const fileBtn = target.closest<HTMLElement>("[data-file]");
     if (dirBtn) currentApp?.toggleDir(dirBtn.dataset.dir!);
-    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!, { preview: true });
-  });
-  document.getElementById("folder-tree")!.addEventListener("dblclick", (e) => {
-    const target = e.target as HTMLElement;
-    const fileBtn = target.closest<HTMLElement>("[data-file]");
-    if (fileBtn) currentApp?.pinTab(fileBtn.dataset.file!);
+    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!, { preview: e.detail < 2 });
   });
 
   document.getElementById("loose-files")!.addEventListener("click", (e) => {
@@ -113,12 +112,7 @@ function wireOnce() {
     const unpin = target.closest<HTMLElement>("[data-unpin]");
     const fileBtn = target.closest<HTMLElement>("[data-file]");
     if (unpin) currentApp?.closeLooseFile(unpin.dataset.unpin!);
-    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!, { preview: true });
-  });
-  document.getElementById("loose-files")!.addEventListener("dblclick", (e) => {
-    const target = e.target as HTMLElement;
-    const fileBtn = target.closest<HTMLElement>("[data-file]");
-    if (fileBtn) currentApp?.pinTab(fileBtn.dataset.file!);
+    else if (fileBtn) currentApp?.openFile(fileBtn.dataset.file!, { preview: e.detail < 2 });
   });
 }
 

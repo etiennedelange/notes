@@ -42,13 +42,12 @@ function wireOnce(strip: HTMLElement) {
       return;
     }
     const tabEl = target.closest<HTMLElement>("[data-tab]");
-    if (tabEl) currentApp?.activateTab(tabEl.dataset.tab!);
-  });
-  strip.addEventListener("dblclick", (e) => {
-    const target = e.target as HTMLElement;
-    if (target.closest<HTMLElement>("[data-close]")) return;
-    const tabEl = target.closest<HTMLElement>("[data-tab]");
-    if (tabEl) currentApp?.pinTab(tabEl.dataset.tab!);
+    if (!tabEl) return;
+    currentApp?.activateTab(tabEl.dataset.tab!);
+    // Click count rather than a dblclick listener: activateTab re-renders this
+    // strip's innerHTML, and Chromium skips dblclick when the clicked node is
+    // replaced between the two clicks.
+    if (e.detail >= 2) currentApp?.pinTab(tabEl.dataset.tab!);
   });
   // The browser's default middle-click behavior is to start autoscrolling
   // (the "scrolling cursor"), which swallows the click auxclick would
