@@ -15,6 +15,38 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-22 — Fix marketing site reliability and mobile issues from design critique [site]
+
+- Split `getLatestRelease()`'s return into a `ReleaseState` union
+  (`found` / `empty` / `error`) instead of a bare `ReleaseInfo | null`, so a
+  GitHub API fetch failure no longer renders identically to a genuine "no
+  release published yet" — it previously claimed pre-1.0 even when the
+  release fetch had merely failed (e.g. rate limiting).
+- Fixed a real horizontal-overflow bug at 320px viewport width: the header
+  nav didn't wrap and the hero mock's tab labels didn't shrink, together
+  pushing the page ~15px wider than the viewport on the narrowest common
+  phone width. Also gave the hero mock's status bar `flex-wrap` so its two
+  labels don't crush together at that width.
+- Added a scroll-spy active state to the header's in-page anchor nav
+  (`aria-current`, IntersectionObserver) — previously nothing indicated
+  which section was in view while scrolling.
+- Snapped four off-scale `border-radius` values (4px/2px) onto DESIGN.md's
+  documented 5px/8px/10px scale.
+- Why: found by `/impeccable critique` on `src/pages/index.astro`
+  (26/32, Good) — see `site/.impeccable/critique/` for the full report.
+
+## 2026-09-22 — Install Cloudflare Wrangler CLI in the devcontainer [app]
+
+- Added `npm install -g wrangler` to `.devcontainer/devcontainer.json`'s
+  `postCreateCommand` so it's reinstalled on every container rebuild
+  (npm's global `node_modules` lives outside the persisted cargo volume
+  mount, so a plain ad-hoc `npm install -g` would be wiped on rebuild).
+- Also set `npm config set allow-scripts='esbuild,workerd' --location=user`
+  first: npm 11's install-script allowlist otherwise silently skips the
+  postinstall scripts that fetch the `esbuild`/`workerd` native binaries
+  wrangler's own `node_modules` depends on, leaving `wrangler dev` broken
+  even though `wrangler --version` still reports success.
+
 ## 2026-09-22 — Adopt Astro's Fonts API and enable Content Security Policy [site]
 
 - Replaced the manual `@fontsource/ibm-plex-sans` and `@fontsource/jetbrains-mono`

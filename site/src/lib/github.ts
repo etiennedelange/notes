@@ -25,6 +25,14 @@ export interface ReleaseInfo {
   platforms: PlatformDownload[];
 }
 
+// Distinguishes "the API told us there's genuinely nothing published" from
+// "we couldn't find out" (network failure, rate limiting, a 5xx) — the two
+// look identical to a visitor unless the caller keeps them apart.
+export type ReleaseState =
+  | { status: "found"; release: ReleaseInfo }
+  | { status: "empty" }
+  | { status: "error" };
+
 const PLATFORM_LABELS: Record<Platform, string> = {
   windows: "Windows",
   macos: "macOS",
@@ -55,12 +63,16 @@ function suffixRank(platform: Platform, filename: string): number {
   return index === -1 ? suffixes.length : index;
 }
 
-export async function getLatestRelease(): Promise<ReleaseInfo | null> {
+export async function getLatestRelease(): Promise<ReleaseState> {
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
       headers: { Accept: "application/vnd.github+json" },
     });
-    if (!res.ok) return null;
+    // GitHub returns 404 for a repo with no releases yet — that's a real
+    // empty state, not a failure. Anything else non-OK (rate limit, 5xx) is
+    // a failure we shouldn't dress up as "nothing published."
+    if (res.status === 404) return { status: "empty" };
+    if (!res.ok) return { status: "error" };
 
     const data = (await res.json()) as {
       tag_name: string;
@@ -89,17 +101,20 @@ export async function getLatestRelease(): Promise<ReleaseInfo | null> {
         return { platform, label: PLATFORM_LABELS[platform], primary, extra };
       });
 
-    if (platforms.length === 0) return null;
+    if (platforms.length === 0) return { status: "empty" };
 
     return {
-      tag: data.tag_name,
-      name: data.name || data.tag_name,
-      url: data.html_url,
-      publishedAt: data.published_at,
-      platforms,
+      status: "found",
+      release: {
+        tag: data.tag_name,
+        name: data.name || data.tag_name,
+        url: data.html_url,
+        publishedAt: data.published_at,
+        platforms,
+      },
     };
   } catch {
-    return null;
+    return { status: "error" };
   }
 }
 

@@ -1,11 +1,12 @@
 ---
-import { formatBytes, RELEASES_URL, REPO_URL, type ReleaseInfo } from "../lib/github";
+import { formatBytes, RELEASES_URL, REPO_URL, type ReleaseState } from "../lib/github";
 
 interface Props {
-  release: ReleaseInfo | null;
+  releaseState: ReleaseState;
 }
 
-const { release } = Astro.props;
+const { releaseState } = Astro.props;
+const release = releaseState.status === "found" ? releaseState.release : null;
 ---
 
 <section class="section" id="download">
@@ -65,11 +66,30 @@ const { release } = Astro.props;
             <a href={release.url}>See {release.name} notes and every past release on GitHub</a>
           </p>
         </>
+      ) : releaseState.status === "error" ? (
+        <div class="empty">
+          <p class="lede lede-strong">Couldn't load the latest release right now.</p>
+          <p class="empty-detail">
+            GitHub didn't respond — this is usually temporary, not a sign
+            nothing's published. Check the releases page directly, or reload
+            in a moment.
+          </p>
+          <div class="empty-links">
+            <a class="btn btn-primary" href={RELEASES_URL}>
+              Check the releases page
+            </a>
+            <a class="btn btn-ghost" href={`${REPO_URL}#building`}>
+              Build it from source
+            </a>
+          </div>
+        </div>
       ) : (
         <div class="empty">
-          <p class="lede">
-            No published release yet — Notes is still pre-1.0 and builds are
-            made on demand.
+          <p class="lede lede-strong">No published release yet.</p>
+          <p class="empty-detail">
+            Notes is still pre-1.0 — builds go out on demand rather than a
+            schedule. Grab the latest from source, or check back on the
+            releases page.
           </p>
           <div class="empty-links">
             <a class="btn btn-primary" href={RELEASES_URL}>
@@ -108,6 +128,17 @@ const { release } = Astro.props;
 
   .date {
     font-size: 0.9rem;
+  }
+
+  .lede-strong {
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .empty-detail {
+    margin-top: 0.85rem;
+    max-width: 46ch;
+    color: var(--cloud);
   }
 
   .platforms {

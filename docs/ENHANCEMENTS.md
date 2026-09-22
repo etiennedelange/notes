@@ -12,10 +12,14 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
-- **[site] Pick and configure a deploy target.** No host is confirmed yet
-  (Cloudflare Pages / Vercel / Netlify were noted as options in
-  `site/PRODUCT.md`, none chosen). Blocks the domain and sitemap items
-  below.
+- **[site] Host the marketing site on Cloudflare Pages.** Not yet set up —
+  needs a Cloudflare account/project connected to the repo, an
+  `@astrojs/cloudflare` adapter only if the site later needs SSR (static
+  output deploys to Pages without one), and a build config pointing at
+  `site/` (`pnpm --dir site build`, output `site/dist`). Cloudflare Pages
+  / Vercel / Netlify were all noted as options in `site/PRODUCT.md`;
+  Cloudflare Pages is now the intended target. Blocks the domain and
+  sitemap items below.
 - **[site] Custom domain.** No domain is set (`site/astro.config.mjs` has
   no `site` configured). Depends on the deploy target decision.
 - **[site] Sitemap / canonical URL setup.** Blocked on the domain

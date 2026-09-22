@@ -14,18 +14,50 @@ const { release } = Astro.props;
     notes
   </a>
   <nav class="nav">
-    <a href="#features">Features</a>
-    <a href="#themes">Themes</a>
-    <a href="#download">{release ? "Download" : "Get Notes"}</a>
+    <a href="#features" data-target="features">Features</a>
+    <a href="#themes" data-target="themes">Themes</a>
+    <a href="#download" data-target="download">{release ? "Download" : "Get Notes"}</a>
     <a href={REPO_URL}>GitHub</a>
   </nav>
 </header>
+
+<script>
+  const links = document.querySelectorAll(".nav a[data-target]");
+  const sections = [];
+  links.forEach((link) => {
+    const el = document.getElementById(link.dataset.target);
+    if (el) sections.push(el);
+  });
+
+  if (sections.length && "IntersectionObserver" in window) {
+    const setActive = (id) => {
+      links.forEach((link) => {
+        if (link.dataset.target === id) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActive(visible.target.id);
+      },
+      { rootMargin: "-40% 0px -50% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+  }
+</script>
 
 <style>
   .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 0.6rem;
     padding: 1.5rem var(--gutter);
     max-width: var(--wide-width);
     margin: 0 auto;
@@ -72,9 +104,14 @@ const { release } = Astro.props;
     color: var(--paper);
   }
 
+  .nav a[aria-current="true"] {
+    color: var(--teal);
+  }
+
   @media (max-width: 30rem) {
     .nav {
       gap: 0.1rem;
+      flex-wrap: wrap;
     }
 
     .nav a {

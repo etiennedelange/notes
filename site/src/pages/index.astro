@@ -9,7 +9,8 @@ import Download from "../components/Download.astro";
 import Footer from "../components/Footer.astro";
 import { getLatestRelease } from "../lib/github";
 
-const release = await getLatestRelease();
+const releaseState = await getLatestRelease();
+const release = releaseState.status === "found" ? releaseState.release : null;
 ---
 
 <Layout
@@ -21,6 +22,6 @@ const release = await getLatestRelease();
   <Positioning />
   <Features />
   <Themes />
-  <Download release={release} />
+  <Download releaseState={releaseState} />
   <Footer />
 </Layout>

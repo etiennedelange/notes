@@ -15,7 +15,7 @@
 	// webkit2gtk/gtk3/etc. are Tauri build-time deps (pkg-config, linked by the
 	// tao/wry/webkit2gtk crates) — needed for `cargo build`/`cargo check` to work
 	// even though this container never runs or displays the GUI itself.
-	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev libssl-dev libxdo-dev patchelf pkg-config && corepack enable && pnpm install",
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev libssl-dev libxdo-dev patchelf pkg-config && corepack enable && pnpm install && npm config set allow-scripts='esbuild,workerd' --location=user && npm install -g wrangler",
 
 	// Persist the cargo cache in a Docker Volume across container rebuilds.
 	"mounts": [
@@ -32,7 +32,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// 1420: the Tauri app's Vite dev server (`pnpm dev` at the repo root).
 	// 4322: the Astro marketing site's dev server (`pnpm dev` in site/).
-	"forwardPorts": [1420, 4322],
+	"forwardPorts": [1420, 4322, 8976],
 
 	// Configure tool-specific properties.
 	// "customizations": {},
