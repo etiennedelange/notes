@@ -51,5 +51,5 @@ jobs:
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
           claude_args: |
-            --allowed-tools "Bash(gh issue view:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(npm test),Bash(npm run build),Bash(cd src-tauri && cargo test),Bash(cd src-tauri && cargo clippy --all-targets -- -D warnings)"
+            --allowed-tools "Bash(gh issue view:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(pnpm test),Bash(pnpm run build),Bash(cd src-tauri && cargo test),Bash(cd src-tauri && cargo clippy --all-targets -- -D warnings)"
 

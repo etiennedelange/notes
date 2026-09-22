@@ -20,20 +20,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       # `npm run build` is `tsc && vite build`, and tsconfig sets noEmit, so this
       # typechecks and then catches anything that only fails in a real bundle.
       - name: Typecheck and build
-        run: npm run build
+        run: pnpm run build
 
       - name: Unit tests
-        run: npm test
+        run: pnpm test
 
   rust:
     runs-on: ubuntu-latest
