@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-22T00:00:00.000Z",
+  "title": "Design System: Notes marketing site",
+  "extensions": {
+    "colorMeta": {
+      "cursor-teal": {
+        "role": "primary",
+        "displayName": "Cursor Teal",
+        "canonical": "#2dd4bf",
+        "tonalRamp": ["#0d3f39", "#177065", "#21a090", "#2bd1bc", "#59ddcc", "#89e7db", "#b9f1ea", "#eafbf9"]
+      },
+      "ink-navy": {
+        "role": "neutral",
+        "displayName": "Ink Navy",
+        "canonical": "#12161f",
+        "tonalRamp": ["#1c2230", "#323d55", "#47577a", "#5c719f", "#8091b5", "#a5b1cb", "#cad1e0", "#eff1f6"]
+      },
+      "ink-navy-raised": {
+        "role": "neutral",
+        "displayName": "Ink Navy Raised",
+        "canonical": "#1a2030",
+        "tonalRamp": ["#1b2132", "#2f3a57", "#44537d", "#586da3", "#7d8db9", "#a3aecd", "#c9cfe2", "#eef1f6"]
+      },
+      "warm-paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#f6efdd",
+        "tonalRamp": ["#3c3010", "#6b551c", "#997928", "#c79e35", "#d5b461", "#e1ca8f", "#ede0bd", "#faf6eb"]
+      },
+      "cloud-grey": {
+        "role": "neutral",
+        "displayName": "Cloud Grey",
+        "canonical": "#aeb4c4",
+        "tonalRamp": ["#20242c", "#393f4e", "#515a70", "#6a7591", "#8b94ab", "#adb3c3", "#cfd2dc", "#f0f1f4"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The hero headline only, revealed with a clip-path wipe and finished by a blinking cursor." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles throughout the page." },
+      "body": { "displayName": "Body", "purpose": "Intro/lede copy and running paragraph text." },
+      "caption": { "displayName": "Caption", "purpose": "Secondary sans-serif text smaller than Body but not a mono signal: nav links, footer text, button labels, release dates." },
+      "label": { "displayName": "Label / Mono", "purpose": "Kickers, keyboard-shortcut chips, status-bar text, version tags, theme-card labels." }
+    },
+    "shadows": [
+      { "name": "halo-glow", "value": "0 0 8px 1px rgba(45, 212, 191, 0.35)", "purpose": "Marks a single point of attention, e.g. the wordmark's glow dot." },
+      { "name": "halo-ring", "value": "0 0 0 5px rgba(45, 212, 191, 0.35)", "purpose": "Ring halo around the positioning spectrum's marker dot." },
+      { "name": "hero-float", "value": "0 24px 60px -20px rgba(0, 0, 0, 0.6)", "purpose": "The one real drop-shadow on the site, lifting the hero's editor-window mock off the page." }
+    ],
+    "motion": [
+      { "name": "hero-reveal", "value": "clip-path inset wipe, cubic-bezier(0.16, 0.84, 0.44, 1), 1s, 0.25s delay", "purpose": "Reveals the hero headline; disabled outright under prefers-reduced-motion." },
+      { "name": "cursor-blink", "value": "step-end, 0.9s, infinite, 1.25s delay", "purpose": "Blinking text cursor after the hero headline; appears solid under prefers-reduced-motion." },
+      { "name": "hover-lift", "value": "transform 0.15s ease (translateY(-1px)), border-color/background 0.15s ease", "purpose": "Default button and link hover transition." }
+    ],
+    "breakpoints": [
+      { "name": "features-collapse", "value": "34rem" },
+      { "name": "themes-collapse", "value": "40rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action (Download Notes, per-platform download links). Cursor Teal fill is the only place the accent gets a background.",
+      "html": "<a class=\"ds-btn ds-btn-primary\" href=\"#\">Download Notes</a>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.6em; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.95rem; font-weight: 600; padding: 0.8em 1.3em; border-radius: 8px; border: 1px solid transparent; text-decoration: none; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; } .ds-btn:hover { transform: translateY(-1px); } .ds-btn-primary { background: #2dd4bf; color: #06201c; } .ds-btn-primary:hover { background: #4de3d1; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action (View source). Never fills with the accent color; only the border responds.",
+      "html": "<a class=\"ds-btn ds-btn-ghost\" href=\"#\">View source</a>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.6em; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.95rem; font-weight: 600; padding: 0.8em 1.3em; border-radius: 8px; border: 1px solid transparent; text-decoration: none; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; } .ds-btn:hover { transform: translateY(-1px); } .ds-btn-ghost { background: transparent; border-color: rgba(255, 255, 255, 0.18); color: #f6efdd; } .ds-btn-ghost:hover { border-color: #2dd4bf; }"
+    },
+    {
+      "name": "Keyboard Shortcut Chip",
+      "kind": "chip",
+      "refersTo": "kbd-chip",
+      "description": "Inline chip rendering a keyboard shortcut (e.g. Ctrl+P) next to a feature label.",
+      "html": "<kbd class=\"ds-kbd\">Ctrl+P</kbd>",
+      "css": ".ds-kbd { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.72rem; background: rgba(174, 180, 196, 0.16); border: 1px solid rgba(255, 255, 255, 0.14); border-bottom-width: 2px; border-radius: 5px; padding: 0.1em 0.45em; color: #f6efdd; }"
+    },
+    {
+      "name": "Theme Card",
+      "kind": "card",
+      "refersTo": "theme-card",
+      "description": "One card per built-in editor theme, filled with that theme's own background color to demonstrate it directly.",
+      "html": "<div class=\"ds-theme-card\" style=\"background:#24283b\"><div class=\"ds-theme-lines\"><span style=\"background:#7982a9;width:70%\"></span><span style=\"background:#7aa2f7;width:45%\"></span><span style=\"background:#c0caf5;width:58%\"></span></div><div class=\"ds-theme-label\" style=\"color:#c0caf5\"><span class=\"ds-theme-name\">Tokyo Night</span><span class=\"ds-theme-note\" style=\"color:#7982a9\">dark · moody blue-violet</span></div></div>",
+      "css": ".ds-theme-card { border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 9rem; border: 1px solid rgba(0, 0, 0, 0.15); } .ds-theme-lines { display: flex; flex-direction: column; gap: 0.5rem; } .ds-theme-lines span { display: block; height: 7px; border-radius: 4px; opacity: 0.9; } .ds-theme-label { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.2rem; font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; } .ds-theme-name { font-size: 0.95rem; font-weight: 600; } .ds-theme-note { font-size: 0.75rem; }"
+    },
+    {
+      "name": "Header Nav",
+      "kind": "nav",
+      "refersTo": "header-nav",
+      "description": "Site header: mono wordmark with a glowing accent dot, flat text nav.",
+      "html": "<header class=\"ds-header\"><a class=\"ds-wordmark\" href=\"#\"><span class=\"ds-dot\"></span>notes</a><nav class=\"ds-nav\"><a href=\"#\">Features</a><a href=\"#\">Themes</a><a href=\"#\">Download</a></nav></header>",
+      "css": ".ds-header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 0; } .ds-wordmark { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 500; font-size: 1.05rem; text-decoration: none; color: #f6efdd; } .ds-dot { width: 8px; height: 8px; border-radius: 50%; background: #2dd4bf; box-shadow: 0 0 8px 1px rgba(45, 212, 191, 0.35); } .ds-nav { display: flex; gap: 2rem; font-size: 0.9rem; } .ds-nav a { text-decoration: none; color: #aeb4c4; transition: color 0.15s ease; } .ds-nav a:hover { color: #f6efdd; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Paper Terminal",
+    "overview": "Warm cream text — literally named \"paper\" in the codebase — sits on a deep navy canvas, lit by a single spark of teal, with monospace flashing in only at moments that are structurally literal: a headline, a keyboard shortcut, a file path, a version number. It reads as ink on paper crossed with a terminal, which is exactly the product's own lineage: a fast, low-ceremony editor for .txt/.md files that refuses to dress itself up as either a glossy consumer app or a heavyweight IDE.\n\nThe system is deliberately quiet. Density is generous — one idea per section, a single reading column, ample vertical rhythm — and confidence comes from restraint rather than ornament. There are no gradients, no glassmorphism, no multi-color palette, and almost no shadows; separation is drawn with hairline borders, not elevation. Motion is minimal and purposeful: a single reveal-and-blink on the hero headline, understated hover lifts on buttons, nothing else. Where competitors' marketing sites reach for glow and bounce, this one reaches for precision.",
+    "keyCharacteristics": [
+      "One accent color, spent sparingly, never doubled up with a second hue.",
+      "Two-tier text: warm paper for headings and emphasis, cool cloud grey for everything else.",
+      "Monospace marks signal (shortcuts, file paths, versions, the headline); sans carries all prose.",
+      "Flat by default; shadow and glow are reserved, not decorative defaults.",
+      "A single deliberate motion moment (the hero cursor) rather than motion sprinkled throughout."
+    ],
+    "rules": [
+      { "name": "The Single Accent Rule", "body": "Cursor Teal appears on a small, countable set of elements per screen — never a second hue, never a gradient.", "section": "colors" },
+      { "name": "The Two-Tier Text Rule", "body": "Warm Paper is reserved for headings and one emphasized moment per section; everything else runs in Cloud Grey.", "section": "colors" },
+      { "name": "The Mono-For-Signal Rule", "body": "JetBrains Mono is used only for structurally literal content — headline, shortcuts, file paths, versions, status text. It never sets ordinary prose.", "section": "typography" },
+      { "name": "The Flat-Unless-Floating Rule", "body": "A surface earns a shadow only when it depicts something that physically floats (the product's own window). Everything else stays flat and separates with a hairline border.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do spend Cursor Teal on a small, countable set of elements per screen — one CTA, one glow, one accent line.",
+      "Do separate surfaces with a 1px hairline border (white at 6-18% opacity) instead of a shadow or a filled card.",
+      "Do reserve Warm Paper for headings and one emphasized moment per section; run supporting copy in Cloud Grey.",
+      "Do use JetBrains Mono only for structurally literal content.",
+      "Do disable motion outright under prefers-reduced-motion, matching the hero's existing treatment."
+    ],
+    "donts": [
+      "Don't add a shadow to an ordinary card, row, or button.",
+      "Don't introduce a second accent color or a gradient.",
+      "Don't set body or supporting copy in JetBrains Mono.",
+      "Don't give the ghost button a background fill on hover; only its border changes."
+    ]
+  }
+}
