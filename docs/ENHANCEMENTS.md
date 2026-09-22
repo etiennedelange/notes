@@ -27,6 +27,21 @@ with `[app]`, `[site]`, or `[app, site]`.
   (`site/src/lib/github.ts`) ready for macOS/Linux assets once they exist.
 - **[app] Image paste support in the editor.** Noted as a deferred future
   enhancement (commit `e835e5d`); not yet scheduled.
+- **[site] Switch the Download section to Astro Live Content Collections.**
+  The latest-release fetch (`site/src/lib/github.ts`, called from
+  `index.astro`) currently runs at build time, so a new GitHub release
+  only appears on the site after a rebuild/redeploy. Live Content
+  Collections fetch at request time instead, but require moving off
+  static output onto an SSR adapter — blocked on the deploy-target
+  decision above. Astro 7's Route Caching (stable, `Astro.cache` +
+  `routeRules`) would pair well with this to avoid hitting the GitHub API
+  on every request.
+- **[site] Prism instead of Shiki, if code syntax highlighting is ever
+  added.** `astro build` currently warns that Shiki's inline styles are
+  incompatible with the site's CSP (`security.csp` in
+  `site/astro.config.mjs`); the site doesn't render any code blocks today
+  so this is inert, but would need addressing before adding any
+  Markdown/MDX content with fenced code.
 
 ## Done
 

@@ -16,8 +16,8 @@ const release = await getLatestRelease();
   title="Notes — a fast, low-ceremony editor for .txt and .md files"
   description="Notes is an open-source desktop editor for plain text and markdown. No vault, no index, no project to set up — point it at a file and start typing."
 >
-  <Header />
-  <Hero />
+  <Header release={release} />
+  <Hero release={release} />
   <Positioning />
   <Features />
   <Themes />

@@ -31,7 +31,8 @@ const { release } = Astro.props;
 
           <div class="platforms">
             {release.platforms.map((p) => (
-              <div class="platform">
+              <div class="platform" data-platform={p.platform}>
+                <span class="recommended">Recommended for your system</span>
                 <a class="btn btn-primary" href={p.primary.url}>
                   {p.label}
                   <span class="size">{formatBytes(p.primary.size)}</span>
@@ -50,6 +51,15 @@ const { release } = Astro.props;
               </div>
             ))}
           </div>
+          <script>
+            const ua = navigator.userAgent;
+            const platform = navigator.platform || "";
+            let os = "";
+            if (/Mac|iPhone|iPad|iPod/.test(platform) || /Mac OS X/.test(ua)) os = "macos";
+            else if (/Win/.test(platform) || /Windows/.test(ua)) os = "windows";
+            else if (/Linux/.test(platform) || /Linux/.test(ua)) os = "linux";
+            if (os) document.documentElement.setAttribute("data-os", os);
+          </script>
 
           <p class="all-releases">
             <a href={release.url}>See {release.name} notes and every past release on GitHub</a>
@@ -93,7 +103,7 @@ const { release } = Astro.props;
   .version {
     font-family: var(--font-mono);
     color: var(--teal);
-    font-size: 1.1rem;
+    font-size: 0.85rem;
   }
 
   .date {
@@ -110,6 +120,41 @@ const { release } = Astro.props;
   .platform .btn-primary {
     min-width: 14rem;
     justify-content: space-between;
+  }
+
+  .recommended {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--teal);
+    margin-bottom: 0.5rem;
+  }
+
+  :root[data-os="windows"] .platform[data-platform="windows"] .recommended,
+  :root[data-os="macos"] .platform[data-platform="macos"] .recommended,
+  :root[data-os="linux"] .platform[data-platform="linux"] .recommended {
+    display: block;
+  }
+
+  :root[data-os="windows"] .platform:not([data-platform="windows"]) .btn-primary,
+  :root[data-os="macos"] .platform:not([data-platform="macos"]) .btn-primary,
+  :root[data-os="linux"] .platform:not([data-platform="linux"]) .btn-primary {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--paper);
+  }
+
+  :root[data-os="windows"] .platform:not([data-platform="windows"]) .btn-primary:hover,
+  :root[data-os="macos"] .platform:not([data-platform="macos"]) .btn-primary:hover,
+  :root[data-os="linux"] .platform:not([data-platform="linux"]) .btn-primary:hover {
+    border-color: var(--teal);
+    background: transparent;
+  }
+
+  :root[data-os="windows"] .platform:not([data-platform="windows"]) .size,
+  :root[data-os="macos"] .platform:not([data-platform="macos"]) .size,
+  :root[data-os="linux"] .platform:not([data-platform="linux"]) .size {
+    opacity: 0.6;
   }
 
   .size {

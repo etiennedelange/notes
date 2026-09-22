@@ -1,31 +1,46 @@
 ---
-const features = [
+const groups = [
   {
-    label: "Quick-open",
-    keys: "Ctrl+P",
-    body: "Fuzzy search across the open folder, pinned files, and recent files — jump to anything in a couple of keystrokes.",
+    label: "Finding and organizing files",
+    items: [
+      {
+        label: "Quick-open",
+        keys: "Ctrl+P",
+        body: "Fuzzy search across the open folder, pinned files, and recent files — jump to anything in a couple of keystrokes.",
+      },
+      {
+        label: "Tabs",
+        body: "Keep several files open at once, with unsaved-changes and disk-conflict protection so nothing gets overwritten by accident.",
+      },
+      {
+        label: "Folder view",
+        body: "An optional sidebar for browsing a folder and dragging files in — a view, not a managed workspace. Close it and nothing is lost.",
+      },
+    ],
   },
   {
-    label: "Tabs",
-    body: "Keep several files open at once, with unsaved-changes and disk-conflict protection so nothing gets overwritten by accident.",
+    label: "While you write",
+    items: [
+      {
+        label: "Markdown aware",
+        body: "Syntax highlighting for ",
+        inline: ".md",
+        tail: " files as you write, without a live-preview pane competing for space.",
+      },
+      {
+        label: "Live themes",
+        body: "Three built-in themes, switchable from the status bar without a restart.",
+      },
+    ],
   },
   {
-    label: "Folder view",
-    body: "An optional sidebar for browsing a folder and dragging files in — a view, not a managed workspace. Close it and nothing is lost.",
-  },
-  {
-    label: "Markdown aware",
-    body: "Syntax highlighting for ",
-    inline: ".md",
-    tail: " files as you write, without a live-preview pane competing for space.",
-  },
-  {
-    label: "Live themes",
-    body: "Three built-in themes, switchable from the status bar without a restart.",
-  },
-  {
-    label: "Cross-platform",
-    body: "Built on Tauri: a native window on Windows, macOS, and Linux, without a browser's memory footprint.",
+    label: "Everywhere",
+    items: [
+      {
+        label: "Cross-platform",
+        body: "Built on Tauri: a native window on Windows, macOS, and Linux, without a browser's memory footprint.",
+      },
+    ],
   },
 ];
 ---
@@ -33,23 +48,28 @@ const features = [
 <section class="section" id="features">
   <div class="section-inner">
     <h2 class="heading">What it does</h2>
-    <dl class="list">
-      {
-        features.map((f) => (
-          <div class="row">
-            <dt>
-              {f.label}
-              {f.keys && <kbd class="keys">{f.keys}</kbd>}
-            </dt>
-            <dd>
-              {f.body}
-              {f.inline && <code>{f.inline}</code>}
-              {f.tail}
-            </dd>
-          </div>
-        ))
-      }
-    </dl>
+    {
+      groups.map((group) => (
+        <div class="group">
+          <p class="group-label">{group.label}</p>
+          <dl class="list">
+            {group.items.map((f) => (
+              <div class="row">
+                <dt>
+                  {f.label}
+                  {f.keys && <kbd class="keys">{f.keys}</kbd>}
+                </dt>
+                <dd>
+                  {f.body}
+                  {f.inline && <code>{f.inline}</code>}
+                  {f.tail}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ))
+    }
   </div>
 </section>
 
@@ -60,9 +80,25 @@ const features = [
     margin-bottom: 2.5rem;
   }
 
+  .group {
+    max-width: 40rem;
+  }
+
+  .group + .group {
+    margin-top: 2.5rem;
+  }
+
+  .group-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--cloud);
+    margin-bottom: 0.75rem;
+  }
+
   .list {
     margin: 0;
-    max-width: 40rem;
     display: flex;
     flex-direction: column;
   }

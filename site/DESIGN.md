@@ -27,6 +27,11 @@ typography:
     fontSize: "1.05rem"
     fontWeight: 400
     lineHeight: 1.6
+  caption:
+    fontFamily: "IBM Plex Sans, system-ui, sans-serif"
+    fontSize: "0.9rem"
+    fontWeight: 400
+    lineHeight: 1.5
   label:
     fontFamily: "JetBrains Mono, ui-monospace, SF Mono, Menlo, monospace"
     fontSize: "0.8rem"
@@ -100,7 +105,8 @@ A two-tone dark canvas — navy background, paper and cloud text — carrying ex
 - **Display** (500, `clamp(1.9rem, 4.6vw, 3.1rem)`, 1.3 line-height, -0.01em tracking): the hero line only. Mono, Warm Paper, revealed with a clip-path wipe and finished by a blinking cursor.
 - **Headline** (600, `clamp(1.5rem, 3vw, 1.9rem)`, 1.3 line-height, -0.01em tracking): section titles ("Where Notes sits", "What it does", "Three themes, switchable live", "Download"). Sans, Warm Paper.
 - **Body** (400, 1.05rem intro/lede copy or 16px/1.6 base running text): Cloud Grey, capped at roughly 42–58ch per section for reading comfort.
-- **Label** (400, 0.72–0.85rem, mono, normal tracking): kickers, `kbd` shortcut chips, status-bar text, version tags, theme-card names and notes.
+- **Caption** (400, 0.9rem, sans): secondary sans-serif text that's smaller than Body but isn't a mono signal — nav links, footer text, button labels, the release date, and the "see all releases" link. Cloud Grey unless otherwise noted.
+- **Label** (400, 0.72–0.85rem, mono, normal tracking): kickers, `kbd` shortcut chips, status-bar text, version tags, theme-card names and notes. 0.85rem is the tier's ceiling — nothing mono-labeled goes larger, even a value like a release version that feels like it deserves more weight; reach for Cursor Teal or the Mono-For-Signal placement itself for emphasis instead of breaking the ramp.
 
 ### Named Rules
 **The Mono-For-Signal Rule.** JetBrains Mono is used only for content that is structurally literal — the hero headline, keyboard shortcuts, file paths, version numbers, status-bar text. It never sets ordinary prose.

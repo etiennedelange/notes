@@ -12,8 +12,8 @@
   --cloud: #aeb4c4;
   --cloud-dim: rgba(174, 180, 196, 0.16);
 
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  /* --font-mono and --font-sans are set by Astro's <Font /> component
+     in Layout.astro, which generates the optimized stack + fallback. */
 
   --wide-width: 64rem;
   --gutter: clamp(1.25rem, 5vw, 4.5rem);
@@ -100,7 +100,7 @@ code {
   align-items: center;
   gap: 0.6em;
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   padding: 0.8em 1.3em;
   border-radius: 8px;

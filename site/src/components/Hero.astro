@@ -1,5 +1,11 @@
 ---
-import { REPO_URL } from "../lib/github";
+import { REPO_URL, type ReleaseInfo } from "../lib/github";
+
+interface Props {
+  release: ReleaseInfo | null;
+}
+
+const { release } = Astro.props;
 ---
 
 <section class="hero" id="top">
@@ -15,7 +21,7 @@ import { REPO_URL } from "../lib/github";
       it wants to manage for you.
     </p>
     <div class="ctas">
-      <a class="btn btn-primary" href="#download">Download Notes</a>
+      <a class="btn btn-primary" href="#download">{release ? "Download Notes" : "Get Notes"}</a>
       <a class="btn btn-ghost" href={REPO_URL}>View source</a>
     </div>
 
@@ -26,11 +32,11 @@ import { REPO_URL } from "../lib/github";
         <span class="tab">scratch.txt</span>
       </div>
       <div class="mock-body">
-        <span class="mock-line" style="width: 62%"></span>
-        <span class="mock-line" style="width: 84%"></span>
-        <span class="mock-line" style="width: 38%"></span>
-        <span class="mock-line mock-line--accent" style="width: 51%"></span>
-        <span class="mock-line" style="width: 70%"></span>
+        <span class="mock-line"></span>
+        <span class="mock-line"></span>
+        <span class="mock-line"></span>
+        <span class="mock-line mock-line--accent"></span>
+        <span class="mock-line"></span>
       </div>
       <div class="mock-status">
         <span>~/notes/todo.md</span>
@@ -173,6 +179,29 @@ import { REPO_URL } from "../lib/github";
     height: 8px;
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.09);
+  }
+
+  /* Fixed widths per line, baked into CSS (rather than inline `style`
+     attributes) so the page's Content-Security-Policy style-src doesn't
+     need to allow inline styles. */
+  .mock-line:nth-child(1) {
+    width: 62%;
+  }
+
+  .mock-line:nth-child(2) {
+    width: 84%;
+  }
+
+  .mock-line:nth-child(3) {
+    width: 38%;
+  }
+
+  .mock-line:nth-child(4) {
+    width: 51%;
+  }
+
+  .mock-line:nth-child(5) {
+    width: 70%;
   }
 
   .mock-line--accent {

@@ -14,7 +14,7 @@
         <span>Obsidian / VS Code</span>
       </div>
       <div class="spectrum-track">
-        <div class="spectrum-marker" style="left: 32%">
+        <div class="spectrum-marker">
           <span class="marker-dot"></span>
           <span class="marker-label">Notes</span>
         </div>
@@ -54,7 +54,7 @@
   .spectrum-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--paper);
     font-weight: 500;
   }
@@ -74,6 +74,10 @@
   .spectrum-marker {
     position: absolute;
     top: 50%;
+    /* Baked into CSS (rather than an inline `style` attribute) so the
+       page's Content-Security-Policy style-src doesn't need to allow
+       inline styles. */
+    left: 32%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;

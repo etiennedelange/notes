@@ -15,6 +15,33 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-22 — Adopt Astro's Fonts API and enable Content Security Policy [site]
+
+- Replaced the manual `@fontsource/ibm-plex-sans` and `@fontsource/jetbrains-mono`
+  imports in `site/src/layouts/Layout.astro` with Astro's built-in Fonts API
+  (`fonts` in `site/astro.config.mjs`, `<Font />` in the layout). Astro now
+  self-hosts, subsets, and preloads both fonts and generates optimized
+  fallback-font metrics; the `@fontsource/*` packages were dropped from
+  `site/package.json`.
+- Enabled Content Security Policy (`security.csp: true` in
+  `site/astro.config.mjs`), stable since Astro 6. Astro auto-hashes the
+  page's scoped `<style>` blocks; the site has no `<script>` tags, so no
+  further script-src config was needed.
+- CSP's style-src does not cover inline `style="..."` attributes by
+  default. The site had several (theme-card colors in `Themes.astro`,
+  mock-line and spectrum-marker widths in `Hero.astro`/`Positioning.astro`),
+  all built from static, build-time-known values. Rewrote them as scoped
+  CSS (`:nth-child` selectors, one class per theme id) instead of adding
+  `'unsafe-hashes'` to the policy, keeping the CSP tight.
+- Verified with `astro build` + `astro preview` in a browser: zero console
+  errors, CSP header present, fonts render via the generated `<style>`
+  `@font-face` blocks.
+- Confirmed the site's `astro` dependency (`^7.3.4`) already satisfies
+  Astro 6's breaking changes (Node 22+, Vite 7) and is in fact already on
+  Astro 7 (see the "Future enhancements" note in `ENHANCEMENTS.md` — Astro
+  7's Rust compiler, Queued Rendering, and Route Caching are stable by
+  default in this version; nothing to configure there).
+
 ## 2026-09-22 — Add root docs: history, enhancements, releases [app, site]
 
 - Added `docs/` at the repo root with `HISTORY.md` (this file),

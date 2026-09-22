@@ -42,15 +42,15 @@ const themes = [
     <div class="grid">
       {
         themes.map((t) => (
-          <div class="card" style={`background:${t.bg}`}>
+          <div class={`card card-${t.id}`}>
             <div class="card-lines">
-              <span style={`background:${t.fgMuted}; width: 70%`} />
-              <span style={`background:${t.accent}; width: 45%`} />
-              <span style={`background:${t.fg}; width: 58%`} />
+              <span />
+              <span />
+              <span />
             </div>
-            <div class="card-label" style={`color:${t.fg}`}>
+            <div class="card-label">
               <span class="name">{t.label}</span>
-              <span class="note" style={`color:${t.fgMuted}`}>
+              <span class="note">
                 {t.kind} · {t.note}
               </span>
             </div>
@@ -102,6 +102,79 @@ const themes = [
     opacity: 0.9;
   }
 
+  .card-lines span:nth-child(1) {
+    width: 70%;
+  }
+
+  .card-lines span:nth-child(2) {
+    width: 45%;
+  }
+
+  .card-lines span:nth-child(3) {
+    width: 58%;
+  }
+
+  /* Per-theme colors, baked into CSS (rather than inline `style`
+     attributes) so the page's Content-Security-Policy style-src doesn't
+     need to allow inline styles. Keep in sync with the `themes` array
+     above if palette values change. */
+  .card-nord {
+    background: #2e3440;
+  }
+  .card-nord .card-label {
+    color: #eceff4;
+  }
+  .card-nord .note {
+    color: #9aa7bd;
+  }
+  .card-nord .card-lines span:nth-child(1) {
+    background: #9aa7bd;
+  }
+  .card-nord .card-lines span:nth-child(2) {
+    background: #88c0d0;
+  }
+  .card-nord .card-lines span:nth-child(3) {
+    background: #eceff4;
+  }
+
+  .card-tokyo-night {
+    background: #24283b;
+  }
+  .card-tokyo-night .card-label {
+    color: #c0caf5;
+  }
+  .card-tokyo-night .note {
+    color: #7982a9;
+  }
+  .card-tokyo-night .card-lines span:nth-child(1) {
+    background: #7982a9;
+  }
+  .card-tokyo-night .card-lines span:nth-child(2) {
+    background: #7aa2f7;
+  }
+  .card-tokyo-night .card-lines span:nth-child(3) {
+    background: #c0caf5;
+  }
+
+  .card-noctis-lux {
+    background: #fef8ec;
+  }
+  .card-noctis-lux .card-label {
+    color: #00404a;
+  }
+  .card-noctis-lux .note {
+    color: #6d8788;
+  }
+  .card-noctis-lux .card-lines span:nth-child(1) {
+    background: #6d8788;
+  }
+  .card-noctis-lux .card-lines span:nth-child(2) {
+    background: #0099ad;
+  }
+  .card-noctis-lux .card-lines span:nth-child(3) {
+    background: #00404a;
+  }
+
   .card-label {
     margin-top: 1.5rem;
     display: flex;
@@ -111,7 +184,7 @@ const themes = [
   }
 
   .name {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 600;
   }
 
