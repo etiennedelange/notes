@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-22T00:00:00.000Z",
+  "generatedAt": "2026-09-22T20:15:00.000Z",
   "title": "Design System: Notes marketing site",
   "extensions": {
     "colorMeta": {
@@ -62,9 +62,9 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Main call-to-action (Download Notes, per-platform download links). Cursor Teal fill is the only place the accent gets a background.",
-      "html": "<a class=\"ds-btn ds-btn-primary\" href=\"#\">Download Notes</a>",
-      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.6em; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.95rem; font-weight: 600; padding: 0.8em 1.3em; border-radius: 8px; border: 1px solid transparent; text-decoration: none; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; } .ds-btn:hover { transform: translateY(-1px); } .ds-btn-primary { background: #2dd4bf; color: #06201c; } .ds-btn-primary:hover { background: #4de3d1; }"
+      "description": "Main call-to-action, per-platform download links. Label is state-aware: \"Download Notes\" once a release is published, \"Get Notes\" (shown here) before then, so the CTA never promises a download that isn't there. Cursor Teal fill is the only place the accent gets a background.",
+      "html": "<a class=\"ds-btn ds-btn-primary\" href=\"#\">Get Notes</a>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.6em; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.9rem; font-weight: 600; padding: 0.8em 1.3em; border-radius: 8px; border: 1px solid transparent; text-decoration: none; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; } .ds-btn:hover { transform: translateY(-1px); } .ds-btn-primary { background: #2dd4bf; color: #06201c; } .ds-btn-primary:hover { background: #4de3d1; }"
     },
     {
       "name": "Ghost Button",
@@ -72,7 +72,7 @@
       "refersTo": "button-ghost",
       "description": "Secondary action (View source). Never fills with the accent color; only the border responds.",
       "html": "<a class=\"ds-btn ds-btn-ghost\" href=\"#\">View source</a>",
-      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.6em; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.95rem; font-weight: 600; padding: 0.8em 1.3em; border-radius: 8px; border: 1px solid transparent; text-decoration: none; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; } .ds-btn:hover { transform: translateY(-1px); } .ds-btn-ghost { background: transparent; border-color: rgba(255, 255, 255, 0.18); color: #f6efdd; } .ds-btn-ghost:hover { border-color: #2dd4bf; }"
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.6em; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 0.9rem; font-weight: 600; padding: 0.8em 1.3em; border-radius: 8px; border: 1px solid transparent; text-decoration: none; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; } .ds-btn:hover { transform: translateY(-1px); } .ds-btn-ghost { background: transparent; border-color: rgba(255, 255, 255, 0.18); color: #f6efdd; } .ds-btn-ghost:hover { border-color: #2dd4bf; }"
     },
     {
       "name": "Keyboard Shortcut Chip",
@@ -91,12 +91,20 @@
       "css": ".ds-theme-card { border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 9rem; border: 1px solid rgba(0, 0, 0, 0.15); } .ds-theme-lines { display: flex; flex-direction: column; gap: 0.5rem; } .ds-theme-lines span { display: block; height: 7px; border-radius: 4px; opacity: 0.9; } .ds-theme-label { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.2rem; font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; } .ds-theme-name { font-size: 0.95rem; font-weight: 600; } .ds-theme-note { font-size: 0.75rem; }"
     },
     {
+      "name": "Feature Group Label",
+      "kind": "custom",
+      "refersTo": "group-label",
+      "description": "Small uppercase mono label heading a chunked group of feature rows (e.g. \"Finding and organizing files\"). Structural/organizational, not prose, so it takes the mono Label treatment.",
+      "html": "<p class=\"ds-group-label\">Finding and organizing files</p>",
+      "css": ".ds-group-label { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: #aeb4c4; margin-bottom: 0.75rem; }"
+    },
+    {
       "name": "Header Nav",
       "kind": "nav",
       "refersTo": "header-nav",
-      "description": "Site header: mono wordmark with a glowing accent dot, flat text nav.",
-      "html": "<header class=\"ds-header\"><a class=\"ds-wordmark\" href=\"#\"><span class=\"ds-dot\"></span>notes</a><nav class=\"ds-nav\"><a href=\"#\">Features</a><a href=\"#\">Themes</a><a href=\"#\">Download</a></nav></header>",
-      "css": ".ds-header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 0; } .ds-wordmark { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 500; font-size: 1.05rem; text-decoration: none; color: #f6efdd; } .ds-dot { width: 8px; height: 8px; border-radius: 50%; background: #2dd4bf; box-shadow: 0 0 8px 1px rgba(45, 212, 191, 0.35); } .ds-nav { display: flex; gap: 2rem; font-size: 0.9rem; } .ds-nav a { text-decoration: none; color: #aeb4c4; transition: color 0.15s ease; } .ds-nav a:hover { color: #f6efdd; }"
+      "description": "Site header: mono wordmark with a glowing accent dot, flat text nav. Nav links carry padding (not just font-size) so their tap target clears ~44px on mobile without changing their visual size.",
+      "html": "<header class=\"ds-header\"><a class=\"ds-wordmark\" href=\"#\"><span class=\"ds-dot\"></span>notes</a><nav class=\"ds-nav\"><a href=\"#\">Features</a><a href=\"#\">Themes</a><a href=\"#\">Get Notes</a><a href=\"#\">GitHub</a></nav></header>",
+      "css": ".ds-header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 0; } .ds-wordmark { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 500; font-size: 1.05rem; text-decoration: none; color: #f6efdd; } .ds-dot { width: 8px; height: 8px; border-radius: 50%; background: #2dd4bf; box-shadow: 0 0 8px 1px rgba(45, 212, 191, 0.35); } .ds-nav { display: flex; align-items: center; gap: clamp(0.25rem, 1.5vw, 1rem); font-size: 0.9rem; } .ds-nav a { display: inline-flex; align-items: center; padding: 0.75rem 0.4rem; border-radius: 5px; white-space: nowrap; text-decoration: none; color: #aeb4c4; transition: color 0.15s ease; } .ds-nav a:hover { color: #f6efdd; }"
     }
   ],
   "narrative": {
