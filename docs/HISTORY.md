@@ -15,6 +15,32 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-22 — Fix scroll-spy regression and other findings from a second design critique [site]
+
+- Fixed a regression from the previous fix round: the header's scroll-spy
+  nav indicator (`Header.astro`) never observed the hero (`#top`), so it
+  stayed stuck lit on whatever section a visitor last scrolled past — most
+  visibly, clicking the logo to jump back to the top left "Download" glowing
+  in the nav indefinitely. Now `#top` is tracked alongside the nav-linked
+  sections, and nothing is intersecting it clears all `aria-current` state.
+- Promoted `Features.astro`'s three sub-group labels from `<p>` to `<h3>`
+  (with an explicit `font-weight: 400` to keep the documented Label-tier
+  weight, since the global `h1,h2,h3` rule defaults to 600) — previously
+  invisible to heading-based screen-reader navigation.
+- Replaced the hero mock's tab-clipping/ellipsis fix (from the previous
+  round, which still clipped at 320px) with a horizontally scrollable tab
+  row (`overflow-x: auto`, hidden scrollbar) — tabs keep their full real
+  names at any width instead of truncating.
+- Added `.section--tight-bottom` (`global.css`) and applied it to
+  Positioning, Features, and Themes: tightens each section's bottom padding
+  so pacing quickens slightly toward Download, the page's one conversion
+  point, which keeps its full arrival padding.
+- Why: found by a second `/impeccable critique` pass after the first fix
+  round shipped — see `site/.impeccable/critique/` for the full report.
+  Score held flat at 26/32 for the third run running, each round trading
+  fixed issues for newly-surfaced ones (this time including a self-inflicted
+  regression from the prior round's own fix).
+
 ## 2026-09-22 — Fix marketing site reliability and mobile issues from design critique [site]
 
 - Split `getLatestRelease()`'s return into a `ReleaseState` union
