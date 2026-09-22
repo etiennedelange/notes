@@ -1,0 +1,127 @@
+---
+// Palette values copied from src/themes.ts, the app's own theme source.
+const themes = [
+  {
+    id: "nord",
+    label: "Nord",
+    kind: "dark",
+    note: "cool and quiet",
+    bg: "#2e3440",
+    fg: "#eceff4",
+    fgMuted: "#9aa7bd",
+    accent: "#88c0d0",
+  },
+  {
+    id: "tokyo-night",
+    label: "Tokyo Night",
+    kind: "dark",
+    note: "moody blue-violet",
+    bg: "#24283b",
+    fg: "#c0caf5",
+    fgMuted: "#7982a9",
+    accent: "#7aa2f7",
+  },
+  {
+    id: "noctis-lux",
+    label: "Noctis Lux",
+    kind: "light",
+    note: "warm daylight",
+    bg: "#fef8ec",
+    fg: "#00404a",
+    fgMuted: "#6d8788",
+    accent: "#0099ad",
+  },
+];
+---
+
+<section class="section" id="themes">
+  <div class="section-inner">
+    <h2 class="heading">Three themes, switchable live</h2>
+    <p class="lede">No restart, no settings file — pick one from the status bar.</p>
+
+    <div class="grid">
+      {
+        themes.map((t) => (
+          <div class="card" style={`background:${t.bg}`}>
+            <div class="card-lines">
+              <span style={`background:${t.fgMuted}; width: 70%`} />
+              <span style={`background:${t.accent}; width: 45%`} />
+              <span style={`background:${t.fg}; width: 58%`} />
+            </div>
+            <div class="card-label" style={`color:${t.fg}`}>
+              <span class="name">{t.label}</span>
+              <span class="note" style={`color:${t.fgMuted}`}>
+                {t.kind} · {t.note}
+              </span>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .heading {
+    font-size: clamp(1.5rem, 3vw, 1.9rem);
+    color: var(--paper);
+  }
+
+  .lede {
+    margin-top: 0.75rem;
+    color: var(--cloud);
+  }
+
+  .grid {
+    margin-top: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .card {
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 9rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+  }
+
+  .card-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .card-lines span {
+    display: block;
+    height: 7px;
+    border-radius: 4px;
+    opacity: 0.9;
+  }
+
+  .card-label {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-family: var(--font-mono);
+  }
+
+  .name {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .note {
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 40rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

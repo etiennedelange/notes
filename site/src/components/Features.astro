@@ -1,0 +1,115 @@
+---
+const features = [
+  {
+    label: "Quick-open",
+    keys: "Ctrl+P",
+    body: "Fuzzy search across the open folder, pinned files, and recent files — jump to anything in a couple of keystrokes.",
+  },
+  {
+    label: "Tabs",
+    body: "Keep several files open at once, with unsaved-changes and disk-conflict protection so nothing gets overwritten by accident.",
+  },
+  {
+    label: "Folder view",
+    body: "An optional sidebar for browsing a folder and dragging files in — a view, not a managed workspace. Close it and nothing is lost.",
+  },
+  {
+    label: "Markdown aware",
+    body: "Syntax highlighting for ",
+    inline: ".md",
+    tail: " files as you write, without a live-preview pane competing for space.",
+  },
+  {
+    label: "Live themes",
+    body: "Three built-in themes, switchable from the status bar without a restart.",
+  },
+  {
+    label: "Cross-platform",
+    body: "Built on Tauri: a native window on Windows, macOS, and Linux, without a browser's memory footprint.",
+  },
+];
+---
+
+<section class="section" id="features">
+  <div class="section-inner">
+    <h2 class="heading">What it does</h2>
+    <dl class="list">
+      {
+        features.map((f) => (
+          <div class="row">
+            <dt>
+              {f.label}
+              {f.keys && <kbd class="keys">{f.keys}</kbd>}
+            </dt>
+            <dd>
+              {f.body}
+              {f.inline && <code>{f.inline}</code>}
+              {f.tail}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .heading {
+    font-size: clamp(1.5rem, 3vw, 1.9rem);
+    color: var(--paper);
+    margin-bottom: 2.5rem;
+  }
+
+  .list {
+    margin: 0;
+    max-width: 40rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 1.5rem;
+    padding: 1.4rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  .row:last-child {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  dt {
+    font-weight: 600;
+    color: var(--paper);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .keys {
+    font-size: 0.72rem;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--cloud);
+    max-width: 46ch;
+  }
+
+  dd code {
+    background: var(--cloud-dim);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--paper);
+  }
+
+  @media (max-width: 34rem) {
+    .row {
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+    }
+  }
+</style>

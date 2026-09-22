@@ -1,0 +1,134 @@
+:root {
+  /* Brand — sampled from the app icon */
+  --navy: #12161f;
+  --navy-raised: #1a2030;
+  --paper: #f6efdd;
+  --paper-dim: #efe5c9;
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45, 212, 191, 0.35);
+
+  --ink: #1b2029;
+  --ink-soft: #545e73;
+  --cloud: #aeb4c4;
+  --cloud-dim: rgba(174, 180, 196, 0.16);
+
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+
+  --wide-width: 64rem;
+  --gutter: clamp(1.25rem, 5vw, 4.5rem);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--navy);
+  color: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--cloud-dim);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 0.1em 0.45em;
+}
+
+code {
+  font-family: var(--font-mono);
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+.section {
+  padding: clamp(3.5rem, 9vw, 6.5rem) var(--gutter);
+}
+
+.section-inner {
+  max-width: var(--wide-width);
+  margin: 0 auto;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.8em 1.3em;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--teal);
+  color: #06201c;
+}
+
+.btn-primary:hover {
+  background: #4de3d1;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--paper);
+}
+
+.btn-ghost:hover {
+  border-color: var(--teal);
+}

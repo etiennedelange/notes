@@ -1,0 +1,115 @@
+<section class="section">
+  <div class="section-inner">
+    <h2 class="heading">Where Notes sits</h2>
+    <p class="lede">
+      Notepad++ is fast, but it hasn't kept up — no real markdown, no quick-open.
+      Obsidian and VS Code are powerful, but they want a vault or a workspace
+      before you've typed a word. Notes sits in the gap: modern conveniences,
+      none of the ceremony.
+    </p>
+
+    <div class="spectrum" role="img" aria-label="A spectrum from fast-but-dated on the left to powerful-but-heavy on the right, with Notes positioned toward the fast end">
+      <div class="spectrum-labels">
+        <span>Notepad++</span>
+        <span>Obsidian / VS Code</span>
+      </div>
+      <div class="spectrum-track">
+        <div class="spectrum-marker" style="left: 32%">
+          <span class="marker-dot"></span>
+          <span class="marker-label">Notes</span>
+        </div>
+      </div>
+      <div class="spectrum-captions">
+        <span>fast, dated</span>
+        <span>powerful, heavy</span>
+      </div>
+    </div>
+
+    <p class="closer">
+      No vault. No index database. No project config required to start typing.
+      Point Notes at a file and it's already yours — open a folder alongside it
+      only if you want a view into what else is there.
+    </p>
+  </div>
+</section>
+
+<style>
+  .heading {
+    font-size: clamp(1.5rem, 3vw, 1.9rem);
+    color: var(--paper);
+  }
+
+  .lede {
+    margin-top: 1.25rem;
+    color: var(--cloud);
+    font-size: 1.05rem;
+    max-width: 58ch;
+  }
+
+  .spectrum {
+    margin-top: 3rem;
+    max-width: 40rem;
+  }
+
+  .spectrum-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: var(--paper);
+    font-weight: 500;
+  }
+
+  .spectrum-track {
+    position: relative;
+    margin-top: 0.9rem;
+    height: 3px;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.28),
+      rgba(255, 255, 255, 0.1)
+    );
+    border-radius: 2px;
+  }
+
+  .spectrum-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .marker-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 5px var(--teal-dim);
+  }
+
+  .marker-label {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+
+  .spectrum-captions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.25rem;
+    font-size: 0.85rem;
+    color: var(--cloud);
+  }
+
+  .closer {
+    margin-top: 3rem;
+    max-width: 56ch;
+    font-size: 1.05rem;
+    color: var(--paper);
+    border-left: 2px solid var(--teal);
+    padding-left: 1.25rem;
+  }
+</style>

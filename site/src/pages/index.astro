@@ -1,0 +1,26 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Positioning from "../components/Positioning.astro";
+import Features from "../components/Features.astro";
+import Themes from "../components/Themes.astro";
+import Download from "../components/Download.astro";
+import Footer from "../components/Footer.astro";
+import { getLatestRelease } from "../lib/github";
+
+const release = await getLatestRelease();
+---
+
+<Layout
+  title="Notes — a fast, low-ceremony editor for .txt and .md files"
+  description="Notes is an open-source desktop editor for plain text and markdown. No vault, no index, no project to set up — point it at a file and start typing."
+>
+  <Header />
+  <Hero />
+  <Positioning />
+  <Features />
+  <Themes />
+  <Download release={release} />
+  <Footer />
+</Layout>
