@@ -45,13 +45,13 @@ const groups = [
 ];
 ---
 
-<section class="section" id="features">
+<section class="section section--tight-bottom" id="features">
   <div class="section-inner">
     <h2 class="heading">What it does</h2>
     {
       groups.map((group) => (
         <div class="group">
-          <p class="group-label">{group.label}</p>
+          <h3 class="group-label">{group.label}</h3>
           <dl class="list">
             {group.items.map((f) => (
               <div class="row">
@@ -91,6 +91,7 @@ const groups = [
   .group-label {
     font-family: var(--font-mono);
     font-size: 0.72rem;
+    font-weight: 400;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--cloud);

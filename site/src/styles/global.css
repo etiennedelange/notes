@@ -90,6 +90,13 @@ code {
   padding: clamp(3.5rem, 9vw, 6.5rem) var(--gutter);
 }
 
+/* Tightens the gap after a section, quickening pace toward Download as the
+   page's one conversion point — applied to every section before it except
+   Download itself, which keeps the full arrival padding. */
+.section--tight-bottom {
+  padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
+}
+
 .section-inner {
   max-width: var(--wide-width);
   margin: 0 auto;

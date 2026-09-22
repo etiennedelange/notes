@@ -142,9 +142,16 @@ const { release } = Astro.props;
 
   .mock-tabs {
     display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     font-family: var(--font-mono);
     font-size: 0.8rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .mock-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .tab {
@@ -154,9 +161,7 @@ const { release } = Astro.props;
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    flex: 0 0 auto;
     white-space: nowrap;
   }
 

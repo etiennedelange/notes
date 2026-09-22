@@ -23,9 +23,14 @@ const { release } = Astro.props;
 
 <script>
   const links = document.querySelectorAll(".nav a[data-target]");
+  // "top" (the hero) has no nav link of its own, but it still needs to be
+  // observed: without it, scrolling back to the hero leaves whatever
+  // section was last active stuck lit, since no observed section is
+  // intersecting to clear it.
+  const targetIds = ["top", ...Array.from(links, (link) => link.dataset.target)];
   const sections = [];
-  links.forEach((link) => {
-    const el = document.getElementById(link.dataset.target);
+  targetIds.forEach((id) => {
+    const el = document.getElementById(id);
     if (el) sections.push(el);
   });
 
