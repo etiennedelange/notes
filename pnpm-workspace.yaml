@@ -1,0 +1,11 @@
+blockExoticSubdeps: true
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+
+overrides:
+  # Vite 8.0.16+ patches GHSA-fx2h-pf6j-xcff / GHSA-v6wh-96g9-6wx3
+  # (dev-only, transitive via vitest; Windows-only, but pin the floor regardless).
+  vite: ">=8.0.16"

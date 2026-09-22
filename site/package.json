@@ -9,10 +9,14 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "deploy": "astro build && wrangler pages deploy dist --project-name=notes-site"
   },
   "dependencies": {
     "astro": "^7.3.4"
+  },
+  "devDependencies": {
+    "wrangler": "^4.136.3"
   },
   "allowScripts": {
     "esbuild": true
