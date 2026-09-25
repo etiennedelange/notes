@@ -3,7 +3,7 @@ members = ["core"]
 
 [package]
 name = "notes"
-version = "0.1.0"
+version = "0.2.0"
 description = "A fast, low-ceremony editor for .txt and .md files"
 authors = ["Etienne de Lange"]
 edition = "2021"
