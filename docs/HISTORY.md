@@ -15,6 +15,55 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-25 — Split the Rust core out of the Tauri shell, and stop the window behaving like a web page [app]
+
+Both halves of one question: the app is a Tauri app whose UI is HTML, and
+that reads as a web page rather than a native editor. Two separable
+problems, fixed separately.
+
+**`notes-core`.** `src-tauri/src/lib.rs` was 868 lines mixing the real work
+(filesystem access, the consent model, atomic saves, the folder walk,
+session persistence) with the Tauri IPC surface. The work is now a
+standalone crate at `src-tauri/core/` with no Tauri dependency at all, and
+`src/lib.rs` is 115 lines of command wrappers over it. The `*_impl`
+functions were already written to take plain arguments and a granted set —
+the suffix only existed to avoid colliding with the command names — so they
+became the crate's public API unchanged, and all 20 unit tests moved with
+them untouched.
+
+- Two couplings had to go: `Error::ConfigDir(tauri::Error)` became
+  `ConfigDir(String)`, and `state_path` now takes the config directory as
+  an argument instead of resolving it from an `AppHandle`. The Tauri layer
+  supplies it via `config_dir()`.
+- `thiserror` and `serde_json` moved to the core crate and are no longer
+  direct dependencies of the app crate.
+- `src-tauri/Cargo.toml` became the workspace root (not the repo root), so
+  `src-tauri/target/` and the `rust-cache` `workspaces: src-tauri` key in
+  `release.yml` keep working as-is. CI's clippy and both `cargo test`
+  invocations gained `--workspace`; `audit.yml` watches the new manifest.
+- The point is optionality: a future non-webview UI can link this crate
+  directly. Nothing about the current UI changed.
+
+**Native chrome.** New `src/nativeChrome.ts`, installed from `main.ts`
+before `DOMContentLoaded`. Suppresses the webview context menu (the
+browser's "Reload / Inspect Element" menu was the loudest tell — the app
+has no context menu of its own yet, see `ENHANCEMENTS.md`), blocks HTML5
+`dragstart` outside `.cm-editor` so sidebar labels can't be dragged out as
+markup, and in production builds only, swallows F5/Ctrl+R, F12,
+Ctrl+Shift+I/J/C and Ctrl+U in the capture phase. Dev builds keep all of
+it, so `tauri dev` is unaffected.
+
+- `styles.css` now sets `user-select: none` on `body` and opts back in for
+  `.cm-editor`, `input` and `textarea`, which is the native default rather
+  than the web one; the two per-element `user-select` rules on the titlebar
+  and sidebar became redundant and were dropped.
+- Deliberately *not* changed: `zoomHotkeysEnabled` and
+  `browserExtensionsEnabled` already default to `false` in Tauri 2, and the
+  app implements its own Ctrl+±/Ctrl+wheel zoom, so those keys stay bound to
+  the app. `devtools` was left unset in `tauri.conf.json` — release builds
+  already ship without the inspector, since `Cargo.toml` never enabled the
+  `devtools` feature, and setting it false would also kill it in dev.
+
 ## 2026-09-22 — Fix scroll-spy regression and other findings from a second design critique [site]
 
 - Fixed a regression from the previous fix round: the header's scroll-spy

@@ -2268,13 +2268,21 @@ dependencies = [
 name = "notes"
 version = "0.1.0"
 dependencies = [
+ "notes-core",
  "serde",
- "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-dialog",
  "tauri-plugin-opener",
+]
+
+[[package]]
+name = "notes-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
  "thiserror 2.0.20",
 ]
 

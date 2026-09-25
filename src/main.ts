@@ -3,7 +3,12 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { App } from "./app";
 import { openCommandPalette } from "./commandPalette";
 import { initTitlebar } from "./titlebar";
+import { installNativeChrome } from "./nativeChrome";
 import { showToast } from "./toast";
+
+// Before DOMContentLoaded: these are window-level listeners, and a right-click
+// or F5 landing during startup should already be swallowed.
+installNativeChrome();
 
 window.addEventListener("DOMContentLoaded", async () => {
   initTitlebar();

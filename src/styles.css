@@ -54,6 +54,25 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-ui);
+  /* Native app chrome is not selectable text. Selection is opted back into
+     below, for the places that really are content: the document and inputs. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cm-editor,
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Icons and the titlebar mark are decoration; a native window doesn't let you
+   peel them off as draggable images. */
+svg,
+img {
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 body {
@@ -131,7 +150,6 @@ kbd {
   height: 34px;
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
-  user-select: none;
 }
 
 .titlebar-drag {
@@ -212,7 +230,6 @@ kbd {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  user-select: none;
 }
 
 #sidebar-resizer {
