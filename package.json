@@ -10,7 +10,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
