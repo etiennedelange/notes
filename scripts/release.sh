@@ -85,6 +85,15 @@ if (( ! DRY_RUN )); then
   git tag -a "v$VERSION" -m "Notes v$VERSION"
 fi
 
+if (( DRY_RUN )); then
+  cat <<EOF
+
+Dry run only — nothing was written, committed or tagged.
+Re-run without --dry-run to bump, commit and tag v$VERSION.
+EOF
+  exit 0
+fi
+
 cat <<EOF
 
 Committed and tagged v$VERSION locally. Nothing has been pushed.
