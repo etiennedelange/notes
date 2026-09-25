@@ -15,6 +15,24 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-25 — Start an exploratory Iced UI over notes-core (`iced-rewrite` branch) [app]
+
+Acts on the ENHANCEMENTS entry "Evaluate a non-webview UI over notes-core".
+A new workspace crate, `src-tauri/notes-iced`, draws the app with Iced 0.14
+and calls notes-core directly (no IPC). The Tauri app is untouched and
+stays the shipping build; this lives on the `iced-rewrite` branch only.
+
+- The scaffold fixes the module contracts up front (each UI module owns a
+  `Message` and reports an `Action` to a thin `app.rs` router; filesystem
+  work goes through `io.rs` → notes-core with the same consent set), so the
+  port can be built as parallel, independently reviewable PRs into the
+  branch.
+- notes-core's DTO fields became `pub` (and gained `Debug`) — the Tauri
+  side only ever needed them through serde; a Rust UI reads them directly.
+- Both apps share `state.json` (same `com.etienne.notes` config dir).
+- `NOTES_ICED_SMOKE=1` makes the binary quit ~1.5 s after startup, for a
+  cheap "does it launch" check.
+
 ## 2026-09-25 — Split the Rust core out of the Tauri shell, and stop the window behaving like a web page [app]
 
 Both halves of one question: the app is a Tauri app whose UI is HTML, and

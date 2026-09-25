@@ -42,6 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # libxkbcommon/libwayland are for the exploratory Iced UI
+      # (`notes-iced`, iced-rewrite branch), which is a workspace member.
       # Tauri links against the GTK/WebKit stack on Linux, so the crate won't
       # compile without these — even for `cargo test`, which never opens a
       # window. The frontend bundle is NOT needed: generate_context! tolerates a
@@ -54,7 +56,9 @@ jobs:
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev \
-            patchelf
+            patchelf \
+            libxkbcommon-dev \
+            libwayland-dev
 
       - uses: dtolnay/rust-toolchain@stable
         with:

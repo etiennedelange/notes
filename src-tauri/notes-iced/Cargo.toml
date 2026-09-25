@@ -1,0 +1,17 @@
+[package]
+name = "notes-iced"
+version = "0.2.0"
+description = "Exploratory Iced (non-webview) UI for Notes over notes-core"
+authors = ["Etienne de Lange"]
+edition = "2021"
+
+[dependencies]
+notes-core = { path = "../core" }
+iced = { version = "0.14", features = ["highlighter", "advanced", "tokio"] }
+rfd = "0.17"
+arboard = "3"
+directories = "6"
+
+[dev-dependencies]
+iced_test = "0.14"
+tempfile = "3"

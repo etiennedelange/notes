@@ -144,17 +144,17 @@ fn write_atomic(path: &Path, contents: &str) -> io::Result<()> {
     result
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DirNode {
-    name: String,
-    path: String,
-    is_dir: bool,
-    children: Option<Vec<DirNode>>,
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+    pub children: Option<Vec<DirNode>>,
     /// Only meaningful on the root node: true if MAX_TREE_ENTRIES cut the walk
     /// short, so the frontend can show that some files aren't listed.
     #[serde(default)]
-    truncated: bool,
+    pub truncated: bool,
 }
 
 fn is_notable_file(name: &str) -> bool {
@@ -256,11 +256,11 @@ pub fn read_dir_tree(root: String, granted: &HashSet<PathBuf>) -> Result<DirNode
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ReadFileResult {
-    contents: String,
+    pub contents: String,
     /// True if the file wasn't valid UTF-8 and was decoded with replacement
     /// characters — a Notepad++ replacement meets UTF-16 and Latin-1 files
     /// often enough that this needs to degrade gracefully instead of erroring.
-    lossy: bool,
+    pub lossy: bool,
 }
 
 pub fn read_text_file(path: String, granted: &HashSet<PathBuf>) -> Result<ReadFileResult, Error> {
@@ -388,23 +388,23 @@ pub fn file_mtime_ms(path: String, granted: &HashSet<PathBuf>) -> Result<u64, Er
     Ok(ms)
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AppStateDto {
-    theme: Option<String>,
-    zoom: Option<f64>,
-    editor_zoom: Option<f64>,
-    sidebar_width: Option<f64>,
-    last_folder: Option<String>,
-    recent_files: Vec<String>,
-    open_tabs: Vec<String>,
-    active_tab: Option<String>,
-    pinned_tabs: Vec<String>,
-    window_x: Option<f64>,
-    window_y: Option<f64>,
-    window_width: Option<f64>,
-    window_height: Option<f64>,
-    window_maximized: Option<bool>,
+    pub theme: Option<String>,
+    pub zoom: Option<f64>,
+    pub editor_zoom: Option<f64>,
+    pub sidebar_width: Option<f64>,
+    pub last_folder: Option<String>,
+    pub recent_files: Vec<String>,
+    pub open_tabs: Vec<String>,
+    pub active_tab: Option<String>,
+    pub pinned_tabs: Vec<String>,
+    pub window_x: Option<f64>,
+    pub window_y: Option<f64>,
+    pub window_width: Option<f64>,
+    pub window_height: Option<f64>,
+    pub window_maximized: Option<bool>,
 }
 
 /// Ensures `config_dir` exists and returns the state file inside it. The
