@@ -1,12 +1,54 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for more information:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-# https://containers.dev/guide/dependabot
+# Weekly version updates, Mondays, alongside the scheduled cargo audit.
+# Minor and patch bumps are grouped into one PR per ecosystem; majors get
+# their own PR, since those are the ones that need reading.
+# Security updates are separate: they're enabled in the repo settings and
+# open immediately, whatever this schedule says.
+# https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 
 version: 2
 updates:
- - package-ecosystem: "devcontainers"
-   directory: "/"
-   schedule:
-     interval: weekly
+  # The app's front end (pnpm; Dependabot's npm ecosystem reads pnpm-lock.yaml)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      app-minor-patch:
+        update-types: [minor, patch]
+
+  # The marketing site has its own lockfile
+  - package-ecosystem: "npm"
+    directory: "/site"
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      site-minor-patch:
+        update-types: [minor, patch]
+
+  # The Tauri shell and notes-core (one workspace, one Cargo.lock)
+  - package-ecosystem: "cargo"
+    directory: "/src-tauri"
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      cargo-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # https://containers.dev/guide/dependabot
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
