@@ -1,43 +1,25 @@
-# Astro Starter Kit: Minimal
+# Notes site
 
-```sh
-pnpm create astro@latest -- --template minimal
-```
+The marketing and download page for [Notes](../README.md), built with Astro
+and served as static files from Cloudflare Pages.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Development
 
-## 🚀 Project Structure
+| Command | Purpose |
+| --- | --- |
+| `pnpm install` | Install dependencies |
+| `pnpm dev` | Start the dev server |
+| `pnpm build` | Build static output to `dist/` |
+| `pnpm deploy` | Build, then upload `dist/` to the `notes-site` Pages project with Wrangler |
 
-Inside of your Astro project, you'll see the following folders and files:
+## How it works
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+It's one page, `src/pages/index.astro`, assembled from the sections in
+`src/components/`. The Download section gets the latest published GitHub
+release at build time (`src/lib/github.ts`) and sorts its assets by
+platform. A new release only shows up after a rebuild. Draft releases never
+show up.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The site has its own look, separate from the app's themes. The tokens and
+the reasons behind them are in [`DESIGN.md`](./DESIGN.md), and who the page
+is for is in [`PRODUCT.md`](./PRODUCT.md).

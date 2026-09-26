@@ -6,6 +6,8 @@ name = "notes"
 version = "0.2.0"
 description = "A fast, low-ceremony editor for .txt and .md files"
 authors = ["Etienne de Lange"]
+license = "MIT"
+repository = "https://github.com/etiennedelange/notes"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

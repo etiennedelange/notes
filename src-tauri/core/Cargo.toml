@@ -3,6 +3,7 @@ name = "notes-core"
 version = "0.1.0"
 description = "Filesystem, consent and persistence core for Notes, independent of any UI toolkit"
 authors = ["Etienne de Lange"]
+license = "MIT"
 edition = "2021"
 
 [dependencies]

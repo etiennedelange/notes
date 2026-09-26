@@ -15,6 +15,29 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Prepare the repo for public view [app] [site]
+
+The repo was already public on GitHub. This entry covers the audit and the
+cleanup that followed it.
+
+- Audited the full history of all branches for secrets, tokens, keys,
+  personal paths and large blobs. Found none. The two
+  `CLAUDE_CODE_OAUTH_TOKEN` uses are Actions secrets, not values.
+- Added an MIT `LICENSE`, and set `license` in `package.json` and both
+  crates. The site footer already said "free and open source", but with no
+  license file that wasn't true in law.
+- Rewrote history (`git filter-repo --mailmap`) to replace a work email on
+  the 2026-09-16/17 commits with a personal one. Force-pushed every branch
+  and both tags. The GitHub releases follow the tags. GitHub's read-only
+  `refs/pull/15–17` still point at the old SHAs until GitHub support
+  purges them.
+- Rewrote the README in plain voice (what it is, what it refuses, commands,
+  how it works) and replaced `site/README.md`, which was still the Astro
+  starter text. Gave the repo a description and topics, and turned on
+  secret scanning and push protection.
+- Stopped tracking `.claude/settings.local.json`. It's per-machine by
+  Claude Code's own convention.
+
 ## 2026-09-26 — Reject Iced as a replacement for the webview UI [app]
 
 The port of the UI to Iced 0.14 (`iced-rewrite` branch, scaffolded on

@@ -1,8 +1,0 @@
-{
-  "enabledPlugins": {},
-  "permissions": {
-    "allow": [
-      "mcp__plugin_personal-context_context__get_document"
-    ]
-  }
-}

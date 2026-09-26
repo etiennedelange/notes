@@ -12,14 +12,6 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
-- **[site] Host the marketing site on Cloudflare Pages.** Not yet set up —
-  needs a Cloudflare account/project connected to the repo, an
-  `@astrojs/cloudflare` adapter only if the site later needs SSR (static
-  output deploys to Pages without one), and a build config pointing at
-  `site/` (`pnpm --dir site build`, output `site/dist`). Cloudflare Pages
-  / Vercel / Netlify were all noted as options in `site/PRODUCT.md`;
-  Cloudflare Pages is now the intended target. Blocks the domain and
-  sitemap items below.
 - **[site] Custom domain.** No domain is set (`site/astro.config.mjs` has
   no `site` configured). Depends on the deploy target decision.
 - **[site] Sitemap / canonical URL setup.** Blocked on the domain
@@ -54,8 +46,13 @@ with `[app]`, `[site]`, or `[app, site]`.
   Rename/Delete/Reveal. Needs an in-app themed menu (the same reasoning as
   the in-app unsaved-changes dialog: stay visually consistent rather than
   using the OS menu). Removing the suppression is not the answer.
+
 ## Done
 
+- **[site] Host the marketing site on Cloudflare Pages.** Live at
+  `notes-site-ojq.pages.dev`, deployed as static output with
+  `pnpm deploy` in `site/` (Wrangler, project `notes-site`). No adapter
+  needed. Custom domain and sitemap (under Open) are still to do.
 - **[app] Evaluate a non-webview UI over `notes-core`.** Evaluated and
   rejected (2026-09-26). Iced's editor widget couldn't match CodeMirror, so
   the Tauri + CodeMirror front end stays. See the `HISTORY.md` entry of the
