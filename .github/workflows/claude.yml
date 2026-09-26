@@ -19,14 +19,14 @@ jobs:
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
+      contents: read
+      pull-requests: read
+      issues: read
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -35,10 +35,6 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_bots: 'claude[bot]'
-          # Upstream default (41898282) is actually github-actions[bot]'s ID, which
-          # misattributes claude[bot]'s commits. See anthropics/claude-code-action#759.
-          bot_id: "209825114"
 
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
@@ -50,6 +46,5 @@ jobs:
           # Optional: Add claude_args to customize behavior and configuration
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-          claude_args: |
-            --allowed-tools "Bash(gh issue view:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(pnpm test),Bash(pnpm run build),Bash(cd src-tauri && cargo test),Bash(cd src-tauri && cargo clippy --all-targets -- -D warnings)"
+          # claude_args: '--allowed-tools Bash(gh pr *)'
 
