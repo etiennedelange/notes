@@ -125,7 +125,8 @@ cleanup that followed it.
 ## 2026-09-26 — Reject Iced as a replacement for the webview UI [app]
 
 The port of the UI to Iced 0.14 (`iced-rewrite` branch, scaffolded on
-2026-09-25) was stopped. The Tauri + CodeMirror front end stays. The
+2026-09-25; the branch was deleted on 2026-09-26, and its tip was
+`b587894`) was stopped. The Tauri + CodeMirror front end stays. The
 question behind it was "is an HTML UI the modern way to build a native
 app?". The answer: Tauri is a mainstream choice, and Iced wouldn't be
 more native. Iced, Slint, egui and GPUI all draw their own widgets
