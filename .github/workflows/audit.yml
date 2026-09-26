@@ -29,7 +29,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # Prebuilt binary — `cargo install cargo-audit` compiles for minutes.
       - uses: taiki-e/install-action@v2
