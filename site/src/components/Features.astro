@@ -1,4 +1,7 @@
 ---
+import { Picture } from "astro:assets";
+import paletteShot from "../assets/screenshots/palette-nord.png";
+
 const groups = [
   {
     label: "Finding and organizing files",
@@ -49,7 +52,8 @@ const groups = [
   <div class="section-inner">
     <h2 class="heading">What it does</h2>
     {
-      groups.map((group) => (
+      groups.map((group, i) => (
+        <>
         <div class="group">
           <h3 class="group-label">{group.label}</h3>
           <dl class="list">
@@ -68,6 +72,22 @@ const groups = [
             ))}
           </dl>
         </div>
+        {i === 0 && (
+          <figure class="figure">
+            <Picture
+              class="shot"
+              src={paletteShot}
+              formats={["avif", "webp"]}
+              widths={[720, 1440, 2048]}
+              sizes="(max-width: 64rem) 100vw, 64rem"
+              alt="The Ctrl+P quick-open box over the editor, filtering files by the word jour"
+            />
+            <figcaption>
+              <kbd>Ctrl</kbd> <kbd>P</kbd> fuzzy-finds across the folder, pinned files and recent files.
+            </figcaption>
+          </figure>
+        )}
+        </>
       ))
     }
   </div>
@@ -84,8 +104,32 @@ const groups = [
     max-width: 40rem;
   }
 
-  .group + .group {
+  .group + .group,
+  .figure + .group {
     margin-top: 2.5rem;
+  }
+
+  .figure {
+    margin: 2.5rem 0 0;
+  }
+
+  .shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 80px -24px rgba(0, 0, 0, 0.7);
+  }
+
+  figcaption {
+    margin-top: 0.9rem;
+    font-size: 0.85rem;
+    color: var(--cloud);
+  }
+
+  figcaption kbd {
+    font-size: 0.72rem;
   }
 
   .group-label {

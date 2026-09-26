@@ -15,6 +15,28 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Real screenshots, generated headlessly [app] [site]
+
+Added `pnpm screenshots` (`scripts/screenshots/`), which captures the
+editor and Ctrl+P quick-open in all three themes. It writes framed and bare
+PNGs to `docs/screenshots/` and copies the bare set to
+`site/src/assets/screenshots/`. The README now shows them, and the site's
+hero, Features and Themes sections use them in place of the drawn mock-ups.
+
+- **Why headless:** the app can't be launched from the dev container, and
+  launching it on Windows didn't work for this. The front end doesn't need
+  Tauri to render, so the script runs it on Vite in headless Chromium, and
+  `mock.js` fakes `window.__TAURI_INTERNALS__`: a sample notes folder,
+  session state, and no-op window and event calls. The UI is real; only the
+  files are made up. If a new IPC command is added and the shots break,
+  that's the file to update.
+- Fonts: Segoe UI and Cascadia Code aren't on Linux, so the shots load Inter
+  and JetBrains Mono from Google Fonts. Both are already in the app's
+  font stacks.
+- The site needed `sharp` as a direct dependency for `astro:assets` to
+  produce the AVIF/WebP versions. It was only there transitively before,
+  which pnpm's strict layout doesn't expose.
+
 ## 2026-09-26 — Move OpenCode state to named volumes [app] [site]
 
 `link-opencode.sh` is gone. OpenCode's data and config dirs are now

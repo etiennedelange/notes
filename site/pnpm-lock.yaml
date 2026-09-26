@@ -11,6 +11,9 @@ importers:
       astro:
         specifier: ^7.3.4
         version: 7.3.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)
+      sharp:
+        specifier: ^0.35.4
+        version: 0.35.4
     devDependencies:
       wrangler:
         specifier: ^4.137.0
