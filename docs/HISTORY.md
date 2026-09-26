@@ -15,6 +15,20 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Public-readiness follow-ups [app] [site]
+
+A second pass over the public repo, after the recreate below.
+
+- Added `SECURITY.md` and turned on private vulnerability reporting. The
+  app writes to disk, so reports shouldn't have to go through a public
+  issue.
+- Added a "Protect main" ruleset that blocks force-pushes to `main` and
+  deleting it. There's no bypass. If history ever has to be rewritten again,
+  switch the ruleset off first.
+- `claude-code-review.yml` now skips PRs from forks. They don't get the
+  `CLAUDE_CODE_OAUTH_TOKEN` secret, so outside contributors would have seen
+  a failing check they didn't cause.
+
 ## 2026-09-26 — Whole-repo review: data-loss fixes and a real consent boundary [app]
 
 A full code review turned up bugs that could lose writing, and a file-access
