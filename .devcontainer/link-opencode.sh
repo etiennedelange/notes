@@ -10,6 +10,20 @@ set -euo pipefail
 
 STORE=/workspaces/.opencode
 
+# /workspaces is the vscode user's own volume with "Clone in Volume", but a
+# root-owned mount point when a local folder is bind-mounted ("Reopen in
+# Container"). Create the store with sudo there, and skip rather than fail
+# the whole postCreateCommand if even that isn't possible.
+if [ ! -d "$STORE" ] && [ ! -w "$(dirname "$STORE")" ]; then
+  if sudo -n mkdir -p "$STORE" 2>/dev/null; then
+    sudo -n chown "$(id -u):$(id -g)" "$STORE"
+  else
+    echo "link-opencode: $(dirname "$STORE") isn't writable and sudo is unavailable;" \
+      "OpenCode state will stay in \$HOME and won't survive a rebuild." >&2
+    exit 0
+  fi
+fi
+
 link() {
   local home_dir=$1 store_dir=$2
   mkdir -p "$store_dir" "$(dirname "$home_dir")"

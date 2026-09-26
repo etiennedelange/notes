@@ -67,10 +67,15 @@ cleanup that followed it.
   crates. The site footer already said "free and open source", but with no
   license file that wasn't true in law.
 - Rewrote history (`git filter-repo --mailmap`) to replace a work email on
-  the 2026-09-16/17 commits with a personal one. Force-pushed every branch
-  and both tags. The GitHub releases follow the tags. GitHub's read-only
-  `refs/pull/15–17` still point at the old SHAs until GitHub support
-  purges them.
+  the 2026-09-16/17 commits with a personal one. A force-push wasn't
+  enough, because GitHub's read-only `refs/pull/*` kept the old commits
+  reachable. So the GitHub repo was deleted and recreated from the
+  rewritten `main`, `iced-rewrite` and both tags. The v0.1.0 and v0.2.0
+  releases were re-created with the same notes and byte-identical
+  installers (SHA-256 checked). The old issues and PRs (#1–22) were dropped
+  on purpose, so `#n` references in older commit messages no longer
+  resolve. Their fixes are in the code and in this file. Renovate was
+  removed in favour of Dependabot.
 - Rewrote the README in plain voice (what it is, what it refuses, commands,
   how it works) and replaced `site/README.md`, which was still the Astro
   starter text. Gave the repo a description and topics, and turned on
@@ -122,6 +127,11 @@ real Windows controls.
   it still avoids bind-mounting agent config from the Windows host. The
   trade-off: any other repo cloned into the same volume (`notes-iced`)
   shares these OpenCode credentials.
+- With "Reopen in Container" on a local folder, `/workspaces` is a
+  root-owned mount point, and the script's `mkdir` used to fail the whole
+  `postCreateCommand`. It now creates the store with `sudo` and `chown`s it
+  to the container user. If `sudo` isn't available, it warns and skips
+  instead, so OpenCode state then stays in `$HOME`.
 
 ## 2026-09-25 — Split the Rust core out of the Tauri shell, and stop the window behaving like a web page [app]
 
