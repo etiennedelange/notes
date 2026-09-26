@@ -75,6 +75,10 @@ cleanup that followed it.
   how it works) and replaced `site/README.md`, which was still the Astro
   starter text. Gave the repo a description and topics, and turned on
   secret scanning and push protection.
+- Dependabot now covers npm (app and `site/`), cargo (`src-tauri/`) and
+  GitHub Actions, not just the devcontainer. It runs weekly on Mondays with
+  minor and patch bumps grouped per ecosystem. Security updates are on in
+  the repo settings and don't wait for the schedule.
 - Stopped tracking `.claude/settings.local.json`. It's per-machine by
   Claude Code's own convention.
 
