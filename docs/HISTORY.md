@@ -15,6 +15,27 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Move OpenCode state to named volumes [app] [site]
+
+`link-opencode.sh` is gone. OpenCode's data and config dirs are now
+per-container named volumes in `devcontainer.json` `mounts`
+(`opencode-data-${devcontainerId}`, `opencode-config-${devcontainerId}`).
+That's the same pattern as the `node-ai` devcontainer template's
+`claude-code-config-${devcontainerId}`, with ownership fixed in
+`post-create.sh`.
+
+- **Why:** the symlink approach was only chosen because it needed no
+  rebuild. It also failed when `/workspaces` was root-owned ("Reopen in
+  Container" on a local folder). And it shared OpenCode's credentials with
+  every other repo cloned into the same `/workspaces` volume.
+- **Ownership:** Docker creates new volumes root-owned, along with any
+  missing parent dirs of the mount point. `post-create.sh` `chown`s them
+  and sets the OpenCode dirs to `700`.
+- **Migration:** on the first rebuild, `post-create.sh` copies the old
+  `/workspaces/.opencode` state into the volumes (`cp -n`, never
+  overwriting), so logins carry over. Delete `/workspaces/.opencode` once
+  that's confirmed.
+
 ## 2026-09-26 — Public-readiness follow-ups [app] [site]
 
 A second pass over the public repo, after the recreate below.
@@ -141,11 +162,8 @@ real Windows controls.
   it still avoids bind-mounting agent config from the Windows host. The
   trade-off: any other repo cloned into the same volume (`notes-iced`)
   shares these OpenCode credentials.
-- With "Reopen in Container" on a local folder, `/workspaces` is a
-  root-owned mount point, and the script's `mkdir` used to fail the whole
-  `postCreateCommand`. It now creates the store with `sudo` and `chown`s it
-  to the container user. If `sudo` isn't available, it warns and skips
-  instead, so OpenCode state then stays in `$HOME`.
+- Superseded the same day by named volumes; see "Move OpenCode state
+  to named volumes" above.
 
 ## 2026-09-25 — Split the Rust core out of the Tauri shell, and stop the window behaving like a web page [app]
 

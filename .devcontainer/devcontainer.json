@@ -14,13 +14,24 @@
 
 	"postCreateCommand": "bash .devcontainer/post-create.sh",
 
-	// Persist the cargo cache in a Docker Volume across container rebuilds.
-	// (OpenCode's credentials/sessions persist differently: link-opencode.sh
-	// symlinks them onto the /workspaces volume, which needs no rebuild to set up.)
+	// Persist the cargo cache and OpenCode's state in per-container Docker
+	// volumes across rebuilds. OpenCode's data dir holds its credentials
+	// (auth.json) and sessions, its config dir the user-level opencode.json.
+	// Docker creates new volumes root-owned; post-create.sh hands them over.
 	"mounts": [
 		{
 			"source": "devcontainer-cargo-cache-${devcontainerId}",
 			"target": "/usr/local/cargo",
+			"type": "volume"
+		},
+		{
+			"source": "opencode-data-${devcontainerId}",
+			"target": "/home/vscode/.local/share/opencode",
+			"type": "volume"
+		},
+		{
+			"source": "opencode-config-${devcontainerId}",
+			"target": "/home/vscode/.config/opencode",
 			"type": "volume"
 		}
 	]
