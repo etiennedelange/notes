@@ -15,6 +15,47 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Reject Iced as a replacement for the webview UI [app]
+
+The port of the UI to Iced 0.14 (`iced-rewrite` branch, scaffolded on
+2026-09-25) was stopped. The Tauri + CodeMirror front end stays. The
+question behind it was "is an HTML UI the modern way to build a native
+app?". The answer: Tauri is a mainstream choice, and Iced wouldn't be
+more native. Iced, Slint, egui and GPUI all draw their own widgets
+instead of using OS controls; only WinUI, WPF or WinForms would give
+real Windows controls.
+
+- The editor decided it, as `ENHANCEMENTS.md` predicted. Iced's
+  `text_editor` has no undo/redo; the port had to add its own, keeping
+  whole-document snapshots.
+- It also has no gutter, decorations or scroll-offset API. So there is no
+  way to add line numbers, fenced-code line backgrounds or a caret
+  colour. Multi-cursor, folding, bracket matching and the search panel
+  are missing too.
+- What did work: syntect's Markdown grammar highlights fenced-code
+  languages in a single parse, mapped onto the app's own theme colours.
+  Its one flaw was blockquote lazy continuation, which needed a per-line
+  fix. That covers the logic modules, themes and session model too, but
+  none of it is worth the editor regression.
+- `src-tauri/core/` (`notes-core`) stays split out. It costs nothing, and
+  it keeps a future non-webview front end cheap if the Rust GUI
+  toolkits' editors improve.
+
+## 2026-09-26 — OpenCode in the devcontainer [app] [site]
+
+- `opencode-ai` is installed globally in `.devcontainer/post-create.sh`
+  (and added to npm's `allow-scripts`), next to Claude Code, as the
+  alternative agent. That script is the `postCreateCommand`.
+- `~/.local/share/opencode` (credentials in `auth.json`, sessions) and
+  `~/.config/opencode` (user-level config) are symlinked by
+  `.devcontainer/link-opencode.sh` to `/workspaces/.opencode/`, outside the
+  repo but on the clone-in-volume `/workspaces` volume, so logins and
+  sessions survive a rebuild. Chosen over new named volumes in `mounts`
+  because it could be set up in the running container with no rebuild, and
+  it still avoids bind-mounting agent config from the Windows host. The
+  trade-off: any other repo cloned into the same volume (`notes-iced`)
+  shares these OpenCode credentials.
+
 ## 2026-09-25 — Split the Rust core out of the Tauri shell, and stop the window behaving like a web page [app]
 
 Both halves of one question: the app is a Tauri app whose UI is HTML, and

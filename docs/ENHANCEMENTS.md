@@ -54,33 +54,9 @@ with `[app]`, `[site]`, or `[app, site]`.
   Rename/Delete/Reveal. Needs an in-app themed menu (the same reasoning as
   the in-app unsaved-changes dialog: stay visually consistent rather than
   using the OS menu). Removing the suppression is not the answer.
-- **[app] Evaluate a non-webview UI over `notes-core`.** The standing
-  complaint is that an HTML front end feels gimmicky even though it ships as
-  a desktop window. `src-tauri/core/` was split out (2026-09-25) precisely so
-  this stays cheap to try, and it is now the *only* prerequisite that is
-  done. The cost centre is CodeMirror 6, not the HTML: `basicSetup` alone
-  provides undo history, multi-cursor, bracket matching, a search panel and
-  autocompletion, on top of which sit markdown highlighting with embedded
-  code languages (`@codemirror/language-data`), the fenced-code decoration
-  plugin (`src/codeBlockBackground.ts`) and three themes expressed as
-  CodeMirror highlight styles. Replacing the shell — tabs, sidebar, command
-  palette, status bar — is the easy part.
-  - Iced is the realistic target: its `text_editor` widget (cosmic-text) plus
-    `iced_highlighter` (syntect) is the only credible cross-platform Rust
-    option with highlighting out of the box. Known losses: multi-cursor, code
-    folding, the search panel, per-block code backgrounds.
-  - Worth knowing before spending anything: none of the cross-platform Rust
-    toolkits (Iced, Slint, egui, GPUI) draw OS-native widgets — they all
-    custom-render, as Sublime Text and Zed do. "Native" here means "not a
-    webview", not "OS controls". Literal OS widgets would mean SwiftUI +
-    WinUI + GTK over the core crate, i.e. three front ends, which conflicts
-    with the cross-platform principle in `PRODUCT.md` for a solo project.
-  - GTK4 + `sourceview5` is the dark horse: `GtkSourceView` is a genuine
-    native code-editor widget, but it only looks native on Linux.
-  - Suggested first step if this is ever picked up: prototype the editor pane
-    alone (markdown highlighting, one theme) in Iced. Don't port the shell
-    first — the shell always works, and the editor is what decides it.
-
 ## Done
 
-_(none yet)_
+- **[app] Evaluate a non-webview UI over `notes-core`.** Evaluated and
+  rejected (2026-09-26). Iced's editor widget couldn't match CodeMirror, so
+  the Tauri + CodeMirror front end stays. See the `HISTORY.md` entry of the
+  same date.
