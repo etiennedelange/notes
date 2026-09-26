@@ -17,6 +17,11 @@ with `[app]`, `[site]`, or `[app, site]`.
   5 minutes a run. Options: drop languages that add little (actions), or
   switch to advanced setup with path filters. Deferred on 2026-09-26 when
   the other workflows were trimmed.
+- **[site] Track download/GitHub button clicks.** Cloudflare Web Analytics
+  gives page views but no events. If GitHub's per-asset download counts
+  aren't enough, options are a small Pages Function logging clicks to
+  Workers Analytics Engine/D1 (first-party, needs `connect-src` in the
+  CSP) or Plausible/Umami (third-party). Deferred 2026-09-26.
 - **[site] Custom domain.** No domain is set (`site/astro.config.mjs` has
   no `site` configured). Depends on the deploy target decision.
 - **[site] Sitemap / canonical URL setup.** Blocked on the domain

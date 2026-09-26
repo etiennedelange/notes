@@ -23,14 +23,14 @@ Inherited from the root `PRODUCT.md`: Notes sits between Notepad++ (fast but dat
 - Single-page static marketing site (Astro), read in one scroll: header nav, hero, positioning, features, themes, download, footer.
 - The Download section is the conversion point. It calls the GitHub Releases API at render time to show the current release's per-platform installer (Windows/macOS/Linux), with secondary asset links, and falls back to a pre-1.0 empty state ("no published release yet") pointing at the releases page and at building from source — a real, currently-live state, not a hypothetical.
 - Dev server runs on port 4322 (deliberately off Astro's default 4321) to avoid colliding with the sibling Tauri app's own dev tooling when both run on the same machine.
-- No custom domain is set yet (see `astro.config.mjs`); the site currently has no confirmed deploy target (Cloudflare Pages/Vercel/Netlify were noted as options, not chosen). Undecided — do not assume a specific host.
+- Hosted on Cloudflare Pages (`notes-site-ojq.pages.dev`, deployed with `pnpm deploy` in `site/`). No custom domain is set yet (see `astro.config.mjs`).
 
 ## Capabilities and Constraints
 
 - Fetches the latest GitHub release for `etiennedelange/notes` at request/build time; classifies assets into Windows/macOS/Linux by filename suffix and picks a primary installer per platform (see `src/lib/github.ts`) with a defined suffix-preference order per platform.
 - No client-side JavaScript framework — plain Astro components, CSS custom properties for theming (see `src/styles/global.css`), a couple of CSS-only animations (hero reveal/cursor blink) with `prefers-reduced-motion` handling already in place.
 - No search, blog, docs, or changelog pages on this site — release notes and full history are delegated to GitHub via outbound links, not reproduced here.
-- No analytics, newsletter signup, or lead capture — the only conversion action is downloading a build or visiting the repo.
+- Analytics is Cloudflare Web Analytics only: cookieless page views, referrers, countries and devices, enabled in the Pages dashboard (Cloudflare injects the beacon at deploy; the CSP in `astro.config.mjs` allows it). No click/event tracking; download counts come from GitHub's per-asset `download_count`. No newsletter signup or lead capture — the only conversion action is downloading a build or visiting the repo.
 - Undecided: no sitemap/canonical URL setup yet (blocked on the domain decision above).
 
 ## Brand Commitments

@@ -15,6 +15,20 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Allow Cloudflare Web Analytics through the site CSP [site]
+
+- Chose Cloudflare Web Analytics for visitor stats: free, cookieless (no
+  consent banner), and native to the Pages host. Enabled in the dashboard,
+  not in code — Pages injects the beacon script on deploy.
+- `security.csp` in `site/astro.config.mjs` now adds
+  `https://static.cloudflareinsights.com` to `script-src`. Without it the
+  CSP silently blocks the injected beacon and the dashboard shows zero.
+  No `connect-src` entry needed: the policy has no `connect-src` or
+  `default-src`, so the beacon's POST isn't restricted.
+- Web Analytics has no event tracking; download counts come from GitHub's
+  per-asset `download_count` instead. Click tracking deferred (see
+  `ENHANCEMENTS.md`).
+
 ## 2026-09-26 — Trim GitHub Actions runs [app] [site]
 
 The Rust job moved out of `ci.yml` into its own `rust.yml`, which only

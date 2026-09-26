@@ -37,9 +37,17 @@ export default defineConfig({
   ],
 
   // Content Security Policy: stable in Astro 6. The site has no inline
-  // scripts and no third-party styles/scripts, so the default 'self'
-  // policy plus Astro's auto-hashed component styles covers it.
+  // scripts of its own, so 'self' plus Astro's auto-hashed component
+  // scripts/styles covers it. The one third-party exception is Cloudflare
+  // Web Analytics: Pages injects its beacon script at deploy time, which
+  // this policy would otherwise silently block. The beacon's POST to
+  // cloudflareinsights.com needs no entry — there's no connect-src or
+  // default-src in the policy, so fetches aren't restricted.
   security: {
-    csp: true,
+    csp: {
+      scriptDirective: {
+        resources: ["'self'", 'https://static.cloudflareinsights.com'],
+      },
+    },
   },
 });
