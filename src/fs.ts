@@ -39,7 +39,18 @@ export const writeTextFile = (path: string, contents: string) =>
 export const pathExists = (path: string) => invoke<boolean>("path_exists", { path });
 export const pathIsDir = (path: string) => invoke<boolean>("path_is_dir", { path });
 export const fileMtimeMs = (path: string) => invoke<number>("file_mtime_ms", { path });
-export const grantPathAccess = (path: string) => invoke<void>("grant_path_access", { path });
 export const loadState = () => invoke<PersistedState>("load_state");
-export const saveState = (state: PersistedState) => invoke<void>("save_state", { state });
+export const saveState = (state: PersistedState) => invoke<void>("save_state", { persisted: state });
+
+// Native dialogs run in Rust, which grants whatever the user picks before
+// returning it. Each resolves to null if the dialog is cancelled.
+export const pickFolder = () => invoke<string | null>("pick_folder");
+export const pickNoteFile = () => invoke<string | null>("pick_note_file");
+
+export interface SaveTarget {
+  path: string;
+  /** True if `.md` was appended to the picked name, which the dialog never confirmed overwriting. */
+  extensionAdded: boolean;
+}
+export const pickSaveTarget = (defaultPath: string) => invoke<SaveTarget | null>("pick_save_path", { defaultPath });
 export const platformName = () => invoke<string>("platform_name");

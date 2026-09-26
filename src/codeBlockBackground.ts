@@ -47,7 +47,9 @@ export function codeBlockBackground() {
       }
 
       update(update: ViewUpdate) {
-        if (update.docChanged || update.viewportChanged) {
+        // A tree change catches the background parser finishing on a large
+        // file, which touches neither the document nor the viewport.
+        if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) !== syntaxTree(update.state)) {
           this.decorations = fencedCodeDecorations(update.view);
         }
       }

@@ -37,8 +37,10 @@ export function createTabEditorState(
       themeCompartment.of(editorTheme(theme)),
       EditorView.lineWrapping,
       EditorView.updateListener.of((update) => {
-        if (update.docChanged) onDocChanged();
+        // onUpdate first: it's where the app records the new state, and
+        // onDocChanged re-renders from it.
         onUpdate?.(update);
+        if (update.docChanged) onDocChanged();
       }),
     ],
   });

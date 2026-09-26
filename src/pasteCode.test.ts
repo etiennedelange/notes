@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { looksLikeCode, guessLanguage, fenceCodeBlock } from "./pasteCode";
+import { EditorState } from "@codemirror/state";
+import { markdown } from "@codemirror/lang-markdown";
+import { looksLikeCode, guessLanguage, fenceCodeBlock, insideFencedCode } from "./pasteCode";
 
 describe("looksLikeCode", () => {
   it("detects a javascript function", () => {
@@ -78,5 +80,18 @@ describe("fenceCodeBlock", () => {
   it("normalizes CRLF line endings", () => {
     const text = "const x = 1;\r\nconst y = 2;";
     expect(fenceCodeBlock(text)).toBe("```js\nconst x = 1;\nconst y = 2;\n```");
+  });
+});
+
+describe("insideFencedCode", () => {
+  const doc = "Intro\n\n```js\nconst a = 1;\n```\n\nOutro";
+  const state = EditorState.create({ doc, extensions: [markdown()] });
+
+  it("is true inside a fence, so pasted code isn't fenced twice", () => {
+    expect(insideFencedCode(state, doc.indexOf("const"))).toBe(true);
+  });
+
+  it("is false in prose", () => {
+    expect(insideFencedCode(state, doc.indexOf("Outro"))).toBe(false);
   });
 });

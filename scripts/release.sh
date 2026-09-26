@@ -67,9 +67,11 @@ fi
 
 # --- bump ------------------------------------------------------------------
 if (( ! DRY_RUN )); then
-  sed -i "0,/\"version\": \"$CURRENT\"/s//\"version\": \"$VERSION\"/" package.json
-  sed -i "0,/\"version\": \"$CURRENT\"/s//\"version\": \"$VERSION\"/" src-tauri/tauri.conf.json
-  sed -i "0,/^version = \"$CURRENT\"$/s//version = \"$VERSION\"/" src-tauri/Cargo.toml
+  # perl rather than sed: `sed -i` and `0,/re/` are GNU-only, so this broke
+  # on macOS. With -0 the whole file is one record, so an s/// without /g
+  # replaces only the first match.
+  perl -0pi -e "s/\"version\": \"\Q$CURRENT\E\"/\"version\": \"$VERSION\"/" package.json src-tauri/tauri.conf.json
+  perl -0pi -e "s/^version = \"\Q$CURRENT\E\"\$/version = \"$VERSION\"/m" src-tauri/Cargo.toml
 
   # Cargo.lock records the workspace member's version, so it has to be
   # regenerated or the release build fails on a stale lockfile.

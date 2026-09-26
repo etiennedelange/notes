@@ -61,18 +61,25 @@ impl Serialize for Error {
     }
 }
 
-/// Canonicalizes the nearest ancestor of `path` that actually exists, so a
-/// not-yet-created Save As target still resolves to something checkable — the
-/// containing directory the user picked via a real save dialog.
-fn nearest_existing_ancestor(path: &Path) -> Option<PathBuf> {
-    let mut cur = Some(path);
-    while let Some(p) = cur {
-        if let Ok(canon) = fs::canonicalize(p) {
-            return Some(canon);
+/// Resolves `path` to the canonical location it names, following symlinks.
+/// A path that doesn't exist yet (a Save As target) resolves through its
+/// nearest existing ancestor with the missing components re-appended, so it
+/// is checked as itself rather than as the directory that contains it. A
+/// `..` among the missing components can't be resolved without those
+/// directories existing, so such a path resolves to nothing and is refused.
+fn resolve(path: &Path) -> Option<PathBuf> {
+    let mut missing = Vec::new();
+    let mut cur = path;
+    loop {
+        if let Ok(mut resolved) = fs::canonicalize(cur) {
+            for name in missing.iter().rev() {
+                resolved.push(name);
+            }
+            return Some(resolved);
         }
-        cur = p.parent();
+        missing.push(cur.file_name()?.to_os_string());
+        cur = cur.parent()?;
     }
-    None
 }
 
 fn is_permitted(granted: &HashSet<PathBuf>, candidate: &Path) -> bool {
@@ -82,9 +89,8 @@ fn is_permitted(granted: &HashSet<PathBuf>, candidate: &Path) -> bool {
 }
 
 fn check_access(granted: &HashSet<PathBuf>, path: &str) -> Result<(), Error> {
-    let ancestor = nearest_existing_ancestor(Path::new(path))
-        .ok_or_else(|| Error::AccessDenied(path.to_string()))?;
-    if is_permitted(granted, &ancestor) {
+    let resolved = resolve(Path::new(path)).ok_or_else(|| Error::AccessDenied(path.to_string()))?;
+    if is_permitted(granted, &resolved) {
         Ok(())
     } else {
         Err(Error::AccessDenied(path.to_string()))
@@ -101,6 +107,11 @@ static TMP_SEQ: AtomicU64 = AtomicU64::new(0);
 /// first, so a crash mid-write leaves an empty note; this can only leave a
 /// stray `.tmp` behind.
 fn write_atomic(path: &Path, contents: &str) -> io::Result<()> {
+    // Write through a symlink rather than over it: renaming onto the link
+    // itself would replace it with a regular file and leave its real target
+    // (a note linked in from a dotfiles repo, say) untouched.
+    let resolved = fs::canonicalize(path);
+    let path = resolved.as_deref().unwrap_or(path);
     let parent = match path.parent() {
         Some(p) if !p.as_os_str().is_empty() => p,
         _ => Path::new("."),
@@ -157,7 +168,7 @@ pub struct DirNode {
     truncated: bool,
 }
 
-fn is_notable_file(name: &str) -> bool {
+pub fn is_notable_file(name: &str) -> bool {
     let lower = name.to_lowercase();
     lower.ends_with(".txt") || lower.ends_with(".md") || lower.ends_with(".markdown")
 }
@@ -309,12 +320,15 @@ pub fn write_text_file(
     check_access(granted, &path)?;
     // These commands take raw paths from the webview, so the only thing standing
     // between a compromised frontend and an arbitrary file overwrite is this
-    // check. Keep it in sync with is_notable_file.
-    let name = Path::new(&path)
-        .file_name()
-        .map(|n| n.to_string_lossy().to_string())
-        .unwrap_or_default();
-    if !is_notable_file(&name) {
+    // check. Keep it in sync with is_notable_file. Both the given name and
+    // the resolved one must pass, or a `note.md` symlink could aim a save at
+    // any other file in a granted folder.
+    let is_note = |p: &Path| {
+        p.file_name()
+            .is_some_and(|n| is_notable_file(&n.to_string_lossy()))
+    };
+    let resolved = resolve(Path::new(&path));
+    if !is_note(Path::new(&path)) || !resolved.as_deref().is_some_and(is_note) {
         return Err(Error::UnsupportedFileType(path));
     }
     if let Some(parent) = Path::new(&path).parent() {
@@ -356,16 +370,19 @@ pub fn path_is_dir(path: &str, granted: &HashSet<PathBuf>) -> bool {
     }
 }
 
-/// Records that the webview has been granted access to `path` via a real user
-/// gesture (dialog result, drag-drop payload, folder root, or the app's own
-/// persisted state). Only the nearest existing ancestor is ever recorded, so a
-/// not-yet-created Save As target grants its containing directory instead of
-/// a bogus leaf path.
+/// Records that the user has granted access to `path` through a real gesture
+/// (a dialog pick, a drag-drop, or the app's own persisted session). Only the
+/// Tauri shell calls this, from its own dialog and drop handlers: the webview
+/// can't grant itself anything. A not-yet-created Save As target is recorded
+/// as that exact file, not as the directory it will be created in.
 pub fn grant_path_access(path: &str, granted: &mut HashSet<PathBuf>) -> Result<(), Error> {
-    let canon = nearest_existing_ancestor(Path::new(path))
-        .ok_or_else(|| Error::AccessDenied(path.to_string()))?;
-    granted.insert(canon);
+    let resolved = resolve(Path::new(path)).ok_or_else(|| Error::AccessDenied(path.to_string()))?;
+    granted.insert(resolved);
     Ok(())
+}
+
+fn is_existing_and_permitted(path: &str, granted: &HashSet<PathBuf>) -> bool {
+    Path::new(path).exists() && check_access(granted, path).is_ok()
 }
 
 pub fn file_mtime_ms(path: String, granted: &HashSet<PathBuf>) -> Result<u64, Error> {
@@ -389,7 +406,7 @@ pub fn file_mtime_ms(path: String, granted: &HashSet<PathBuf>) -> Result<u64, Er
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct AppStateDto {
     theme: Option<String>,
     zoom: Option<f64>,
@@ -407,6 +424,36 @@ pub struct AppStateDto {
     window_maximized: Option<bool>,
 }
 
+impl AppStateDto {
+    /// Re-grants the paths an earlier session had open. Only paths that still
+    /// exist are granted: a deleted note must not turn into a grant on the
+    /// folder that used to hold it.
+    fn grant_remembered_paths(&self, granted: &mut HashSet<PathBuf>) {
+        let remembered = self
+            .last_folder
+            .iter()
+            .chain(&self.open_tabs)
+            .chain(&self.recent_files);
+        for path in remembered {
+            if Path::new(path).exists() {
+                let _ = grant_path_access(path, granted);
+            }
+        }
+    }
+
+    /// Drops every path this run wasn't granted. Persisted paths are re-granted
+    /// at the next launch, so without this a compromised webview could write
+    /// an arbitrary path into the state file and have it trusted on restart.
+    fn retain_permitted(&mut self, granted: &HashSet<PathBuf>) {
+        let ok = |p: &String| is_existing_and_permitted(p, granted);
+        self.last_folder = self.last_folder.take().filter(ok);
+        self.active_tab = self.active_tab.take().filter(ok);
+        self.recent_files.retain(ok);
+        self.open_tabs.retain(ok);
+        self.pinned_tabs.retain(ok);
+    }
+}
+
 /// Ensures `config_dir` exists and returns the state file inside it. The
 /// caller supplies the directory, so persistence doesn't depend on any UI
 /// toolkit's idea of where an app keeps its config.
@@ -420,7 +467,14 @@ pub fn state_path(config_dir: &Path) -> Result<PathBuf, Error> {
     Ok(config_dir.join("state.json"))
 }
 
-pub fn load_state(config_dir: &Path) -> Result<AppStateDto, Error> {
+/// Loads the persisted session and grants the paths it remembers.
+pub fn load_state(config_dir: &Path, granted: &mut HashSet<PathBuf>) -> Result<AppStateDto, Error> {
+    let state = read_state(config_dir)?;
+    state.grant_remembered_paths(granted);
+    Ok(state)
+}
+
+fn read_state(config_dir: &Path) -> Result<AppStateDto, Error> {
     let path = state_path(config_dir)?;
     if !path.exists() {
         return Ok(AppStateDto::default());
@@ -433,14 +487,23 @@ pub fn load_state(config_dir: &Path) -> Result<AppStateDto, Error> {
         Ok(state) => Ok(state),
         Err(_) => {
             // A malformed state file used to wipe the session with no trace.
-            // Set it aside so it's recoverable and start from defaults.
-            let _ = fs::rename(&path, path.with_extension("json.bak"));
+            // Set it aside so it's recoverable and start from defaults. The
+            // timestamp keeps a second bad file from overwriting the first.
+            let stamp = std::time::SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map_or(0, |d| d.as_secs());
+            let _ = fs::rename(&path, path.with_extension(format!("json.{stamp}.bak")));
             Ok(AppStateDto::default())
         }
     }
 }
 
-pub fn save_state(config_dir: &Path, state: AppStateDto) -> Result<(), Error> {
+pub fn save_state(
+    config_dir: &Path,
+    mut state: AppStateDto,
+    granted: &HashSet<PathBuf>,
+) -> Result<(), Error> {
+    state.retain_permitted(granted);
     let path = state_path(config_dir)?;
     let raw = serde_json::to_string_pretty(&state).map_err(Error::StateFormat)?;
     write_atomic(&path, &raw).map_err(|source| Error::Write {
@@ -765,16 +828,95 @@ mod tests {
         assert!(result.contents.starts_with("hi"));
     }
 
+    /// A Save As target grants that one file, not the folder it lands in —
+    /// otherwise saving a note into your home directory would open all of it.
     #[test]
-    fn grant_path_access_records_the_nearest_existing_ancestor() {
+    fn granting_a_new_file_grants_only_that_file() {
         let tree = TempTree::new("grant");
+        tree.file("sibling.md");
         let mut granted = HashSet::new();
-        let not_yet_created = tree.0.join("Untitled.md");
+        let target = tree.0.join("Untitled.md");
 
-        grant_path_access(&not_yet_created.to_string_lossy(), &mut granted)
-            .expect("should grant the nearest existing ancestor");
+        grant_path_access(&target.to_string_lossy(), &mut granted).expect("grant");
 
-        assert!(is_permitted(&granted, &fs::canonicalize(&tree.0).unwrap()));
+        write_text_file(target.to_string_lossy().to_string(), "new".into(), &granted)
+            .expect("the granted target should be writable");
+        let sibling = tree.0.join("sibling.md").to_string_lossy().to_string();
+        assert!(read_text_file(sibling, &granted).is_err(), "the sibling must stay off-limits");
+    }
+
+    #[test]
+    fn missing_paths_with_parent_components_are_refused() {
+        let tree = TempTree::new("dotdot");
+        let sneaky = tree.0.join("missing/../../escape.md");
+
+        assert!(check_access(&tree.granted(), &sneaky.to_string_lossy()).is_err());
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn write_atomic_writes_through_symlinks() {
+        let tree = TempTree::new("atomic_symlink");
+        tree.file("real.md");
+        let link = tree.0.join("link.md");
+        std::os::unix::fs::symlink(tree.0.join("real.md"), &link).unwrap();
+
+        write_atomic(&link, "new").expect("write via link");
+
+        assert!(fs::symlink_metadata(&link).unwrap().file_type().is_symlink());
+        assert_eq!(fs::read_to_string(tree.0.join("real.md")).unwrap(), "new");
+    }
+
+    #[test]
+    fn state_file_missing_list_fields_still_loads() {
+        let tree = TempTree::new("state_partial");
+        fs::write(tree.0.join("state.json"), r#"{"theme":"nord"}"#).unwrap();
+
+        let state = read_state(&tree.0).expect("load");
+
+        assert_eq!(state.theme.as_deref(), Some("nord"));
+        assert!(tree.0.join("state.json").exists(), "a valid file must not be set aside");
+    }
+
+    #[test]
+    fn saved_state_drops_paths_that_were_never_granted() {
+        let config = TempTree::new("state_config");
+        let notes = TempTree::new("state_notes");
+        notes.file("mine.md").file("other/theirs.md");
+        let mine = notes.0.join("mine.md").to_string_lossy().to_string();
+        let theirs = notes.0.join("other/theirs.md").to_string_lossy().to_string();
+        let mut granted = HashSet::new();
+        grant_path_access(&mine, &mut granted).unwrap();
+
+        let state = AppStateDto {
+            recent_files: vec![mine.clone(), theirs.clone()],
+            open_tabs: vec![theirs.clone()],
+            last_folder: Some(notes.0.to_string_lossy().to_string()),
+            ..Default::default()
+        };
+        save_state(&config.0, state, &granted).expect("save");
+
+        let saved = read_state(&config.0).unwrap();
+        assert_eq!(saved.recent_files, vec![mine]);
+        assert!(saved.open_tabs.is_empty());
+        assert_eq!(saved.last_folder, None);
+    }
+
+    #[test]
+    fn loading_state_regrants_only_paths_that_still_exist() {
+        let config = TempTree::new("regrant_config");
+        let notes = TempTree::new("regrant_notes");
+        notes.file("kept.md");
+        let kept = notes.0.join("kept.md").to_string_lossy().to_string();
+        let gone = notes.0.join("gone/deleted.md").to_string_lossy().to_string();
+        let raw = serde_json::json!({ "recentFiles": [kept.clone(), gone] }).to_string();
+        fs::write(config.0.join("state.json"), raw).unwrap();
+
+        let mut granted = HashSet::new();
+        load_state(&config.0, &mut granted).expect("load");
+
+        assert!(read_text_file(kept, &granted).is_ok());
+        assert_eq!(granted.len(), 1, "a deleted note must not grant its folder");
     }
 
     /// Errors cross the IPC boundary as plain strings, so `${e}` in a toast

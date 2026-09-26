@@ -24,8 +24,6 @@
     "core:window:allow-available-monitors",
     "core:menu:allow-new",
     "core:menu:allow-popup",
-    "dialog:allow-open",
-    "dialog:allow-save",
     "opener:default",
     "clipboard-manager:allow-write-text"
   ]

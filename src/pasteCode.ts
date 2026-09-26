@@ -1,3 +1,5 @@
+import { syntaxTree } from "@codemirror/language";
+import type { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 
 // Ordered by how distinctive a language's syntax is: languages with signals
@@ -130,11 +132,22 @@ export function fenceCodeBlock(text: string): string {
   return `\`\`\`${lang}\n${trimmed}\n\`\`\``;
 }
 
+/** True if `pos` sits inside a fenced code block, where a paste is already code. */
+export function insideFencedCode(state: EditorState, pos: number): boolean {
+  let node = syntaxTree(state).resolveInner(pos, -1);
+  for (;;) {
+    if (node.name === "FencedCode") return true;
+    if (!node.parent) return false;
+    node = node.parent;
+  }
+}
+
 export function codeSnippetPasteHandler(): ReturnType<typeof EditorView.domEventHandlers> {
   return EditorView.domEventHandlers({
     paste(event, view) {
       const text = event.clipboardData?.getData("text/plain");
       if (!text || !looksLikeCode(text)) return false;
+      if (insideFencedCode(view.state, view.state.selection.main.from)) return false;
 
       event.preventDefault();
       const fenced = fenceCodeBlock(text);

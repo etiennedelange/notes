@@ -33,8 +33,8 @@ function isBrowserKey(e: KeyboardEvent): boolean {
 
 export function installNativeChrome(): void {
   // The default menu is the browser's ("Back", "Reload", "Inspect Element"),
-  // which is the single loudest signal that this is a web view. The app has
-  // no context menu of its own yet, so nothing is lost by suppressing it.
+  // which is the single loudest signal that this is a web view. The tab
+  // strip's own menu is a native one (see tabs.ts), so it's unaffected.
   window.addEventListener("contextmenu", (e) => e.preventDefault());
 
   // Chrome elements are not content: dragging a filename out of the sidebar

@@ -1,5 +1,6 @@
+import type { EditorState } from "@codemirror/state";
 import { EditorView, type ViewUpdate } from "@codemirror/view";
-import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { availableMonitors, PhysicalPosition, PhysicalSize } from "@tauri-apps/api/window";
 import {
@@ -9,9 +10,11 @@ import {
   pathExists,
   pathIsDir,
   fileMtimeMs,
-  grantPathAccess,
   loadState,
   saveState,
+  pickFolder,
+  pickNoteFile,
+  pickSaveTarget,
   type DirNode,
   type PersistedState,
 } from "./fs";
@@ -24,7 +27,7 @@ import { renderSidebar } from "./sidebar";
 import { renderTabs } from "./tabs";
 import { renderStatusBar, updateCursorLabel, updateDocStats } from "./statusbar";
 import { openCommandPalette } from "./commandPalette";
-import { unsavedChangesModal, showModal } from "./modal";
+import { unsavedChangesModal, showModal, confirmModal } from "./modal";
 
 const RECENT_LIMIT = 30;
 const CLOSED_TABS_LIMIT = 20;
@@ -75,8 +78,39 @@ export class App {
     const pos = update.state.selection.main.head;
     const line = update.state.doc.lineAt(pos);
     updateCursorLabel(line.number, pos - line.from + 1);
-    if (update.docChanged) updateDocStats(update.state.doc.toString());
+    if (update.docChanged) this.scheduleDocStats();
   };
+
+  private statsTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Counting words walks the whole document, so don't do it on every keystroke. */
+  private scheduleDocStats() {
+    if (this.statsTimer !== null) clearTimeout(this.statsTimer);
+    this.statsTimer = setTimeout(() => {
+      this.statsTimer = null;
+      updateDocStats(this.view.state.doc.toString());
+    }, 150);
+  }
+
+  /**
+   * Builds a tab's editor state. The callbacks reach the tab through
+   * `getTab` rather than a captured key, so they keep working after Save As
+   * re-keys it, and every update is written back to `tab.state` so the tab
+   * always holds what's on screen rather than a snapshot from the last tab
+   * switch.
+   */
+  private createTabState(getTab: () => Tab, content: string, path: string): EditorState {
+    return createTabEditorState(
+      content,
+      path,
+      THEMES[this.theme],
+      () => this.markDirty(getTab().key),
+      (update) => {
+        getTab().state = update.state;
+        this.handleCursorUpdate(update);
+      },
+    );
+  }
 
   // ---------- boot ----------
 
@@ -104,17 +138,8 @@ export class App {
     }
     document.getElementById("app")!.style.setProperty("--sidebar-w", `${this.sidebarWidth}px`);
 
+    // load_state has already re-granted the paths this session remembers.
     if (persisted?.recentFiles) this.recentFiles = persisted.recentFiles;
-
-    // Our own previously-persisted state is a trusted grant source, on the same
-    // footing as a dialog pick or a drag-drop payload: it reflects paths the
-    // user already consented to in an earlier session, not attacker-chosen
-    // strings arriving fresh over IPC. Re-grant them before touching disk.
-    const rememberedPaths = new Set<string>();
-    if (persisted?.lastFolder) rememberedPaths.add(persisted.lastFolder);
-    for (const p of persisted?.openTabs ?? []) rememberedPaths.add(p);
-    for (const p of this.recentFiles) rememberedPaths.add(p);
-    await Promise.all(Array.from(rememberedPaths).map((p) => grantPathAccess(p).catch(() => {})));
 
     if (this.recentFiles.length > 0) {
       const exists = await Promise.all(this.recentFiles.map((p) => pathExists(p).catch(() => false)));
@@ -212,11 +237,11 @@ export class App {
   // ---------- folder ----------
 
   async openFolderDialog() {
-    const picked = await openDialog({ directory: true, multiple: false });
-    if (typeof picked === "string") {
-      await grantPathAccess(picked).catch(() => {});
-      await this.setOpenFolder(picked);
-    }
+    const picked = await pickFolder().catch((e) => {
+      showToast(`Couldn't open folder: ${e}`, "error");
+      return null;
+    });
+    if (picked) await this.setOpenFolder(picked);
   }
 
   async setOpenFolder(path: string, opts: { skipPersist?: boolean } = {}) {
@@ -248,14 +273,11 @@ export class App {
   // ---------- files / tabs ----------
 
   async openFileDialog() {
-    const picked = await openDialog({
-      multiple: false,
-      filters: [{ name: "Notes", extensions: ["txt", "md", "markdown"] }],
+    const picked = await pickNoteFile().catch((e) => {
+      showToast(`Couldn't open file: ${e}`, "error");
+      return null;
     });
-    if (typeof picked === "string") {
-      await grantPathAccess(picked).catch(() => {});
-      await this.openFile(picked);
-    }
+    if (picked) await this.openFile(picked);
   }
 
   /**
@@ -309,15 +331,15 @@ export class App {
       return;
     }
     const mtime = await fileMtimeMs(path).catch(() => null);
-    const state = createTabEditorState(
-      content,
+    const tab: Tab = {
+      key: path,
       path,
-      THEMES[this.theme],
-      () => this.markDirty(path),
-      this.handleCursorUpdate,
-    );
-
-    const tab: Tab = { key: path, path, isUntitled: false, state, dirty: false, diskMtime: mtime, pinned: false };
+      isUntitled: false,
+      state: this.createTabState(() => tab, content, path),
+      dirty: false,
+      diskMtime: mtime,
+      pinned: false,
+    };
 
     // A preview tab takes the slot of the previous preview tab (if any and
     // not dirty) instead of piling up a new tab, matching editors like VS
@@ -388,14 +410,15 @@ export class App {
 
   newUntitledTab() {
     const key = `untitled:${this.untitledCounter++}`;
-    const state = createTabEditorState(
-      "",
-      "untitled.md",
-      THEMES[this.theme],
-      () => this.markDirty(key),
-      this.handleCursorUpdate,
-    );
-    const tab: Tab = { key, path: null, isUntitled: true, state, dirty: false, diskMtime: null, pinned: false };
+    const tab: Tab = {
+      key,
+      path: null,
+      isUntitled: true,
+      state: this.createTabState(() => tab, "", "untitled.md"),
+      dirty: false,
+      diskMtime: null,
+      pinned: false,
+    };
     this.tabs.set(key, tab);
     this.order.push(key);
     this.activateTab(key);
@@ -404,7 +427,6 @@ export class App {
   activateTab(key: string) {
     const tab = this.tabs.get(key);
     if (!tab) return;
-    if (this.activeKey && this.activeKey !== key) this.captureActiveDoc();
     this.activeKey = key;
     this.view.setState(tab.state);
     this.view.focus();
@@ -470,19 +492,14 @@ export class App {
     this.activateTab(next);
   }
 
-  private captureActiveDoc() {
-    if (!this.activeKey) return;
-    const tab = this.tabs.get(this.activeKey);
-    if (!tab) return;
-    tab.state = this.view.state;
-  }
-
   markDirty(key: string) {
     const tab = this.tabs.get(key);
     if (!tab || tab.dirty) return;
     tab.dirty = true;
     if (this.previewKey === key) this.previewKey = null;
     renderTabs(this);
+    renderSidebar(this);
+    renderStatusBar(this);
   }
 
   tabLabel(tab: Tab): string {
@@ -502,7 +519,6 @@ export class App {
 
   /** Saves a tab (prompting Save As for untitled tabs). Returns the saved Tab on success, null if cancelled/failed. */
   async saveTab(key: string): Promise<Tab | null> {
-    if (key === this.activeKey) this.captureActiveDoc();
     const tab = this.tabs.get(key);
     if (!tab) return null;
     if (tab.isUntitled) return this.saveTabAs(key);
@@ -513,14 +529,24 @@ export class App {
   private async saveTabAs(key: string): Promise<Tab | null> {
     const tab = this.tabs.get(key);
     if (!tab) return null;
-    const picked = await saveDialog({
-      filters: [{ name: "Markdown", extensions: ["md"] }, { name: "Text", extensions: ["txt"] }],
-      defaultPath: tab.isUntitled ? "Untitled.md" : tab.path!,
+    const picked = await pickSaveTarget(tab.isUntitled ? "Untitled.md" : tab.path!).catch((e) => {
+      showToast(`Couldn't save: ${e}`, "error");
+      return null;
     });
     if (!picked) return null;
-    // Not every platform's save dialog appends the filter's extension (GTK
-    // notably doesn't), and the backend refuses to write non-note files.
-    const target = NOTE_EXT.test(picked) ? picked : `${picked}.md`;
+    const target = picked.path;
+
+    // The dialog only confirmed overwriting the name as typed; if Rust had
+    // to append `.md`, that file may exist and nobody has agreed to lose it.
+    if (picked.extensionAdded && (await pathExists(target).catch(() => false))) {
+      const replace = await confirmModal({
+        title: "Replace file?",
+        message: `"${basename(target)}" already exists. Do you want to replace it?`,
+        confirmLabel: "Replace",
+        danger: true,
+      });
+      if (!replace) return null;
+    }
 
     // Refuse to save onto a path that's already open in another tab: silently
     // re-keying onto it would orphan that tab's Map entry, dropping its
@@ -531,17 +557,29 @@ export class App {
       return null;
     }
 
-    await grantPathAccess(target).catch(() => {});
+    // Write before re-keying, so a failed save leaves the tab on its old
+    // path. This skips writeTab's changed-on-disk check on purpose: the
+    // user just chose to overwrite whatever is at the target.
+    try {
+      await writeTextFile(target, tab.state.doc.toString());
+    } catch (e) {
+      showToast(`Couldn't save: ${e}`, "error");
+      return null;
+    }
     this.rekeyTab(tab, key, target);
+    tab.dirty = false;
+    tab.diskMtime = await fileMtimeMs(target).catch(() => Date.now());
     if (!this.openFolder || !isDescendant(this.openFolder, target)) {
       if (!this.looseFiles.includes(target)) this.looseFiles.push(target);
     }
     this.touchRecent(target);
 
-    const ok = await this.writeTab(tab);
     renderTabs(this);
     renderSidebar(this);
-    return ok ? tab : null;
+    renderStatusBar(this);
+    this.persist();
+    showToast(`Saved ${basename(target)}`);
+    return tab;
   }
 
   /** Re-keys a tab's Map entry and order slot after Save As changes its path. */
@@ -597,7 +635,7 @@ export class App {
     try {
       const result = await readTextFile(tab.path!);
       const mtime = await fileMtimeMs(tab.path!).catch(() => Date.now());
-      tab.state = createTabEditorState(result.contents, tab.path!, THEMES[this.theme], () => this.markDirty(tab.key), this.handleCursorUpdate);
+      tab.state = this.createTabState(() => tab, result.contents, tab.path!);
       tab.dirty = false;
       tab.diskMtime = mtime;
       if (this.activeKey === tab.key) this.view.setState(tab.state);
@@ -640,7 +678,6 @@ export class App {
     this.theme = id;
     const tokens = THEMES[id];
     applyChromeTheme(tokens);
-    this.captureActiveDoc();
     for (const tab of this.tabs.values()) {
       tab.state = withTheme(tab.state, tokens);
     }
@@ -872,20 +909,17 @@ export class App {
   }
 
   private wireDragDrop() {
-    getCurrentWebviewWindow()
-      .onDragDropEvent(async (event) => {
-        if (event.payload.type !== "drop") return;
-        const paths = event.payload.paths;
-        for (const p of paths) {
-          await grantPathAccess(p).catch(() => {});
-          if (NOTE_EXT.test(p)) {
-            await this.openFile(p);
-          } else if (await pathIsDir(p)) {
-            await this.setOpenFolder(p);
-          }
+    // Emitted by Rust once it has granted the dropped paths (on_drop in
+    // src-tauri/src/lib.rs), in place of Tauri's own drag-drop event.
+    listen<string[]>("notes://drop", async (event) => {
+      for (const p of event.payload) {
+        if (NOTE_EXT.test(p)) {
+          await this.openFile(p);
+        } else if (await pathIsDir(p)) {
+          await this.setOpenFolder(p);
         }
-      })
-      .catch(() => {});
+      }
+    }).catch(() => {});
   }
 
   themeIds() {

@@ -15,6 +15,46 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Whole-repo review: data-loss fixes and a real consent boundary [app]
+
+A full code review turned up bugs that could lose writing, and a file-access
+check that didn't protect anything. All were fixed together.
+
+- **Lost edits.** A tab's saved editor state only caught up with the screen
+  on a tab switch or a save. So clicking the tab you were already on
+  reloaded that older state, wiping edits made since then. Ctrl+Shift+S
+  saved that older state too, and marked the tab clean. And after Save As,
+  new edits never marked the tab unsaved, because the edit callback still
+  looked the tab up by its old key. Now every editor update writes back to
+  `tab.state`, and callbacks reach the tab through the object, not the key.
+- **Save As.** Saving over an existing file used to show "File changed on
+  disk", because the tab still had the old file's modification time, and
+  "Reload" then loaded the other file over your edits. Save As now writes
+  first and re-keys the tab only if the write succeeds. When `.md` is added
+  to a typed name that already exists, the app asks before replacing it.
+- **Consent model.** `grant_path_access` was an IPC command, so the webview
+  could grant itself `/`. Dialogs now run in Rust (`pick_folder`,
+  `pick_note_file`, `pick_save_path`), and Rust grants dropped paths
+  before emitting `notes://drop`. `load_state` re-grants remembered paths
+  that still exist, and `save_state` drops any path this run never granted.
+  A Save As target now grants that one file, not the folder it's saved into,
+  and a deleted note no longer grants its old folder. The JS dialog plugin
+  and its capabilities are gone.
+- **Smaller fixes:**
+  - Saves now write through symlinks instead of replacing them.
+  - A state file missing its list fields loads with defaults instead of
+    being set aside. Set-aside `.bak` files are timestamped so a second
+    bad file doesn't overwrite the first.
+  - The folder walk works on a copy of the grant list, so it doesn't lock
+    out saves.
+  - The unsaved marker in the title bar, status bar and sidebar now shows
+    on the first edit.
+  - Word counts are updated after a short pause instead of on every
+    keystroke.
+  - Pasting code inside a code block no longer adds a second fence.
+  - Code-block backgrounds update when background parsing finishes.
+  - `release.sh` uses `perl` instead of GNU-only `sed`.
+
 ## 2026-09-26 — Prepare the repo for public view [app] [site]
 
 The repo was already public on GitHub. This entry covers the audit and the
