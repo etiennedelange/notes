@@ -1,0 +1,26 @@
+name: Rebuild site on release
+
+# The site's Download section fetches the latest GitHub release at build
+# time (site/src/lib/github.ts), so a new release only shows up after a
+# rebuild. release.yml leaves a draft, which `releases/latest` ignores, so
+# this fires on publish rather than at the end of the build.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  deploy-hook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cloudflare Pages build
+        env:
+          DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "::error::CLOUDFLARE_PAGES_DEPLOY_HOOK secret is not set"
+            exit 1
+          fi
+          curl -fsS -X POST "$DEPLOY_HOOK"

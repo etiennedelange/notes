@@ -12,6 +12,13 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
+- **[app] Release notes from the commit log.** GitHub's generated notes
+  list only merged PRs since the previous tag, so direct commits to `main`
+  are missing. v0.4.0's notes left out every fix and had to be rewritten
+  by hand on 2026-09-26. `release.sh` could build the notes from
+  `git log v<previous>..HEAD` and pass them to the workflow (`releaseBody`
+  or a notes file). Deleting the unreleased `v0.3.0` tag is a smaller
+  cleanup to consider alongside.
 - **[app] Cut CodeQL scope on PRs.** CodeQL default setup (repo settings,
   no workflow file) analyses actions, JS/TS and Rust on every PR push, about
   5 minutes a run. Options: drop languages that add little (actions), or
@@ -36,7 +43,9 @@ with `[app]`, `[site]`, or `[app, site]`.
 - **[site] Switch the Download section to Astro Live Content Collections.**
   The latest-release fetch (`site/src/lib/github.ts`, called from
   `index.astro`) currently runs at build time, so a new GitHub release
-  only appears on the site after a rebuild/redeploy. Live Content
+  only appears on the site after a rebuild/redeploy (now triggered
+  automatically on publish by `site-rebuild.yml`, which makes this less
+  pressing). Live Content
   Collections fetch at request time instead, but require moving off
   static output onto an SSR adapter — blocked on the deploy-target
   decision above. Astro 7's Route Caching (stable, `Astro.cache` +

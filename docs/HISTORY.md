@@ -15,6 +15,36 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Rebuild the site when a release is published [app, site]
+
+- Added `.github/workflows/site-rebuild.yml`: on `release: published` it
+  POSTs to a Cloudflare Pages Deploy Hook (secret
+  `CLOUDFLARE_PAGES_DEPLOY_HOOK`).
+- Why: the Download section reads the latest release at build time, and
+  Cloudflare only builds on push. v0.4.0 was published ~10 minutes after
+  its commit was pushed, so the site kept showing v0.3.0. The hook is
+  separate from `release.yml` because that workflow leaves a draft, which
+  `releases/latest` skips — publishing by hand is the moment that matters.
+
+## 2026-09-26 — Release workflow needed `tauri-action@v1` [app]
+
+- The `v0.3.0` tag build compiled fine, then `tauri-apps/tauri-action@v0`
+  failed to create the release with `Resource not accessible by
+  integration`. This was the workflow's first real run: v0.1.0 and v0.2.0
+  were uploaded by hand after the repo was recreated.
+- Not the token or the repo: the job's token had `contents: write`, the
+  actor was the owner (not Dependabot), and disabling the "Protect main"
+  ruleset changed nothing. A probe workflow making the same
+  `POST /releases` call with the same token got `201`. The exact reason
+  `@v0` was refused was never found.
+- `v0.4.0` was tagged from `main`, which has Dependabot's bump to
+  `tauri-action@v1` (plus `checkout@v7`, `setup-node@v7`,
+  `pnpm/action-setup@v6`), and published cleanly. v0.3.0 stays tagged but
+  unreleased.
+- If it comes back: replace the action's publish step with
+  `gh release create --draft` + `gh release upload`, the call proven to
+  work, and keep `tauri-action` (or `pnpm tauri build`) for the build.
+
 ## 2026-09-26 — Allow Cloudflare Web Analytics through the site CSP [site]
 
 - Chose Cloudflare Web Analytics for visitor stats: free, cookieless (no
