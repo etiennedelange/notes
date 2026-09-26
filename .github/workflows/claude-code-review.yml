@@ -10,11 +10,21 @@ on:
     #   - "src/**/*.js"
     #   - "src/**/*.jsx"
 
+# Each push to a PR starts a fresh review; only the latest commit matters.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   claude-review:
     # Fork PRs don't get repository secrets, so the action would fail for
     # every outside contributor. Only review PRs from branches in this repo.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Dependabot runs get Dependabot's secret store, not the repo's, so the
+    # same applies to its PRs. Drafts wait until they're marked ready.
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      !github.event.pull_request.draft
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||

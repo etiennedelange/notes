@@ -12,6 +12,11 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
+- **[app] Cut CodeQL scope on PRs.** CodeQL default setup (repo settings,
+  no workflow file) analyses actions, JS/TS and Rust on every PR push, about
+  5 minutes a run. Options: drop languages that add little (actions), or
+  switch to advanced setup with path filters. Deferred on 2026-09-26 when
+  the other workflows were trimmed.
 - **[site] Custom domain.** No domain is set (`site/astro.config.mjs` has
   no `site` configured). Depends on the deploy target decision.
 - **[site] Sitemap / canonical URL setup.** Blocked on the domain

@@ -1,0 +1,66 @@
+name: Rust
+
+# About 9 minutes a run (half of that is the release-profile tests), so only
+# run it when something that can change the Rust build has changed. The
+# frontend bundle isn't an input: see the comment on the system deps below.
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "src-tauri/**"
+      - ".github/workflows/rust.yml"
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A second push supersedes the first; don't burn runners on stale commits.
+concurrency:
+  group: rust-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Tauri links against the GTK/WebKit stack on Linux, so the crate won't
+      # compile without these — even for `cargo test`, which never opens a
+      # window. The frontend bundle is NOT needed: generate_context! tolerates a
+      # missing frontendDist for a non-bundled build.
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Clippy
+        working-directory: src-tauri
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      # Run both profiles: release disables debug assertions and enables
+      # overflow-checks explicitly, so the two can disagree — which is exactly
+      # how the walk_dir budget underflow hid (panic in debug, silent wrap in
+      # release).
+      - name: Tests (debug)
+        working-directory: src-tauri
+        run: cargo test --workspace
+
+      - name: Tests (release)
+        working-directory: src-tauri
+        run: cargo test --workspace --release

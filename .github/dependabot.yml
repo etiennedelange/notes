@@ -1,4 +1,6 @@
-# Weekly version updates, Mondays, alongside the scheduled cargo audit.
+# Weekly version updates for code dependencies, Mondays, alongside the
+# scheduled cargo audit. Actions and the devcontainer image change slowly,
+# so they go monthly: every Dependabot PR costs a full round of checks.
 # Minor and patch bumps are grouped into one PR per ecosystem; majors get
 # their own PR, since those are the ones that need reading.
 # Security updates are separate: they're enabled in the repo settings and
@@ -40,8 +42,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     groups:
       actions:
         patterns: ["*"]
@@ -50,5 +51,4 @@ updates:
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly

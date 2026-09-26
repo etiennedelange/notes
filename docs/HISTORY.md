@@ -15,6 +15,23 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-26 — Trim GitHub Actions runs [app] [site]
+
+The Rust job moved out of `ci.yml` into its own `rust.yml`, which only
+runs when `src-tauri/**` changes. `ci.yml` (the frontend job) now skips
+site, Rust, docs, devcontainer and Markdown-only changes. The Claude review
+workflow skips Dependabot PRs and drafts, and a new push cancels an
+in-flight review. Dependabot's `github-actions` and `devcontainers`
+updates went from weekly to monthly.
+
+- **Why:** the Rust job takes about 9 minutes (4.5 of them are the
+  release-profile tests) and was running on every push. That included
+  site-only Dependabot bumps and docs commits. Claude review never worked
+  on Dependabot PRs anyway: those runs read Dependabot's secret store, which
+  has no `CLAUDE_CODE_OAUTH_TOKEN`. Neither workflow is a required check
+  in the `Protect main` ruleset, so skipping them can't block a merge.
+  If one becomes required, a skipped run stays "pending" and blocks the PR.
+
 ## 2026-09-26 — Real screenshots, generated headlessly [app] [site]
 
 Added `pnpm screenshots` (`scripts/screenshots/`), which captures the
