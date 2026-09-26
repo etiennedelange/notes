@@ -37,6 +37,17 @@ hero, Features and Themes sections use them in place of the drawn mock-ups.
   produce the AVIF/WebP versions. It was only there transitively before,
   which pnpm's strict layout doesn't expose.
 
+## 2026-09-26 — Dismiss Dependabot glib alert [app]
+
+Dismissed Dependabot alert #1 (GHSA-wrw7-89jp-8q8g / RUSTSEC-2024-0429,
+unsound `glib::VariantStrIter`) as tolerable risk.
+
+- **Why:** `glib 0.18.5` comes in through Tauri's Linux gtk-rs 0.18 stack
+  (`gtk`, `webkit2gtk`), and the fix is `glib ≥ 0.20`, so Dependabot's
+  security update can't resolve and kept failing its run. `cargo audit`
+  already ignores the same advisory in `src-tauri/.cargo/audit.toml`.
+  Look at it again when Tauri moves to a newer gtk-rs.
+
 ## 2026-09-26 — Move OpenCode state to named volumes [app] [site]
 
 `link-opencode.sh` is gone. OpenCode's data and config dirs are now
