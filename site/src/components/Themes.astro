@@ -1,36 +1,14 @@
 ---
-// Palette values copied from src/themes.ts, the app's own theme source.
+import { Picture } from "astro:assets";
+import nord from "../assets/screenshots/editor-nord.png";
+import tokyoNight from "../assets/screenshots/editor-tokyo-night.png";
+import noctisLux from "../assets/screenshots/editor-noctis-lux.png";
+
+// Screenshots come from `pnpm screenshots` at the repo root.
 const themes = [
-  {
-    id: "nord",
-    label: "Nord",
-    kind: "dark",
-    note: "cool and quiet",
-    bg: "#2e3440",
-    fg: "#eceff4",
-    fgMuted: "#9aa7bd",
-    accent: "#88c0d0",
-  },
-  {
-    id: "tokyo-night",
-    label: "Tokyo Night",
-    kind: "dark",
-    note: "moody blue-violet",
-    bg: "#24283b",
-    fg: "#c0caf5",
-    fgMuted: "#7982a9",
-    accent: "#7aa2f7",
-  },
-  {
-    id: "noctis-lux",
-    label: "Noctis Lux",
-    kind: "light",
-    note: "warm daylight",
-    bg: "#fef8ec",
-    fg: "#00404a",
-    fgMuted: "#6d8788",
-    accent: "#0099ad",
-  },
+  { id: "nord", label: "Nord", kind: "dark", note: "cool and quiet", shot: nord },
+  { id: "tokyo-night", label: "Tokyo Night", kind: "dark", note: "moody blue-violet", shot: tokyoNight },
+  { id: "noctis-lux", label: "Noctis Lux", kind: "light", note: "warm daylight", shot: noctisLux },
 ];
 ---
 
@@ -42,19 +20,22 @@ const themes = [
     <div class="grid">
       {
         themes.map((t) => (
-          <div class={`card card-${t.id}`}>
-            <div class="card-lines">
-              <span />
-              <span />
-              <span />
-            </div>
-            <div class="card-label">
+          <figure class="card">
+            <Picture
+              class="shot"
+              src={t.shot}
+              formats={["avif", "webp"]}
+              widths={[480, 960, 1440]}
+              sizes="(max-width: 40rem) 100vw, 22rem"
+              alt={`Notes in the ${t.label} theme`}
+            />
+            <figcaption class="card-label">
               <span class="name">{t.label}</span>
               <span class="note">
                 {t.kind} · {t.note}
               </span>
-            </div>
-          </div>
+            </figcaption>
+          </figure>
         ))
       }
     </div>
@@ -80,103 +61,20 @@ const themes = [
   }
 
   .card {
-    border-radius: 10px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 9rem;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    margin: 0;
   }
 
-  .card-lines {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .card-lines span {
+  .shot {
     display: block;
-    height: 7px;
-    border-radius: 5px;
-    opacity: 0.9;
-  }
-
-  .card-lines span:nth-child(1) {
-    width: 70%;
-  }
-
-  .card-lines span:nth-child(2) {
-    width: 45%;
-  }
-
-  .card-lines span:nth-child(3) {
-    width: 58%;
-  }
-
-  /* Per-theme colors, baked into CSS (rather than inline `style`
-     attributes) so the page's Content-Security-Policy style-src doesn't
-     need to allow inline styles. Keep in sync with the `themes` array
-     above if palette values change. */
-  .card-nord {
-    background: #2e3440;
-  }
-  .card-nord .card-label {
-    color: #eceff4;
-  }
-  .card-nord .note {
-    color: #9aa7bd;
-  }
-  .card-nord .card-lines span:nth-child(1) {
-    background: #9aa7bd;
-  }
-  .card-nord .card-lines span:nth-child(2) {
-    background: #88c0d0;
-  }
-  .card-nord .card-lines span:nth-child(3) {
-    background: #eceff4;
-  }
-
-  .card-tokyo-night {
-    background: #24283b;
-  }
-  .card-tokyo-night .card-label {
-    color: #c0caf5;
-  }
-  .card-tokyo-night .note {
-    color: #7982a9;
-  }
-  .card-tokyo-night .card-lines span:nth-child(1) {
-    background: #7982a9;
-  }
-  .card-tokyo-night .card-lines span:nth-child(2) {
-    background: #7aa2f7;
-  }
-  .card-tokyo-night .card-lines span:nth-child(3) {
-    background: #c0caf5;
-  }
-
-  .card-noctis-lux {
-    background: #fef8ec;
-  }
-  .card-noctis-lux .card-label {
-    color: #00404a;
-  }
-  .card-noctis-lux .note {
-    color: #6d8788;
-  }
-  .card-noctis-lux .card-lines span:nth-child(1) {
-    background: #6d8788;
-  }
-  .card-noctis-lux .card-lines span:nth-child(2) {
-    background: #0099ad;
-  }
-  .card-noctis-lux .card-lines span:nth-child(3) {
-    background: #00404a;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.6);
   }
 
   .card-label {
-    margin-top: 1.5rem;
+    margin-top: 0.9rem;
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
@@ -186,10 +84,12 @@ const themes = [
   .name {
     font-size: 0.85rem;
     font-weight: 600;
+    color: var(--paper);
   }
 
   .note {
     font-size: 0.75rem;
+    color: var(--cloud);
   }
 
   @media (max-width: 40rem) {

@@ -11,6 +11,8 @@ built around a workspace).
 · [Website](https://notes-site-ojq.pages.dev/) · macOS and Linux builds are
 [on the backlog](./docs/ENHANCEMENTS.md).
 
+![Notes in the Tokyo Night theme, with a folder open and a markdown note in the editor](./docs/screenshots/editor-tokyo-night.png)
+
 ## What it does
 
 - Edits `.txt` and `.md` files in place on disk. Saves are atomic, and it
@@ -22,6 +24,10 @@ built around a workspace).
   workspace.
 - Markdown highlighting, including fenced code in its own language.
 - Three themes you can switch while it runs: Nord, Tokyo Night and Noctis Lux.
+
+| Nord | Noctis Lux | Quick-open |
+| --- | --- | --- |
+| ![Nord theme](./docs/screenshots/editor-nord.png) | ![Noctis Lux theme](./docs/screenshots/editor-noctis-lux.png) | ![Ctrl+P quick-open](./docs/screenshots/palette-nord.png) |
 
 ## Development
 
@@ -38,8 +44,14 @@ platform. The dev container in `.devcontainer/` installs all of these.
 | `cd src-tauri && cargo test --workspace` | Rust tests, including `notes-core` |
 | `pnpm tauri build` | Build installers for the current platform |
 | `pnpm run release <x.y.z>` | Bump the version, commit and tag, without pushing |
+| `pnpm screenshots` | Regenerate the screenshots in `docs/screenshots/` and the site |
 
 The marketing site lives in [`site/`](./site/) and has its own README.
+
+The screenshots come from `scripts/screenshots/`. The script runs the front
+end in headless Chromium and swaps the Rust backend for a mock that serves a
+sample notes folder, so it works anywhere, not just on Windows. Run
+`pnpm exec playwright install chromium` once before the first run.
 
 ## How it works
 

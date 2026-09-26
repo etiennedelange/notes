@@ -1,5 +1,7 @@
 ---
+import { Picture } from "astro:assets";
 import { REPO_URL, type ReleaseInfo } from "../lib/github";
+import editorShot from "../assets/screenshots/editor-tokyo-night.png";
 
 interface Props {
   release: ReleaseInfo | null;
@@ -25,24 +27,16 @@ const { release } = Astro.props;
       <a class="btn btn-ghost" href={REPO_URL}>View source</a>
     </div>
 
-    <div class="mock" role="img" aria-label="Notes editor window showing three open tabs, one with unsaved changes, and a status bar">
-      <div class="mock-tabs">
-        <span class="tab tab-active">todo.md<span class="dirty-dot" aria-hidden="true"></span></span>
-        <span class="tab">ideas.md</span>
-        <span class="tab">scratch.txt</span>
-      </div>
-      <div class="mock-body">
-        <span class="mock-line"></span>
-        <span class="mock-line"></span>
-        <span class="mock-line"></span>
-        <span class="mock-line mock-line--accent"></span>
-        <span class="mock-line"></span>
-      </div>
-      <div class="mock-status">
-        <span>~/notes/todo.md</span>
-        <span>Markdown · Tokyo Night</span>
-      </div>
-    </div>
+    <Picture
+      class="shot"
+      src={editorShot}
+      formats={["avif", "webp"]}
+      widths={[720, 1440, 2048]}
+      sizes="(max-width: 64rem) 100vw, 64rem"
+      alt="Notes in the Tokyo Night theme: a folder tree on the left, four open tabs, and a markdown note with a highlighted Rust code block"
+      loading="eager"
+      fetchpriority="high"
+    />
   </div>
 </section>
 
@@ -130,103 +124,13 @@ const { release } = Astro.props;
     flex-wrap: wrap;
   }
 
-  .mock {
+  .shot {
+    display: block;
     margin-top: 3.5rem;
-    max-width: 30rem;
+    width: 100%;
+    height: auto;
     border-radius: 10px;
-    overflow: hidden;
-    background: var(--navy-raised);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
-  }
-
-  .mock-tabs {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .mock-tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .tab {
-    padding: 0.75rem 1.1rem;
-    color: var(--cloud);
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-
-  .tab-active {
-    color: var(--paper);
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  .dirty-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--teal);
-  }
-
-  .mock-body {
-    padding: 1.25rem 1.1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .mock-line {
-    height: 8px;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.09);
-  }
-
-  /* Fixed widths per line, baked into CSS (rather than inline `style`
-     attributes) so the page's Content-Security-Policy style-src doesn't
-     need to allow inline styles. */
-  .mock-line:nth-child(1) {
-    width: 62%;
-  }
-
-  .mock-line:nth-child(2) {
-    width: 84%;
-  }
-
-  .mock-line:nth-child(3) {
-    width: 38%;
-  }
-
-  .mock-line:nth-child(4) {
-    width: 51%;
-  }
-
-  .mock-line:nth-child(5) {
-    width: 70%;
-  }
-
-  .mock-line--accent {
-    background: var(--teal-dim);
-  }
-
-  .mock-status {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.3rem 0.75rem;
-    padding: 0.55rem 1.1rem;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--cloud);
-    background: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 30px 80px -24px rgba(0, 0, 0, 0.7);
   }
 </style>
