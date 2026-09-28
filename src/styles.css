@@ -933,6 +933,28 @@ kbd {
   transform: none;
 }
 .toast-error {
+  background: var(--danger);
   border-color: var(--danger);
+  color: var(--bg);
+  font-weight: 650;
+  padding-left: 32px;
+  position: relative;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.toast-error::before {
+  content: "!";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--bg);
   color: var(--danger);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 15px;
+  text-align: center;
 }

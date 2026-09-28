@@ -15,6 +15,18 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-28 — Error toasts stay up until dismissed [app]
+
+- `src/toast.ts`: info toasts still auto-dismiss after 3.2s, but error
+  toasts (failed saves, files that couldn't be opened, etc.) now stay on
+  screen until clicked away. Extracted the duration choice into
+  `toastDuration()` so it's unit-testable without a DOM.
+- `src/styles.css`: `.toast-error` now has a filled red background and a
+  small "!" badge instead of just red text/border, so it reads as more
+  urgent than a routine "Saved note.md" toast.
+- Why: errors were easy to miss — same 3s toast as routine messages,
+  set apart only by red text (issue #6).
+
 ## 2026-09-26 — Rebuild the site when a release is published [app, site]
 
 - Added `.github/workflows/site-rebuild.yml`: on `release: published` it
