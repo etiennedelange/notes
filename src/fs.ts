@@ -54,3 +54,18 @@ export interface SaveTarget {
 }
 export const pickSaveTarget = (defaultPath: string) => invoke<SaveTarget | null>("pick_save_path", { defaultPath });
 export const platformName = () => invoke<string>("platform_name");
+
+/**
+ * Structural equality between two folder trees, used to skip re-rendering
+ * the sidebar when a refresh finds nothing changed (e.g. a focus-regain
+ * poll while nothing happened outside the app).
+ */
+export function dirTreesEqual(a: DirNode | null, b: DirNode | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (a.path !== b.path || a.name !== b.name || a.isDir !== b.isDir || a.truncated !== b.truncated) return false;
+  const aChildren = a.children ?? [];
+  const bChildren = b.children ?? [];
+  if (aChildren.length !== bChildren.length) return false;
+  return aChildren.every((child, i) => dirTreesEqual(child, bChildren[i]));
+}

@@ -57,6 +57,13 @@ with `[app]`, `[site]`, or `[app, site]`.
   `site/astro.config.mjs`); the site doesn't render any code blocks today
   so this is inert, but would need addressing before adding any
   Markdown/MDX content with fenced code.
+- **[app] Live-push folder tree updates via a Rust file watcher.** The
+  sidebar now catches outside changes on focus regain and a manual
+  refresh button (2026-09-29, issue #7), but still doesn't update while
+  the app stays focused — e.g. a sync client writing files in the
+  background. A `notify`-crate watcher on the open folder (in
+  `src-tauri`) emitting an event the frontend applies incrementally would
+  close that gap without polling.
 - **[app] A real context menu for the editor.** `src/nativeChrome.ts` now
   suppresses the webview's own context menu outright, because it offered
   "Reload" and "Inspect Element" and nothing useful. That leaves right-click

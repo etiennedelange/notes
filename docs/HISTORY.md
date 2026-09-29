@@ -15,6 +15,22 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-09-29 — Refresh the folder tree on focus regain and manual click [app]
+
+- `src/app.ts`: added `refreshFolder()`, which re-reads the open folder and
+  skips the sidebar re-render if nothing changed. Wired to fire whenever
+  the window regains focus (`onFocusChanged`), plus a new refresh button
+  in the sidebar header (`icon-refresh`, already sitting unused in
+  `index.html`).
+- `src/fs.ts`: added `dirTreesEqual()` (tested in `fs.test.ts`) so a poll
+  that finds no changes doesn't touch the DOM.
+- Why: the tree was read once when a folder was opened and never again
+  (issue #7) — a file created, deleted, or renamed outside Notes (another
+  editor, Explorer, a sync client) didn't show up until the folder was
+  closed and reopened. This is the "cheaper first step" from the issue;
+  a Rust-side `notify` watcher that pushes updates live is deferred (see
+  `ENHANCEMENTS.md`).
+
 ## 2026-09-28 — Error toasts stay up until dismissed [app]
 
 - `src/toast.ts`: info toasts still auto-dismiss after 3.2s, but error

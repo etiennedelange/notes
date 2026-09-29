@@ -45,11 +45,13 @@ export function renderSidebar(app: App) {
   const treeEl = document.getElementById("folder-tree")!;
   const looseEl = document.getElementById("loose-files")!;
   const label = document.getElementById("folder-label")!;
+  const refreshBtn = document.getElementById("refresh-folder-btn")!;
   const closeBtn = document.getElementById("close-folder-btn")!;
   const looseSection = document.getElementById("loose-files-section")!;
 
   if (app.openFolder && app.tree) {
     label.textContent = basename(app.openFolder);
+    refreshBtn.classList.remove("hidden");
     closeBtn.classList.remove("hidden");
     const rows = (app.tree.children ?? []).map((c) => renderNode(app, c, 0)).join("");
     treeEl.innerHTML = rows || `<p class="tree-empty">No .txt or .md files here</p>`;
@@ -58,6 +60,7 @@ export function renderSidebar(app: App) {
     }
   } else {
     label.textContent = "Open Folder";
+    refreshBtn.classList.add("hidden");
     closeBtn.classList.add("hidden");
     treeEl.innerHTML = `<p class="tree-empty">Point Notes at a folder to browse it. Nothing is imported or indexed — it's just a view.</p>`;
   }
@@ -93,6 +96,7 @@ function wireOnce() {
   if (wired) return;
   wired = true;
   document.getElementById("open-folder-btn")!.addEventListener("click", () => currentApp?.openFolderDialog());
+  document.getElementById("refresh-folder-btn")!.addEventListener("click", () => currentApp?.refreshFolder());
   document.getElementById("close-folder-btn")!.addEventListener("click", () => currentApp?.closeFolder());
 
   // Double-click is detected via click count (e.detail), not a dblclick
