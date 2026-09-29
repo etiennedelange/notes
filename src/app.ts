@@ -15,6 +15,7 @@ import {
   pickFolder,
   pickNoteFile,
   pickSaveTarget,
+  dirTreesEqual,
   type DirNode,
   type PersistedState,
 } from "./fs";
@@ -178,6 +179,7 @@ export class App {
     this.wireWindowClose();
     this.wireWindowGeometry();
     this.wireDragDrop();
+    this.wireFolderRefresh();
   }
 
   private renderAll() {
@@ -261,6 +263,25 @@ export class App {
     this.openFolder = null;
     this.tree = null;
     this.persist();
+    renderSidebar(this);
+  }
+
+  /**
+   * Re-reads the open folder from disk. Nothing watches the folder for
+   * outside changes (another editor, a sync client, Explorer), so this is
+   * called on a manual refresh click and on window focus regain. Skips the
+   * render when the tree came back unchanged, and leaves the last-known
+   * tree in place on error rather than surfacing a toast on every focus
+   * regain (e.g. a network drive that's briefly unreachable).
+   */
+  async refreshFolder(): Promise<void> {
+    const folder = this.openFolder;
+    if (!folder) return;
+    const next = await readDirTree(folder).catch(() => null);
+    // The open folder may have changed (or been closed) while this read was
+    // in flight — e.g. focus regains right as a folder picker resolves.
+    if (!next || folder !== this.openFolder || dirTreesEqual(this.tree, next)) return;
+    this.tree = next;
     renderSidebar(this);
   }
 
@@ -920,6 +941,15 @@ export class App {
         }
       }
     }).catch(() => {});
+  }
+
+  /** Catches changes made outside the app (another editor, a sync client) by re-reading the tree whenever the window regains focus. */
+  private wireFolderRefresh() {
+    getCurrentWebviewWindow()
+      .onFocusChanged((event) => {
+        if (event.payload) this.refreshFolder();
+      })
+      .catch(() => {});
   }
 
   themeIds() {
