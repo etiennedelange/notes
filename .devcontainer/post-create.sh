@@ -23,7 +23,16 @@ sudo apt-get install -y \
 corepack enable
 pnpm install
 npm config set allow-scripts='esbuild,workerd,opencode-ai' --location=user
-npm install -g wrangler opencode-ai
+npm install -g wrangler
+
+# opencode-ai's postinstall can pick the musl binary on glibc arm64 (Apple
+# Silicon hosts), so fall back to installing the matching platform package.
+case "$(uname -m)" in
+	aarch64 | arm64) arch=arm64 ;;
+	*) arch=x64 ;;
+esac
+if ldd --version 2>&1 | grep -qi musl; then libc=-musl; else libc=; fi
+npm install -g opencode-ai || npm install -g "opencode-linux-${arch}${libc}" opencode-ai
 
 # OpenCode's state lives in volumes (see "mounts" in devcontainer.json).
 # Docker creates the volumes root-owned, along with any parent dirs of the
