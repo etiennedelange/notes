@@ -1,20 +1,12 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/rust
 {
 	"name": "Notes",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/rust:2-1-trixie",
 	"features": {
-		// My standard tooling: Claude Code, the GitHub CLI, OpenCode and
-		// Wrangler (for site/), with logins in volumes shared by all my
-		// devcontainers (`dev-setup logins` lists the login commands), plus
-		// SSH commit signing. Private package: the host needs
-		// `docker login ghcr.io`.
 		"ghcr.io/etiennedelange/devcontainer-features/dev-setup:1": {
 			"opencode": true,
 			"wrangler": true
 		},
-		"ghcr.io/devcontainers/features/node:2": {
+		"ghcr.io/devcontainers/features/node:2.1.1": {
 			"version": "lts"
 		}
 	},
