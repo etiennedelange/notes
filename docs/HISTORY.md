@@ -15,6 +15,29 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-11 — Dev tooling via a personal devcontainer feature [app] [site]
+
+- `.devcontainer/`: replaced `anthropics/devcontainer-features/claude-code`
+  with `ghcr.io/etiennedelange/devcontainer-features/dev-setup:1`, from the
+  new private repo `etiennedelange/devcontainer-features`. It holds my
+  standard devcontainer tooling, currently Claude Code and git signing.
+- Why: Anthropic's feature does `npm install -g` as root at image build, so
+  `claude update` and auto-update failed with "Insufficient permissions"
+  unless run with sudo. And `~/.claude`/`~/.claude.json` lived in the
+  container, so login, settings, plugins and MCP setup were lost on every
+  rebuild.
+- Claude Code: native installer as the container user; a fixed-name
+  `claude-code-config` volume at `/var/lib/claude-code` with
+  `CLAUDE_CONFIG_DIR` pointing at it (so `.claude.json` lives there too),
+  shared by every repo using the feature; marketplaces and plugins installed
+  on container create (defaults: the current plugin set plus
+  `pbakaus/impeccable`).
+- Git: user name/email and SSH commit signing with the forwarded agent's
+  `github-sign` key, plus `allowed_signers` and a `git sigs` alias, matching
+  `etiennedelange/gitr`.
+- The package is private: a host needs `docker login ghcr.io` (token with
+  `read:packages`) before building this devcontainer.
+
 ## 2026-09-29 — Refresh the folder tree on focus regain and manual click [app]
 
 - `src/app.ts`: added `refreshFolder()`, which re-reads the open folder and

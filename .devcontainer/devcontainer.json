@@ -6,7 +6,10 @@
 	"image": "mcr.microsoft.com/devcontainers/rust:2-1-trixie",
 	"features": {
 		"ghcr.io/devcontainers/features/github-cli:1.1.3": {},
-		"ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+		// My standard tooling: Claude Code (with a claude-code-config volume
+		// shared by all my devcontainers) and SSH commit signing. Private
+		// package: the host needs `docker login ghcr.io`.
+		"ghcr.io/etiennedelange/devcontainer-features/dev-setup:1": {},
 		"ghcr.io/devcontainers/features/node:2": {
 			"version": "lts"
 		}
