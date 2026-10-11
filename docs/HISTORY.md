@@ -15,6 +15,20 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-11 — Fix opencode install in devcontainer (real cause) [app] [site]
+
+- `.devcontainer/post-create.sh` failed with `EBADPLATFORM` for
+  `opencode-linux-arm64-musl` on glibc arm64. The 2026-10-02 fix
+  (`222244a`) assumed opencode-ai's postinstall picked the wrong libc and
+  added a fallback install, but the fallback failed the same way.
+- Real cause: the postinstall checks the glibc binary by running
+  `opencode --version`. That exits with EACCES because the opencode data/config
+  volumes were still root-owned (the `chown` ran *after* the install).
+  When that check fails, the installer moves on to the musl package, which
+  npm refuses.
+- Fix: chown the volumes before `npm install -g opencode-ai`, and drop the
+  fallback.
+
 ## 2026-10-11 — Dev tooling via a personal devcontainer feature [app] [site]
 
 - `.devcontainer/`: replaced `anthropics/devcontainer-features/claude-code`
