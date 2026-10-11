@@ -12,11 +12,11 @@ This repo contains two things:
 ## Development (app)
 
 ```sh
-npm install
-npm run tauri dev
+pnpm install
+pnpm tauri dev
 ```
 
-Build: `npm run tauri build`. See root [`README.md`](./README.md) for more.
+Build: `pnpm tauri build`. See root [`README.md`](./README.md) for more.
 
 ## Docs
 

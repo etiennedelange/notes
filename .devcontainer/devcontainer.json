@@ -5,11 +5,15 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/rust:2-1-trixie",
 	"features": {
-		"ghcr.io/devcontainers/features/github-cli:1.1.3": {},
-		// My standard tooling: Claude Code (with a claude-code-config volume
-		// shared by all my devcontainers) and SSH commit signing. Private
-		// package: the host needs `docker login ghcr.io`.
-		"ghcr.io/etiennedelange/devcontainer-features/dev-setup:1": {},
+		// My standard tooling: Claude Code, the GitHub CLI, OpenCode and
+		// Wrangler (for site/), with logins in volumes shared by all my
+		// devcontainers (`dev-setup logins` lists the login commands), plus
+		// SSH commit signing. Private package: the host needs
+		// `docker login ghcr.io`.
+		"ghcr.io/etiennedelange/devcontainer-features/dev-setup:1": {
+			"opencode": true,
+			"wrangler": true
+		},
 		"ghcr.io/devcontainers/features/node:2": {
 			"version": "lts"
 		}
@@ -17,24 +21,12 @@
 
 	"postCreateCommand": "bash .devcontainer/post-create.sh",
 
-	// Persist the cargo cache and OpenCode's state in per-container Docker
-	// volumes across rebuilds. OpenCode's data dir holds its credentials
-	// (auth.json) and sessions, its config dir the user-level opencode.json.
-	// Docker creates new volumes root-owned; post-create.sh hands them over.
+	// Persist the cargo cache in a per-container Docker volume across
+	// rebuilds. (OpenCode's state volume comes from dev-setup.)
 	"mounts": [
 		{
 			"source": "devcontainer-cargo-cache-${devcontainerId}",
 			"target": "/usr/local/cargo",
-			"type": "volume"
-		},
-		{
-			"source": "opencode-data-${devcontainerId}",
-			"target": "/home/vscode/.local/share/opencode",
-			"type": "volume"
-		},
-		{
-			"source": "opencode-config-${devcontainerId}",
-			"target": "/home/vscode/.config/opencode",
 			"type": "volume"
 		}
 	]
@@ -45,6 +37,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// 1420: the Tauri app's Vite dev server (`pnpm dev` at the repo root).
 	// 4322: the Astro marketing site's dev server (`pnpm dev` in site/).
+	// 8976: `wrangler login`'s OAuth callback.
 	"forwardPorts": [1420, 4322, 8976],
 
 	// Configure tool-specific properties.
