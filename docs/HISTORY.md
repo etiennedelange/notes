@@ -15,6 +15,79 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-11 — OpenCode, GitHub CLI and Wrangler move into dev-setup [app] [site]
+
+- `dev-setup` 1.1.0 (in `etiennedelange/devcontainer-features`): Claude
+  Code is always installed. `githubCli` (on by default), `opencode` and
+  `wrangler` (off; Notes turns both on) are boolean options,
+  which VS Code's feature picker shows as tickboxes. `gh` comes from
+  GitHub's apt repo, because a `dependsOn` feature can't be switched off.
+  OpenCode installs at image build with its native installer
+  (`opencode.ai/install`) as the container user.
+- pnpm over npm wherever possible: the feature installs pnpm at image build
+  with pnpm's own installer, not corepack (Node 25+ no longer ships it, so
+  the node feature's `lts` would lose it at the next LTS), sets
+  `PNPM_HOME=/usr/local/share/pnpm` (with `bin/` first on `PATH`), and
+  installs Wrangler with `pnpm add -g --allow-build=esbuild
+  --allow-build=workerd`. Without those build scripts `wrangler dev`
+  breaks. That's the same reason npm needed `allow-scripts` before (see
+  the 2026-09 entry). In Notes, `tauri.conf.json`'s
+  `beforeDevCommand`/`beforeBuildCommand` and `CLAUDE.md` now use pnpm too,
+  and `post-create.sh` drops `corepack enable`.
+- Each tool's login lives in a volume shared across devcontainers:
+  `opencode-state` (`~/.local/share/opencode` and `~/.config/opencode`
+  link into it, because OpenCode has no data-dir variable), `gh-config`
+  (`GH_CONFIG_DIR`) and `wrangler-config` (`~/.config/.wrangler` links in,
+  for the same reason).
+- Logging in is left to the user: container create ends by printing
+  `dev-setup logins`, the login command for each installed tool with the
+  logged-in ones ticked. An auto-prompted interactive login was considered
+  and dropped. Tool choice can't be interactive anyway, because installs
+  happen at image build with no terminal.
+- Why: the npm `opencode-ai` install broke twice (see the entry below), and
+  per-container volumes meant logging in again in every repo.
+- `.devcontainer/`: dropped the `github-cli` feature, the per-container
+  `opencode-data-*`/`opencode-config-*` mounts, and the opencode/wrangler
+  installs in `post-create.sh`. Removed the `dev-setup` pin from the lock
+  file so the next build resolves 1.1.0.
+
+## 2026-10-11 — Fix opencode install in devcontainer (real cause) [app] [site]
+
+- `.devcontainer/post-create.sh` failed with `EBADPLATFORM` for
+  `opencode-linux-arm64-musl` on glibc arm64. The 2026-10-02 fix
+  (`222244a`) assumed opencode-ai's postinstall picked the wrong libc and
+  added a fallback install, but the fallback failed the same way.
+- Real cause: the postinstall checks the glibc binary by running
+  `opencode --version`. That exits with EACCES because the opencode data/config
+  volumes were still root-owned (the `chown` ran *after* the install).
+  When that check fails, the installer moves on to the musl package, which
+  npm refuses.
+- Fix: chown the volumes before `npm install -g opencode-ai`, and drop the
+  fallback.
+
+## 2026-10-11 — Dev tooling via a personal devcontainer feature [app] [site]
+
+- `.devcontainer/`: replaced `anthropics/devcontainer-features/claude-code`
+  with `ghcr.io/etiennedelange/devcontainer-features/dev-setup:1`, from the
+  new private repo `etiennedelange/devcontainer-features`. It holds my
+  standard devcontainer tooling, currently Claude Code and git signing.
+- Why: Anthropic's feature does `npm install -g` as root at image build, so
+  `claude update` and auto-update failed with "Insufficient permissions"
+  unless run with sudo. And `~/.claude`/`~/.claude.json` lived in the
+  container, so login, settings, plugins and MCP setup were lost on every
+  rebuild.
+- Claude Code: native installer as the container user; a fixed-name
+  `claude-code-config` volume at `/var/lib/claude-code` with
+  `CLAUDE_CONFIG_DIR` pointing at it (so `.claude.json` lives there too),
+  shared by every repo using the feature; marketplaces and plugins installed
+  on container create (defaults: the current plugin set plus
+  `pbakaus/impeccable`).
+- Git: user name/email and SSH commit signing with the forwarded agent's
+  `github-sign` key, plus `allowed_signers` and a `git sigs` alias, matching
+  `etiennedelange/gitr`.
+- The package is private: a host needs `docker login ghcr.io` (token with
+  `read:packages`) before building this devcontainer.
+
 ## 2026-09-29 — Refresh the folder tree on focus regain and manual click [app]
 
 - `src/app.ts`: added `refreshFolder()`, which re-reads the open folder and
