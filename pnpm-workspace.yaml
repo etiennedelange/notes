@@ -5,7 +5,20 @@ allowBuilds:
   sharp: true
   workerd: true
 
+# Vite+ (`vp`): one toolchain for dev, build, test, lint and format. Its
+# `vite` is a repackaged Vite core; the override makes everything that asks
+# for vite (vitest included) get that same copy. It is newer than 8.0.16, the
+# floor for GHSA-fx2h-pf6j-xcff / GHSA-v6wh-96g9-6wx3 that the old override
+# pinned.
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.1.0
+  vite-plus: 1.1.0
+
 overrides:
-  # Vite 8.0.16+ patches GHSA-fx2h-pf6j-xcff / GHSA-v6wh-96g9-6wx3
-  # (dev-only, transitive via vitest; Windows-only, but pin the floor regardless).
-  vite: ">=8.0.16"
+  vite@*: "catalog:"
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"

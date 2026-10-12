@@ -19,6 +19,13 @@ with `[app]`, `[site]`, or `[app, site]`.
   `git log v<previous>..HEAD` and pass them to the workflow (`releaseBody`
   or a notes file). Deleting the unreleased `v0.3.0` tag is a smaller
   cleanup to consider alongside.
+- **[app] Clear the `vp check` warnings.** The Vite+ migration
+  (2026-10-12) turned on type-aware oxlint, which warns about 18 unawaited
+  promises (`no-floating-promises`, mostly fire-and-forget `closeTab` and
+  `refreshFolder` calls) and 7 non-string template values
+  (`restrict-template-expressions`, mostly `${e}` in toasts). They're
+  warnings, so CI passes. Mark the intentional ones with `void`, then
+  make the rules errors. Deferred 2026-10-12.
 - **[app] Cut CodeQL scope on PRs.** CodeQL default setup (repo settings,
   no workflow file) analyses actions, JS/TS and Rust on every PR push, about
   5 minutes a run. Options: drop languages that add little (actions), or

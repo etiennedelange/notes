@@ -40,7 +40,8 @@ platform. The dev container in `.devcontainer/` installs all of these.
 | --- | --- |
 | `pnpm install` | Install dependencies |
 | `pnpm tauri dev` | Run the app with hot reload |
-| `pnpm test` | Front-end unit tests (Vitest) |
+| `pnpm test` | Front-end unit tests (Vitest, via [Vite+](https://viteplus.dev)) |
+| `pnpm check` | Format, lint and typecheck the front end (`vp check`) |
 | `cd src-tauri && cargo test --workspace` | Rust tests, including `notes-core` |
 | `pnpm tauri build` | Build installers for the current platform |
 | `pnpm run release <x.y.z>` | Bump the version, commit and tag, without pushing |

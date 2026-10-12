@@ -15,6 +15,20 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-12 — Vite+ for the app's front-end toolchain [app]
+
+- `vite-plus` 1.1.0 (from the pnpm catalog in `pnpm-workspace.yaml`)
+  replaces `vite` and `vitest`: `vp dev`, `vp build`, `vp test run`, and
+  `pnpm check` (`vp check`: oxfmt, oxlint with type-aware rules, and
+  typecheck), which CI's `frontend` job now runs. Same setup as Gitr. The
+  `vite@*` override hands vitest and anything else that asks for vite
+  Vite+'s copy. It replaces the old `vite >=8.0.16` security floor, which
+  that copy already meets.
+- The formatter keeps the existing style (double quotes, semicolons,
+  120 columns). The one-off reformat touched 19 files, mostly line wraps.
+  Tests import from `vite-plus/test`.
+- The site (`site/`) keeps its own Astro toolchain and pnpm workspace.
+
 ## 2026-10-11 — OpenCode, GitHub CLI and Wrangler move into dev-setup [app] [site]
 
 - `dev-setup` 1.1.0 (in `etiennedelange/devcontainer-features`): Claude

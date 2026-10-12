@@ -37,12 +37,15 @@ fn should_water(reading: u16) -> bool {
 
 See [the datasheet](https://example.com/sensor.pdf) for timings.
 `,
-    [J(ROOT, "ideas", "reading-list.md")]: `# Reading list\n\n- *The Pragmatic Programmer*\n- *A Philosophy of Software Design*\n- *Crafting Interpreters*\n`,
+    [J(ROOT, "ideas", "reading-list.md")]:
+      `# Reading list\n\n- *The Pragmatic Programmer*\n- *A Philosophy of Software Design*\n- *Crafting Interpreters*\n`,
     [J(ROOT, "journal", "2026-09-24.md")]: `# Wednesday\n\nShipped the tab pinning fix. Felt good.\n`,
-    [J(ROOT, "journal", "2026-09-25.md")]: `# Thursday\n\n- Paired on the release script\n- Sketched the sidebar resize handle\n`,
+    [J(ROOT, "journal", "2026-09-25.md")]:
+      `# Thursday\n\n- Paired on the release script\n- Sketched the sidebar resize handle\n`,
     [J(ROOT, "journal", "2026-09-26.md")]: `# Friday\n\nQuiet day. Mostly reading.\n`,
     [J(ROOT, "work", "standup.txt")]: `Yesterday: release checklist\nToday: screenshots for the site\nBlockers: none\n`,
-    [J(ROOT, "work", "meeting-notes.md")]: `# Planning sync\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Themes page | Etienne | Fri |\n| Release v0.3 | Etienne | Mon |\n`,
+    [J(ROOT, "work", "meeting-notes.md")]:
+      `# Planning sync\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Themes page | Etienne | Fri |\n| Release v0.3 | Etienne | Mon |\n`,
     [J(ROOT, "todo.txt")]: `buy coffee beans\nrenew domain\nback up photos\ncall the plumber about the geyser\n`,
     ["C:\\Users\\etienne\\Desktop\\groceries.txt"]: `eggs\nbread\nrooibos\nbiltong\n`,
   };
@@ -50,7 +53,9 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
   function tree() {
     const root = { name: "Notes", path: ROOT, isDir: true, children: [] };
     const dirs = { [ROOT]: root };
-    for (const p of Object.keys(FILES).filter((p) => p.startsWith(ROOT + "\\")).sort()) {
+    for (const p of Object.keys(FILES)
+      .filter((p) => p.startsWith(ROOT + "\\"))
+      .sort()) {
       const parts = p.slice(ROOT.length + 1).split("\\");
       let cur = root;
       let acc = ROOT;

@@ -48,7 +48,12 @@ const BACKDROP = {
 const NOTES = "C:\\Users\\etienne\\Notes";
 const ACTIVE = `${NOTES}\\ideas\\weekend-project.md`;
 const SESSION = {
-  openTabs: [ACTIVE, `${NOTES}\\journal\\2026-09-26.md`, `${NOTES}\\todo.txt`, "C:\\Users\\etienne\\Desktop\\groceries.txt"],
+  openTabs: [
+    ACTIVE,
+    `${NOTES}\\journal\\2026-09-26.md`,
+    `${NOTES}\\todo.txt`,
+    "C:\\Users\\etienne\\Desktop\\groceries.txt",
+  ],
   activeTab: ACTIVE,
   recent: [ACTIVE, `${NOTES}\\journal\\2026-09-26.md`, `${NOTES}\\journal\\2026-09-25.md`, `${NOTES}\\todo.txt`],
 };

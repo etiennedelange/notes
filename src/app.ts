@@ -345,7 +345,10 @@ export class App {
       const result = await readTextFile(path);
       content = result.contents;
       if (result.lossy) {
-        showToast(`${basename(path)} isn't valid UTF-8; opened with replacement characters. Saving will rewrite the encoding.`, "error");
+        showToast(
+          `${basename(path)} isn't valid UTF-8; opened with replacement characters. Saving will rewrite the encoding.`,
+          "error",
+        );
       }
     } catch (e) {
       showToast(`Couldn't open ${basename(path)}: ${e}`, "error");
@@ -366,9 +369,10 @@ export class App {
     // not dirty) instead of piling up a new tab, matching editors like VS
     // Code: browsing files from the sidebar reuses one "peek" tab until the
     // user commits to it by editing or double-clicking.
-    const replaceIdx = opts.preview && this.previewKey && !this.tabs.get(this.previewKey)?.dirty
-      ? this.order.indexOf(this.previewKey)
-      : -1;
+    const replaceIdx =
+      opts.preview && this.previewKey && !this.tabs.get(this.previewKey)?.dirty
+        ? this.order.indexOf(this.previewKey)
+        : -1;
     if (replaceIdx !== -1) {
       this.tabs.delete(this.previewKey!);
       this.order[replaceIdx] = path;
@@ -875,7 +879,11 @@ export class App {
     }
     const x = persisted?.windowX;
     const y = persisted?.windowY;
-    if (typeof x === "number" && typeof y === "number" && (await this.rectOnAnyMonitor(x, y, width ?? 0, height ?? 0))) {
+    if (
+      typeof x === "number" &&
+      typeof y === "number" &&
+      (await this.rectOnAnyMonitor(x, y, width ?? 0, height ?? 0))
+    ) {
       await win.setPosition(new PhysicalPosition(x, y)).catch(() => {});
     }
     if (persisted?.windowMaximized) {

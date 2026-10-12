@@ -42,7 +42,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # `pnpm run build` is `tsc && vite build`, and tsconfig sets noEmit, so this
+      # Format, lint and typecheck (Vite+: oxfmt, oxlint with type-aware rules).
+      - name: Check
+        run: pnpm check
+
+      # `pnpm run build` is `tsc && vp build`, and tsconfig sets noEmit, so this
       # typechecks and then catches anything that only fails in a real bundle.
       - name: Typecheck and build
         run: pnpm run build

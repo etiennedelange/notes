@@ -84,9 +84,11 @@ export function confirmModal(opts: {
 }
 
 /** Save / Don't Save / Cancel — the standard unsaved-changes choice. */
-export function unsavedChangesModal(opts: { title: string; message: string; saveLabel?: string }): Promise<
-  "save" | "discard" | "cancel"
-> {
+export function unsavedChangesModal(opts: {
+  title: string;
+  message: string;
+  saveLabel?: string;
+}): Promise<"save" | "discard" | "cancel"> {
   return showModal({
     title: opts.title,
     message: opts.message,
@@ -138,9 +140,7 @@ function wireOnce() {
       const btns = focusable(actions);
       if (btns.length === 0) return;
       const idx = btns.indexOf(document.activeElement as HTMLButtonElement);
-      const next = e.shiftKey
-        ? btns[(idx - 1 + btns.length) % btns.length]
-        : btns[(idx + 1) % btns.length];
+      const next = e.shiftKey ? btns[(idx - 1 + btns.length) % btns.length] : btns[(idx + 1) % btns.length];
       next.focus();
     }
   });

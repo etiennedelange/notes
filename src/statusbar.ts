@@ -20,11 +20,7 @@ export function renderStatusBar(app: App) {
     const label = app.tabLabel(tab);
     pathEl.textContent = tab.isUntitled ? "Untitled" : tab.path!;
     dirtyEl.classList.toggle("hidden", !tab.dirty);
-    langEl.textContent = tab.isUntitled
-      ? "Plain Text"
-      : isMarkdownPath(tab.path!)
-        ? "Markdown"
-        : "Plain Text";
+    langEl.textContent = tab.isUntitled ? "Plain Text" : isMarkdownPath(tab.path!) ? "Markdown" : "Plain Text";
     if (titlebarTitle) titlebarTitle.textContent = `${tab.dirty ? "● " : ""}${label} — Notes`;
 
     const pos = tab.state.selection.main.head;
@@ -40,7 +36,8 @@ export function renderStatusBar(app: App) {
     updateDocStats("");
   }
 
-  switcher.innerHTML = app.themeIds()
+  switcher.innerHTML = app
+    .themeIds()
     .map((id) => {
       const t = THEMES[id];
       const active = id === app.theme;

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { EditorState } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { looksLikeCode, guessLanguage, fenceCodeBlock, insideFencedCode } from "./pasteCode";
@@ -72,9 +72,7 @@ describe("guessLanguage", () => {
 describe("fenceCodeBlock", () => {
   it("wraps text in a fenced block with guessed language", () => {
     const text = "function add(a, b) {\n  return a + b;\n}\n";
-    expect(fenceCodeBlock(text)).toBe(
-      "```js\nfunction add(a, b) {\n  return a + b;\n}\n```",
-    );
+    expect(fenceCodeBlock(text)).toBe("```js\nfunction add(a, b) {\n  return a + b;\n}\n```");
   });
 
   it("normalizes CRLF line endings", () => {
