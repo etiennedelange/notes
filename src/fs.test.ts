@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import { dirTreesEqual, type DirNode } from "./fs";
 
 const file = (name: string, path: string): DirNode => ({ name, path, isDir: false });
@@ -53,7 +53,9 @@ describe("dirTreesEqual", () => {
 
   it("is false for nested differences", () => {
     const before = dir("root", "/root", [dir("sub", "/root/sub", [file("a.md", "/root/sub/a.md")])]);
-    const after = dir("root", "/root", [dir("sub", "/root/sub", [file("a.md", "/root/sub/a.md"), file("b.md", "/root/sub/b.md")])]);
+    const after = dir("root", "/root", [
+      dir("sub", "/root/sub", [file("a.md", "/root/sub/a.md"), file("b.md", "/root/sub/b.md")]),
+    ]);
     expect(dirTreesEqual(before, after)).toBe(false);
   });
 });

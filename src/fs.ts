@@ -34,8 +34,7 @@ export interface ReadFileResult {
 
 export const readDirTree = (root: string) => invoke<DirNode>("read_dir_tree", { root });
 export const readTextFile = (path: string) => invoke<ReadFileResult>("read_text_file", { path });
-export const writeTextFile = (path: string, contents: string) =>
-  invoke<void>("write_text_file", { path, contents });
+export const writeTextFile = (path: string, contents: string) => invoke<void>("write_text_file", { path, contents });
 export const pathExists = (path: string) => invoke<boolean>("path_exists", { path });
 export const pathIsDir = (path: string) => invoke<boolean>("path_is_dir", { path });
 export const fileMtimeMs = (path: string) => invoke<number>("file_mtime_ms", { path });

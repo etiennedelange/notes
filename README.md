@@ -40,10 +40,12 @@ platform. The dev container in `.devcontainer/` installs all of these.
 | --- | --- |
 | `pnpm install` | Install dependencies |
 | `pnpm tauri dev` | Run the app with hot reload |
-| `pnpm test` | Front-end unit tests (Vitest) |
+| `pnpm test` | Front-end unit tests (Vitest, via [Vite+](https://viteplus.dev)) |
+| `pnpm check` | Format, lint and typecheck the front end (`vp check`) |
+| `pnpm test:scripts` | Tests for the release scripts |
 | `cd src-tauri && cargo test --workspace` | Rust tests, including `notes-core` |
-| `pnpm tauri build` | Build installers for the current platform |
-| `pnpm run release <x.y.z>` | Bump the version, commit and tag, without pushing |
+| `pnpm tauri build` | Build installers for the current platform (needs the updater key, or `--config src-tauri/tauri.no-updater.conf.json`) |
+| `pnpm release <x.y.z>` | Release: version PR, merge, tag, and the Windows build (see [`docs/RELEASING.md`](./docs/RELEASING.md)) |
 | `pnpm screenshots` | Regenerate the screenshots in `docs/screenshots/` and the site |
 
 The marketing site lives in [`site/`](./site/) and has its own README.
@@ -73,10 +75,13 @@ at 8,000 entries and 12 levels deep, and single files at 50 MB, so pointing it
 at your home directory can't stall the app.
 
 `tauri build` only builds for the platform it runs on. Shipped Windows
-installers come from CI: pushing a `v*.*.*` tag runs
-`.github/workflows/release.yml`, which leaves a **draft** GitHub release to
-publish by hand. The full steps are in `scripts/release.sh`, and past
-releases are listed in [`docs/RELEASES.md`](./docs/RELEASES.md).
+installers come from CI: `pnpm release <x.y.z>` merges a version PR and tags
+it, and the tag runs `.github/workflows/release.yml`, which builds the
+installer and publishes the GitHub release. Installed copies update
+themselves from there. The steps, the updater and its signing key are in
+[`docs/RELEASING.md`](./docs/RELEASING.md); what changed in each version is
+in [`CHANGELOG.md`](./CHANGELOG.md), and past releases are listed in
+[`docs/RELEASES.md`](./docs/RELEASES.md).
 
 ## Docs
 
@@ -85,6 +90,8 @@ releases are listed in [`docs/RELEASES.md`](./docs/RELEASES.md).
 - [`docs/HISTORY.md`](./docs/HISTORY.md): dated log of decisions and the
   reasons behind them
 - [`docs/ENHANCEMENTS.md`](./docs/ENHANCEMENTS.md): deferred ideas
+- [`docs/RELEASING.md`](./docs/RELEASING.md): branches, releases and the
+  in-app updater
 
 ## License
 

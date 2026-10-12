@@ -3,6 +3,10 @@ name: Rust
 # About 9 minutes a run (half of that is the release-profile tests), so only
 # run it when something that can change the Rust build has changed. The
 # frontend bundle isn't an input: see the comment on the system deps below.
+# Pushes to main filter with `paths:`. PRs always start the job, because
+# `rust` is a required check, and skip its steps when
+# scripts/release/release.mjs ci-scope finds nothing to test: no change in
+# src-tauri, or only a release's version bump.
 on:
   push:
     branches: [main]
@@ -10,7 +14,6 @@ on:
       - "src-tauri/**"
       - ".github/workflows/rust.yml"
   pull_request:
-    paths: *paths
   workflow_dispatch:
 
 permissions:
@@ -26,12 +29,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # A PR checks out its merge commit; with its parents, HEAD^1 is main and
+          # HEAD^1..HEAD is exactly the PR's change.
+          fetch-depth: 2
+
+      - name: Anything to test?
+        id: scope
+        if: github.event_name == 'pull_request'
+        run: |
+          node scripts/release/release.mjs ci-scope HEAD^1 HEAD >> "$GITHUB_OUTPUT"
+          grep -q '^rust=false' "$GITHUB_OUTPUT" && echo "::notice::Nothing changed in src-tauri but a release's version, if that; skipping the Rust build and tests."
+          true
 
       # Tauri links against the GTK/WebKit stack on Linux, so the crate won't
       # compile without these — even for `cargo test`, which never opens a
       # window. The frontend bundle is NOT needed: generate_context! tolerates a
       # missing frontendDist for a non-bundled build.
       - name: Install Tauri system dependencies
+        if: steps.scope.outputs.rust != 'false'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -42,14 +58,20 @@ jobs:
             patchelf
 
       - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        if: steps.scope.outputs.rust != 'false'
         with:
           components: clippy
 
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        if: steps.scope.outputs.rust != 'false'
         with:
           workspaces: src-tauri
+          # PRs restore main's cache but don't save their own, so they can't
+          # push main's out of the 10 GB cache limit.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Clippy
+        if: steps.scope.outputs.rust != 'false'
         working-directory: src-tauri
         run: cargo clippy --workspace --all-targets -- -D warnings
 
@@ -58,9 +80,11 @@ jobs:
       # how the walk_dir budget underflow hid (panic in debug, silent wrap in
       # release).
       - name: Tests (debug)
+        if: steps.scope.outputs.rust != 'false'
         working-directory: src-tauri
         run: cargo test --workspace
 
       - name: Tests (release)
+        if: steps.scope.outputs.rust != 'false'
         working-directory: src-tauri
         run: cargo test --workspace --release

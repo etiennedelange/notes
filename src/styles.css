@@ -23,8 +23,8 @@
   --caret: #88c0d0;
 
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Cascadia Code", "JetBrains Mono", "Fira Code", ui-monospace, "SF Mono", Consolas,
-    "Liberation Mono", monospace;
+  --font-mono:
+    "Cascadia Code", "JetBrains Mono", "Fira Code", ui-monospace, "SF Mono", Consolas, "Liberation Mono", monospace;
 
   --sidebar-w: 240px;
   --tab-h: 38px;
@@ -76,7 +76,9 @@ img {
 }
 
 body {
-  transition: background-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 button {
@@ -647,6 +649,29 @@ kbd {
   gap: 14px;
   flex-shrink: 0;
 }
+/* Only shown when a newer version is published (update.ts). */
+.status-update {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.status-update:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--bg);
+}
+.status-update:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
 #status-cursor {
   font-variant-numeric: tabular-nums;
   opacity: 0.9;
@@ -707,7 +732,9 @@ kbd {
   background: var(--bg-elevated);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 24px 60px -12px rgba(0, 0, 0, 0.45),
+    0 4px 16px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -833,7 +860,9 @@ kbd {
   background: var(--bg-elevated);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 24px 60px -12px rgba(0, 0, 0, 0.5),
+    0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 22px 22px 18px;
   animation: cp-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -893,6 +922,9 @@ kbd {
 .confirm-actions .ghost-btn {
   padding: 8px 14px;
 }
+.confirm-actions button {
+  white-space: nowrap;
+}
 .confirm-actions .ghost-btn.btn-danger {
   color: var(--danger);
 }
@@ -926,7 +958,9 @@ kbd {
   box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.4);
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity 160ms ease, transform 160ms ease;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
 }
 .toast-in {
   opacity: 1;

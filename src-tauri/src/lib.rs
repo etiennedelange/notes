@@ -11,6 +11,8 @@ use std::sync::{Mutex, MutexGuard};
 use tauri::{DragDropEvent, Emitter, Manager, WebviewWindow, WindowEvent};
 use tauri_plugin_dialog::{DialogExt, FilePath, FileDialogBuilder};
 
+mod update;
+
 /// Paths the user has granted access to this run: dialog picks, drag-drop
 /// payloads, and the app's own persisted state restored at startup.
 /// Filesystem commands below check the requested path against this set (or
@@ -205,9 +207,11 @@ fn on_drop(window: &tauri::Window, paths: &[PathBuf]) {
 pub fn run() {
     tauri::Builder::default()
         .manage(ConsentedPaths(Mutex::new(HashSet::new())))
+        .manage(update::Downloaded::default())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .on_window_event(|window, event| {
             if let WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) = event {
                 on_drop(window, paths);
@@ -226,6 +230,10 @@ pub fn run() {
             pick_note_file,
             pick_save_path,
             platform_name,
+            update::check_update,
+            update::download_update,
+            update::install_update,
+            update::open_release_page,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

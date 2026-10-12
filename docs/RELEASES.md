@@ -2,7 +2,8 @@
 
 Tracks published releases of the Notes app
 (`github.com/etiennedelange/notes`), built and published by the `v*.*.*` tag
-workflow in `.github/workflows/release.yml`. The GitHub release itself
+workflow in `.github/workflows/release.yml` (cut with `pnpm release`; see
+`RELEASING.md`). What changed in each version is in `CHANGELOG.md`. The GitHub release itself
 remains the source of truth for assets and full notes — this file is a
 quick local reference so a session doesn't need to hit the GitHub API to
 know what's currently live, and so app and site work can be cross-checked
@@ -10,9 +11,9 @@ against what's actually shipped.
 
 The marketing site (`site/`) has no independent release/versioning of its
 own; its Download section reads the latest release from the GitHub
-Releases API at build time. Publishing a release triggers a Cloudflare
-Pages rebuild via `.github/workflows/site-rebuild.yml`, so the site picks
-it up within a few minutes.
+Releases API at build time. The release workflow starts a Cloudflare
+Pages rebuild via `.github/workflows/site-rebuild.yml` once it publishes,
+so the site picks it up within a few minutes.
 
 Update this when a new tag is released: add an entry with the version,
 date, and a one-line summary of what shipped, then check whether the

@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, type Plugin } from "vite-plus";
 // @ts-expect-error type error without @types/node package
 import process from "node:process";
 const host = process.env.TAURI_DEV_HOST;
@@ -34,6 +34,26 @@ function patchLegacyModesFrozenPrototype(): Plugin {
 // https://vite.dev/config/
 export default defineConfig(() => ({
   plugins: [patchLegacyModesFrozenPrototype()],
+
+  // The scripts/ tests use node:test and run with `pnpm test:scripts`.
+  test: {
+    include: ["src/**/*.test.ts"],
+  },
+
+  // `vp check` (CI) formats, lints and typechecks the app; the site has its
+  // own tooling. The code's existing style: double quotes, semicolons.
+  fmt: {
+    printWidth: 120,
+    ignorePatterns: ["dist/**", "site/**", "src-tauri/**", "docs/**", ".devcontainer/**", ".github/**", "*.md"],
+  },
+  lint: {
+    ignorePatterns: ["dist/**", "site/**", "src-tauri/**"],
+    rules: {
+      "vite-plus/prefer-vite-plus-imports": "error",
+    },
+    options: { typeAware: true, typeCheck: true },
+    jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
+  },
 
   // In dev, Vite pre-bundles dependencies into node_modules/.vite/deps
   // *before* running plugin transform hooks, so the patch above would never

@@ -5,6 +5,7 @@ import { openCommandPalette } from "./commandPalette";
 import { initTitlebar } from "./titlebar";
 import { installNativeChrome } from "./nativeChrome";
 import { showToast } from "./toast";
+import { initUpdates } from "./update";
 
 // Before DOMContentLoaded: these are window-level listeners, and a right-click
 // or F5 landing during startup should already be swallowed.
@@ -19,6 +20,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("empty-quick-open")!.addEventListener("click", () => openCommandPalette(app));
   try {
     await app.init();
+    initUpdates(app);
   } catch (e) {
     showToast(`Couldn't start: ${e}`, "error");
   } finally {

@@ -26,11 +26,7 @@ const LANGUAGE_PATTERNS: Array<{ lang: string; patterns: RegExp[] }> = [
   },
   {
     lang: "ts",
-    patterns: [
-      /^\s*(import|export)\s.+from\s+["']/m,
-      /:\s*(string|number|boolean)\b/,
-      /interface\s+\w+\s*\{/,
-    ],
+    patterns: [/^\s*(import|export)\s.+from\s+["']/m, /:\s*(string|number|boolean)\b/, /interface\s+\w+\s*\{/],
   },
   {
     lang: "java",
@@ -43,12 +39,7 @@ const LANGUAGE_PATTERNS: Array<{ lang: string; patterns: RegExp[] }> = [
   },
   {
     lang: "python",
-    patterns: [
-      /^\s*def\s+\w+\(.*\):/m,
-      /^\s*import\s+\w+/m,
-      /^\s*from\s+\w+\s+import/m,
-      /\bprint\(/,
-    ],
+    patterns: [/^\s*def\s+\w+\(.*\):/m, /^\s*import\s+\w+/m, /^\s*from\s+\w+\s+import/m, /\bprint\(/],
   },
   {
     lang: "cpp",

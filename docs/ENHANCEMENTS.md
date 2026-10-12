@@ -12,13 +12,25 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
-- **[app] Release notes from the commit log.** GitHub's generated notes
-  list only merged PRs since the previous tag, so direct commits to `main`
-  are missing. v0.4.0's notes left out every fix and had to be rewritten
-  by hand on 2026-09-26. `release.sh` could build the notes from
-  `git log v<previous>..HEAD` and pass them to the workflow (`releaseBody`
-  or a notes file). Deleting the unreleased `v0.3.0` tag is a smaller
-  cleanup to consider alongside.
+- **[app] Delete the unreleased `v0.3.0` tag.** It has no GitHub release
+  (see `RELEASES.md`). Harmless, but `pnpm release` and GitHub's
+  generated notes treat it as a real previous version.
+- **[app] "Check for updates" on demand.** The updater only checks at
+  startup (`src/update.ts`). Notes has no settings view to put a button in;
+  a command-palette command would fit once the palette runs commands as
+  well as files. Deferred 2026-10-12.
+- **[app] Clear the `vp check` warnings.** The Vite+ migration
+  (2026-10-12) turned on type-aware oxlint, which warns about 18 unawaited
+  promises (`no-floating-promises`, mostly fire-and-forget `closeTab` and
+  `refreshFolder` calls) and 7 non-string template values
+  (`restrict-template-expressions`, mostly `${e}` in toasts). They're
+  warnings, so CI passes. Mark the intentional ones with `void`, then
+  make the rules errors. Deferred 2026-10-12.
+- **[app] Code-signed installer.** The NSIS installer is unsigned, so
+  SmartScreen warns once on first install. Gitr's research (Azure Artifact
+  Signing ~$10/month, SignPath Foundation free for open source, OV
+  certificate $100–400/year) applies here too; a new certificate doesn't
+  stop SmartScreen until it builds reputation. Deferred 2026-10-12.
 - **[app] Cut CodeQL scope on PRs.** CodeQL default setup (repo settings,
   no workflow file) analyses actions, JS/TS and Rust on every PR push, about
   5 minutes a run. Options: drop languages that add little (actions), or
@@ -75,6 +87,9 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Done
 
+- **[app] Release notes from the commit log.** Done 2026-10-12 another way:
+  the notes are now the version's `CHANGELOG.md` section, followed by
+  GitHub's list of merged PRs. See the 2026-10-12 `HISTORY.md` entry.
 - **[site] Host the marketing site on Cloudflare Pages.** Live at
   `notes-site-ojq.pages.dev`, deployed as static output with
   `pnpm deploy` in `site/` (Wrangler, project `notes-site`). No adapter

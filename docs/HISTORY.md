@@ -15,6 +15,68 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-12 — Vite+ for the app's front-end toolchain [app]
+
+- `vite-plus` 1.1.0 (from the pnpm catalog in `pnpm-workspace.yaml`)
+  replaces `vite` and `vitest`: `vp dev`, `vp build`, `vp test run`, and
+  `pnpm check` (`vp check`: oxfmt, oxlint with type-aware rules, and
+  typecheck), which CI's `frontend` job now runs. Same setup as Gitr. The
+  `vite@*` override hands vitest and anything else that asks for vite
+  Vite+'s copy. It replaces the old `vite >=8.0.16` security floor, which
+  that copy already meets.
+- The formatter keeps the existing style (double quotes, semicolons,
+  120 columns). The one-off reformat touched 19 files, mostly line wraps.
+  Tests import from `vite-plus/test`.
+- The site (`site/`) keeps its own Astro toolchain and pnpm workspace.
+
+## 2026-10-12 — Releases the Gitr way, and an in-app updater [app] [site]
+
+Brought over what the Gitr repo (`etiennedelange/gitr`) learned about
+building and shipping its Windows installer. `docs/RELEASING.md` has the
+full picture.
+
+- **One command.** `pnpm release 0.5.0` (`scripts/release/ship.mjs`)
+  replaces `scripts/release.sh`. It opens a version PR, auto-merges it once
+  CI passes, tags the merge commit and follows the Release run. It can be
+  safely re-run after any failure. The version now lives only in
+  `src-tauri/Cargo.toml`; `tauri.conf.json` and `package.json` no longer
+  carry copies that can drift.
+- **Published, not drafted.** `release.yml` builds with
+  `pnpm tauri build --bundles nsis` and publishes with `gh release create`.
+  `tauri-action` is gone, and with it the `@v0` "Resource not accessible"
+  trouble (2026-09-26 entry). That entry had suggested `gh release` as the
+  fallback. The job refuses a tag that isn't on `main` or doesn't match the
+  version. It also adds `SHA256SUMS.txt` and drops the `.msi`.
+- **Notes from `CHANGELOG.md`.** The new changelog's version section comes
+  first in the release notes, then GitHub's list of merged PRs. That fixes
+  v0.4.0's empty notes for good, and the updater shows the same text.
+- **In-app updater.** `tauri-plugin-updater` reads `latest.json` from the
+  latest release. The installer it downloads must match a minisign
+  signature, and the key lives in repo secrets. Unlike Gitr's
+  wait-for-git-writes, Notes' risk is unsaved tabs. So the download comes
+  first, then the same Save / Don't Save / Cancel prompt as quitting
+  (`App.prepareToExit`), then the installer. Nothing typed during the
+  download is lost. The UI is a status bar button rather than Gitr's
+  banner, because Notes has no settings view and should stay quiet.
+- **CI always reports.** The `frontend` and `rust` jobs now start on every
+  PR and skip their steps when `release.mjs ci-scope` finds nothing to
+  test. A required check from a workflow skipped by `paths:` stays
+  pending. Release PRs (version-only) skip the 9-minute Rust run.
+  `scripts/release/github-settings.sh` makes the two jobs required and
+  allows auto-merge, which `pnpm release` needs.
+- **Warm release cache.** Caches saved under a tag are invisible to the next
+  tag, so `release-cache.yml` builds on `main` to keep the release job's
+  Rust and NSIS caches warm. It also catches a broken installer build
+  before a tag. It builds without updater signing
+  (`tauri.no-updater.conf.json`, a file because PowerShell strips the
+  quotes of inline JSON: a Gitr bug).
+- **Site rebuild.** A release created with `GITHUB_TOKEN` doesn't fire
+  `release: published`, so `release.yml` starts `site-rebuild.yml`
+  itself.
+- Not ported: Gitr's Microsoft Store channel (MSIX detection, "store"
+  update channel) and its third-party-notices check. Code signing stays
+  deferred (`ENHANCEMENTS.md`).
+
 ## 2026-10-11 — OpenCode, GitHub CLI and Wrangler move into dev-setup [app] [site]
 
 - `dev-setup` 1.1.0 (in `etiennedelange/devcontainer-features`): Claude

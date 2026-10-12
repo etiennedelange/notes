@@ -101,13 +101,10 @@ function wireOnce(strip: HTMLElement) {
   strip.addEventListener("mousedown", (e) => {
     if (e.button === 1) e.preventDefault();
   });
-  strip.addEventListener(
-    "auxclick",
-    (e) => {
-      if (e.button !== 1) return;
-      const target = e.target as HTMLElement;
-      const tabEl = target.closest<HTMLElement>("[data-tab]");
-      if (tabEl) currentApp?.closeTab(tabEl.dataset.tab!);
-    },
-  );
+  strip.addEventListener("auxclick", (e) => {
+    if (e.button !== 1) return;
+    const target = e.target as HTMLElement;
+    const tabEl = target.closest<HTMLElement>("[data-tab]");
+    if (tabEl) currentApp?.closeTab(tabEl.dataset.tab!);
+  });
 }
