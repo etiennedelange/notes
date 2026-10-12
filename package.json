@@ -1,6 +1,5 @@
 {
   "name": "notes",
-  "version": "0.4.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -10,9 +9,11 @@
     "build": "tsc && vp build",
     "preview": "vp preview",
     "test": "vp test run",
+    "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
     "check": "vp check",
     "tauri": "tauri",
-    "release": "bash scripts/release.sh",
+    "release": "node scripts/release/ship.mjs",
+    "release:version": "node scripts/release/release.mjs version",
     "screenshots": "node scripts/screenshots/capture.mjs"
   },
   "dependencies": {

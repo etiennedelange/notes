@@ -185,6 +185,17 @@
             stroke-linecap="round"
           />
         </symbol>
+        <symbol id="icon-update" viewBox="0 0 20 20">
+          <circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path
+            d="M10 6.5v6.5M7.2 10.4 10 13.2l2.8-2.8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </symbol>
         <symbol id="icon-tb-minimize" viewBox="0 0 10 10">
           <path d="M1.5 5h7" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
         </symbol>
@@ -280,6 +291,10 @@
               <span id="status-dirty" class="hidden">&bull; unsaved</span>
             </div>
             <div class="status-right">
+              <button id="status-update" class="status-update hidden">
+                <svg class="icon" width="13" height="13"><use href="#icon-update" /></svg>
+                <span class="status-update-label"></span>
+              </button>
               <span id="status-cursor"></span>
               <span id="status-wordcount"></span>
               <span id="status-lang"></span>

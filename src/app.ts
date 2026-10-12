@@ -839,32 +839,41 @@ export class App {
         // async state flush (window geometry, zoom, etc.) below ever reaches
         // disk, silently losing whatever changed since the last debounce.
         event.preventDefault();
-
-        const dirtyKeys = this.order.filter((k) => this.tabs.get(k)!.dirty);
-        if (dirtyKeys.length > 0) {
-          const plural = dirtyKeys.length > 1;
-          const names = dirtyKeys.map((k) => `"${this.tabLabel(this.tabs.get(k)!)}"`).join(", ");
-          const choice = await unsavedChangesModal({
-            title: "Unsaved changes",
-            message: plural
-              ? `You have ${dirtyKeys.length} files with unsaved changes: ${names}. Save them before quitting?`
-              : `${names} has unsaved changes. Save it before quitting?`,
-            saveLabel: plural ? "Save All" : "Save",
-          });
-
-          if (choice === "cancel") return;
-          if (choice === "save") {
-            for (const key of dirtyKeys) {
-              const saved = await this.saveTab(key);
-              if (!saved) return; // a Save As was cancelled — abort quitting
-            }
-          }
-        }
-        await this.captureWindowGeom();
-        await this.flushPersist();
-        getCurrentWebviewWindow().destroy();
+        if (await this.prepareToExit("quitting")) getCurrentWebviewWindow().destroy();
       })
       .catch(() => {});
+  }
+
+  /**
+   * Asks about unsaved tabs, then saves the session, before the app goes
+   * away: on quit, and before an update's installer replaces it. Returns
+   * false if the user cancelled (or cancelled a Save As), and nothing may
+   * exit then.
+   */
+  async prepareToExit(verb: "quitting" | "updating"): Promise<boolean> {
+    const dirtyKeys = this.order.filter((k) => this.tabs.get(k)!.dirty);
+    if (dirtyKeys.length > 0) {
+      const plural = dirtyKeys.length > 1;
+      const names = dirtyKeys.map((k) => `"${this.tabLabel(this.tabs.get(k)!)}"`).join(", ");
+      const choice = await unsavedChangesModal({
+        title: "Unsaved changes",
+        message: plural
+          ? `You have ${dirtyKeys.length} files with unsaved changes: ${names}. Save them before ${verb}?`
+          : `${names} has unsaved changes. Save it before ${verb}?`,
+        saveLabel: plural ? "Save All" : "Save",
+      });
+
+      if (choice === "cancel") return false;
+      if (choice === "save") {
+        for (const key of dirtyKeys) {
+          const saved = await this.saveTab(key);
+          if (!saved) return false;
+        }
+      }
+    }
+    await this.captureWindowGeom();
+    await this.flushPersist();
+    return true;
   }
 
   // ---------- window geometry ----------

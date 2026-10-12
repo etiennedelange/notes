@@ -94,6 +94,11 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     load_state: () => state,
     save_state: () => null,
     platform_name: () => cfg.platform || "windows",
+    // No update unless a shot asks for one: { update: { version, notes, date } }.
+    check_update: () => cfg.update ?? null,
+    download_update: () => cfg.update?.version ?? null,
+    install_update: () => null,
+    open_release_page: () => null,
     read_dir_tree: () => tree(),
     read_text_file: ({ path }) => ({ contents: FILES[path] ?? "", lossy: false }),
     write_text_file: () => null,

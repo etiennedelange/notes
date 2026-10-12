@@ -1,19 +1,70 @@
 name: Release
 
+# Pushing a version tag (v1.2.0, or v1.2.0-beta.1 for a pre-release) on main builds the
+# Windows NSIS installer and publishes a GitHub Release with it, plus latest.json for the
+# in-app updater. `pnpm release <version>` gets you here. See docs/RELEASING.md.
 on:
   push:
-    tags:
-      - "v*.*.*"
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+  # Rebuild an existing tag, e.g. after a failed run; replaces the release's installer.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build, e.g. v1.2.0
+        required: true
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
-  build-windows:
+  windows:
     runs-on: windows-latest
+    permissions:
+      # Create the release and upload the installer.
+      contents: write
+      # Start the site rebuild (see the last step).
+      actions: write
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      # Only merged, CI-checked commits get released. GitHub compares the commits, so the
+      # checkout needs no history: "behind" or "identical" means the tag is on main.
+      - name: Check the tag is on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/main...$(git rev-parse HEAD)" --jq .status)
+          if [ "$status" != behind ] && [ "$status" != identical ]; then
+            echo "::error::$TAG is not on main (compared with main: $status). Tag a commit on main."
+            exit 1
+          fi
+
+      - name: Check the tag matches the version
+        id: version
+        run: |
+          version=$(node scripts/release/release.mjs check "$TAG")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          node scripts/release/release.mjs notes "$version" > "$RUNNER_TEMP/notes.md"
+
+      # Installed copies check updates against this key; a placeholder would make every update fail.
+      - name: Check the updater public key is set
+        run: |
+          if grep -q REPLACE_WITH_THE_PUBLIC_KEY src-tauri/tauri.conf.json; then
+            echo "::error::plugins.updater.pubkey in tauri.conf.json is still a placeholder. See docs/RELEASING.md."
+            exit 1
+          fi
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
@@ -22,19 +73,97 @@ jobs:
           node-version: "22"
           cache: pnpm
 
+      - run: pnpm install --frozen-lockfile
+
       - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
 
+      # Caches made under a tag can't be read by later tags, so only restore here:
+      # release-cache.yml saves both caches on main, where every tag can read them.
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: src-tauri
-
-      - run: pnpm install --frozen-lockfile
-
-      - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          shared-key: release-windows
+          save-if: false
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Notes ${{ github.ref_name }}"
-          releaseDraft: true
-          prerelease: false
+          # NSIS and its plugins, which tauri build downloads.
+          path: ~/AppData/Local/tauri
+          key: tauri-tools-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: tauri-tools-
+
+      # beforeBuildCommand builds the front end first. The rm keeps a cached old installer out.
+      # The key signs the updater's copy of the installer (-setup.exe.sig); see docs/RELEASING.md.
+      - name: Build the installer
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error::The TAURI_SIGNING_PRIVATE_KEY secret is not set. See docs/RELEASING.md."
+            exit 1
+          fi
+          rm -rf src-tauri/target/release/bundle
+          pnpm tauri build --bundles nsis
+
+      - name: Collect the installer, its signature and latest.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          shopt -s nullglob
+          files=(src-tauri/target/release/bundle/nsis/*-setup.exe)
+          if [ ${#files[@]} -ne 1 ]; then
+            echo "::error::Expected one installer, found ${#files[@]}: ${files[*]}"
+            exit 1
+          fi
+          # Tauri takes the version from Cargo.toml; make sure it did.
+          if [[ "${files[0]}" != *"_${VERSION}_"* ]]; then
+            echo "::error::${files[0]} is not version $VERSION"
+            exit 1
+          fi
+          if [ ! -f "${files[0]}.sig" ]; then
+            echo "::error::No updater signature ${files[0]}.sig"
+            exit 1
+          fi
+          mkdir -p dist-release
+          cp "${files[0]}" "${files[0]}.sig" dist-release/
+          # The in-app updater reads releases/latest/download/latest.json. GitHub's "latest"
+          # skips pre-releases, so a pre-release never reaches installed copies.
+          node scripts/release/release.mjs updater-manifest "$VERSION" "${files[0]}" "${files[0]}.sig" > dist-release/latest.json
+          cat dist-release/latest.json
+          cd dist-release
+          sha256sum -- *.exe > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: notes-${{ steps.version.outputs.version }}-windows
+          path: dist-release/
+          if-no-files-found: error
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist-release/* --clobber
+            exit 0
+          fi
+          prerelease=()
+          [[ "$VERSION" == *-* ]] && prerelease=(--prerelease)
+          # The CHANGELOG section first, then GitHub's list of merged PRs (.github/release.yml).
+          gh release create "$TAG" dist-release/* \
+            --verify-tag \
+            --title "Notes $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            --generate-notes \
+            "${prerelease[@]}"
+
+      # A release made with this job's token doesn't trigger other workflows, so site-rebuild.yml's
+      # `release: published` never fires for it; start it directly. Pre-releases aren't "latest",
+      # so the site wouldn't change.
+      - name: Rebuild the site
+        if: ${{ !contains(steps.version.outputs.version, '-') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run site-rebuild.yml --ref main

@@ -12,6 +12,8 @@ interface ModalOptions {
   title: string;
   message: string;
   danger?: boolean;
+  /** The warning icon; on by default. Off for news, such as an update. */
+  icon?: boolean;
   buttons: ModalButton[];
 }
 
@@ -38,6 +40,7 @@ export function showModal(opts: ModalOptions): Promise<string> {
   message.textContent = opts.message;
   modal.classList.toggle("confirm-danger", !!opts.danger);
   icon.classList.toggle("confirm-danger", !!opts.danger);
+  icon.classList.toggle("hidden", opts.icon === false);
 
   actions.innerHTML = opts.buttons
     .map(

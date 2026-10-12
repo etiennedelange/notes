@@ -1,0 +1,58 @@
+name: Release cache
+
+# Keeps the release build fast. GitHub caches are scoped to the ref that saved them, and a
+# tag can read caches from main but not from other tags, so release.yml only restores and
+# this workflow saves on main: the Rust release-profile build and Tauri's NSIS download.
+# Building the installer here also catches packaging breakage before a tag is pushed.
+on:
+  push:
+    branches: [main]
+    paths:
+      - src-tauri/Cargo.lock
+      - "src-tauri/**/Cargo.toml"
+      - pnpm-lock.yaml
+      - src-tauri/tauri.conf.json
+      - .github/workflows/release-cache.yml
+  # Unused caches are evicted after 7 days.
+  schedule:
+    - cron: "17 4 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cache
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+
+      # Same workspaces and shared-key as release.yml.
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: src-tauri
+          shared-key: release-windows
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/AppData/Local/tauri
+          key: tauri-tools-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: tauri-tools-
+
+      # No secrets here, so no updater signature (that needs the private key). A file, not inline
+      # JSON: Windows PowerShell strips the inner quotes before pnpm sees them.
+      - run: pnpm tauri build --bundles nsis --config src-tauri/tauri.no-updater.conf.json

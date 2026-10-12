@@ -35,6 +35,11 @@ function patchLegacyModesFrozenPrototype(): Plugin {
 export default defineConfig(() => ({
   plugins: [patchLegacyModesFrozenPrototype()],
 
+  // The scripts/ tests use node:test and run with `pnpm test:scripts`.
+  test: {
+    include: ["src/**/*.test.ts"],
+  },
+
   // `vp check` (CI) formats, lints and typechecks the app; the site has its
   // own tooling. The code's existing style: double quotes, semicolons.
   fmt: {
