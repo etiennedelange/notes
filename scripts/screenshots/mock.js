@@ -101,7 +101,11 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     open_release_page: () => null,
     read_dir_tree: () => tree(),
     read_text_file: ({ path }) => ({ contents: FILES[path] ?? "", lossy: false }),
-    write_text_file: () => null,
+    // Kept in memory so `pnpm mock:web` can save and reopen; lost on reload.
+    write_text_file: ({ path, contents }) => {
+      FILES[path] = contents;
+      return null;
+    },
     path_exists: ({ path }) => exists(path),
     path_is_dir: ({ path }) => exists(path) && !(path in FILES),
     file_mtime_ms: () => 1758873600000,

@@ -46,6 +46,7 @@ platform. The dev container in `.devcontainer/` installs all of these.
 | `cd src-tauri && cargo test --workspace` | Rust tests, including `notes-core` |
 | `pnpm tauri build` | Build installers for the current platform (needs the updater key, or `--config src-tauri/tauri.no-updater.conf.json`) |
 | `pnpm release <x.y.z>` | Release: version PR, merge, tag, and the Windows build (see [`docs/RELEASING.md`](./docs/RELEASING.md)) |
+| `pnpm mock:web` | Run the front end in any browser against a mock backend, no Tauri needed |
 | `pnpm screenshots` | Regenerate the screenshots in `docs/screenshots/` and the site |
 
 The marketing site lives in [`site/`](./site/) and has its own README.
@@ -54,6 +55,11 @@ The screenshots come from `scripts/screenshots/`. The script runs the front
 end in headless Chromium and swaps the Rust backend for a mock that serves a
 sample notes folder, so it works anywhere, not just on Windows. Run
 `pnpm exec playwright install chromium` once before the first run.
+
+`pnpm mock:web` serves the same front end and mock on the dev server
+(`http://localhost:1420`, with hot reload) for working on the UI in a normal
+browser. Saves go to memory and are lost on reload; native dialogs act as if
+cancelled.
 
 ## How it works
 

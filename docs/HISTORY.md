@@ -15,6 +15,22 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-12 — `pnpm mock:web`: the app in a plain browser [app]
+
+Added `pnpm mock:web` (`scripts/mock-web.mjs`). It starts the normal Vite
+dev server and injects `scripts/screenshots/mock.js` into `index.html`, so
+the UI runs with hot reload in any browser, opened on a sample folder.
+
+- **Why:** the app can't be launched from the dev container, so UI work
+  had no way to see the change short of `pnpm screenshots`. Reusing the
+  screenshot mock keeps one fake backend to maintain.
+- The mock's `write_text_file` now stores saves in memory, so saving and
+  reopening a file behaves. Dialog commands (`pick_*`) return null, i.e.
+  cancelled. A new IPC command needs a handler in `mock.js` for both uses.
+- Binds all interfaces (`host: true`), like the site's dev server. Plain
+  `localhost` resolved to IPv6 `::1` only, and the dev container's port
+  forwarding connects over IPv4, so the browser just sat loading.
+
 ## 2026-10-12 — Vite+ for the app's front-end toolchain [app]
 
 - `vite-plus` 1.1.0 (from the pnpm catalog in `pnpm-workspace.yaml`)

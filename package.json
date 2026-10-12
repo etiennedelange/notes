@@ -14,7 +14,8 @@
     "tauri": "tauri",
     "release": "node scripts/release/ship.mjs",
     "release:version": "node scripts/release/release.mjs version",
-    "screenshots": "node scripts/screenshots/capture.mjs"
+    "screenshots": "node scripts/screenshots/capture.mjs",
+    "mock:web": "node scripts/mock-web.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
