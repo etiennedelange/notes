@@ -77,7 +77,7 @@ function wireOnce(strip: HTMLElement) {
     const target = e.target as HTMLElement;
     const closeBtn = target.closest<HTMLElement>("[data-close]");
     if (closeBtn) {
-      currentApp?.closeTab(closeBtn.dataset.close!);
+      void currentApp?.closeTab(closeBtn.dataset.close!);
       return;
     }
     const tabEl = target.closest<HTMLElement>("[data-tab]");
@@ -93,7 +93,7 @@ function wireOnce(strip: HTMLElement) {
     const target = e.target as HTMLElement;
     const tabEl = target.closest<HTMLElement>("[data-tab]");
     if (!tabEl || !currentApp) return;
-    showTabContextMenu(currentApp, tabEl.dataset.tab!);
+    void showTabContextMenu(currentApp, tabEl.dataset.tab!);
   });
   // The browser's default middle-click behavior is to start autoscrolling
   // (the "scrolling cursor"), which swallows the click auxclick would
@@ -105,6 +105,6 @@ function wireOnce(strip: HTMLElement) {
     if (e.button !== 1) return;
     const target = e.target as HTMLElement;
     const tabEl = target.closest<HTMLElement>("[data-tab]");
-    if (tabEl) currentApp?.closeTab(tabEl.dataset.tab!);
+    if (tabEl) void currentApp?.closeTab(tabEl.dataset.tab!);
   });
 }

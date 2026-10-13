@@ -31,9 +31,9 @@ export async function initTitlebar() {
   maximizeBtn.addEventListener("click", async () => {
     try {
       await win.toggleMaximize();
-      syncMaximizeIcon();
+      void syncMaximizeIcon();
     } catch (e) {
-      showToast(`Maximize failed: ${e}`, "error");
+      showToast(`Maximize failed: ${String(e)}`, "error");
     }
   });
   // Tauri's own drag-region handler (drag.js) owns double-click-to-maximize
@@ -41,5 +41,5 @@ export async function initTitlebar() {
   // `dblclick` listener here raced its `mousedown` handling and made the
   // gesture flaky.
   win.onResized(() => syncMaximizeIcon()).catch(() => {});
-  syncMaximizeIcon();
+  void syncMaximizeIcon();
 }

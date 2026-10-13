@@ -15,6 +15,25 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-13 — Toolchain housekeeping: ES2023, Rust 2024, Node 24 [app]
+
+- `tsconfig.json` targets and types against ES2023 (was ES2020). Every
+  webview Tauri ships on supports it, so `findLast`, `toSorted` and the
+  like typecheck now. `useDefineForClassFields` went with it, since it's
+  the default from ES2022.
+- Both crates are on Rust edition 2024. `cargo fix --edition` needed no
+  code changes; clippy's `collapsible_if` then asked for one `if let`
+  in `notes-core` to become a let-chain.
+- CI and release workflows use Node 24 (the active LTS) instead of 22.
+- `@types/node` is a dev dependency, which drops the `@ts-expect-error`
+  on `node:process` in `vite.config.ts`.
+- The 25 type-aware lint warnings from the Vite+ migration are gone:
+  fire-and-forget calls from event handlers are marked `void`, and
+  `${e}` in toasts is `${String(e)}`. `no-floating-promises` and
+  `restrict-template-expressions` are errors now, except that
+  `no-floating-promises` is off for `scripts/**/*.test.mjs`, where
+  `node:test`'s top-level `test()` returns a promise the runner tracks.
+
 ## 2026-10-12 — `pnpm mock:web`: the app in a plain browser [app]
 
 Added `pnpm mock:web` (`scripts/mock-web.mjs`). It starts the normal Vite

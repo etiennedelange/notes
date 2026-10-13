@@ -252,7 +252,7 @@ export class App {
       this.openFolder = path;
       this.expandedDirs = new Set([path]);
     } catch (e) {
-      showToast(`Couldn't open folder: ${e}`, "error");
+      showToast(`Couldn't open folder: ${String(e)}`, "error");
       return;
     }
     if (!opts.skipPersist) this.persist();
@@ -351,7 +351,7 @@ export class App {
         );
       }
     } catch (e) {
-      showToast(`Couldn't open ${basename(path)}: ${e}`, "error");
+      showToast(`Couldn't open ${basename(path)}: ${String(e)}`, "error");
       return;
     }
     const mtime = await fileMtimeMs(path).catch(() => null);
@@ -507,7 +507,7 @@ export class App {
     let path = this.closedTabs.pop();
     while (path && this.tabs.has(path)) path = this.closedTabs.pop();
     if (!path) return;
-    this.openFile(path);
+    void this.openFile(path);
   }
 
   cycleTab(direction: 1 | -1) {
@@ -588,7 +588,7 @@ export class App {
     try {
       await writeTextFile(target, tab.state.doc.toString());
     } catch (e) {
-      showToast(`Couldn't save: ${e}`, "error");
+      showToast(`Couldn't save: ${String(e)}`, "error");
       return null;
     }
     this.rekeyTab(tab, key, target);
@@ -651,7 +651,7 @@ export class App {
       showToast(`Saved ${basename(tab.path!)}`);
       return true;
     } catch (e) {
-      showToast(`Couldn't save: ${e}`, "error");
+      showToast(`Couldn't save: ${String(e)}`, "error");
       return false;
     }
   }
@@ -671,7 +671,7 @@ export class App {
         showToast(`${basename(tab.path!)} isn't valid UTF-8; reloaded with replacement characters.`, "error");
       }
     } catch (e) {
-      showToast(`Couldn't reload: ${e}`, "error");
+      showToast(`Couldn't reload: ${String(e)}`, "error");
     }
   }
 
@@ -796,25 +796,25 @@ export class App {
         openCommandPalette(this);
       } else if (key === "s" && e.shiftKey) {
         e.preventDefault();
-        this.saveActiveTabAs();
+        void this.saveActiveTabAs();
       } else if (key === "s") {
         e.preventDefault();
-        this.saveActiveTab();
+        void this.saveActiveTab();
       } else if (key === "t" && e.shiftKey) {
         e.preventDefault();
         this.reopenLastClosedTab();
       } else if (key === "o" && e.shiftKey) {
         e.preventDefault();
-        this.openFolderDialog();
+        void this.openFolderDialog();
       } else if (key === "o") {
         e.preventDefault();
-        this.openFileDialog();
+        void this.openFileDialog();
       } else if (key === "n") {
         e.preventDefault();
         this.newUntitledTab();
       } else if (key === "w") {
         e.preventDefault();
-        if (this.activeKey) this.closeTab(this.activeKey);
+        if (this.activeKey) void this.closeTab(this.activeKey);
       } else if (key === "tab") {
         e.preventDefault();
         this.cycleTab(e.shiftKey ? -1 : 1);
@@ -839,7 +839,7 @@ export class App {
         // async state flush (window geometry, zoom, etc.) below ever reaches
         // disk, silently losing whatever changed since the last debounce.
         event.preventDefault();
-        if (await this.prepareToExit("quitting")) getCurrentWebviewWindow().destroy();
+        if (await this.prepareToExit("quitting")) void getCurrentWebviewWindow().destroy();
       })
       .catch(() => {});
   }
@@ -940,7 +940,7 @@ export class App {
   private wireWindowGeometry() {
     const win = getCurrentWebviewWindow();
     const onChange = () => {
-      this.captureWindowGeom().then(() => this.persist());
+      void this.captureWindowGeom().then(() => this.persist());
     };
     win.onResized(onChange).catch(() => {});
     win.onMoved(onChange).catch(() => {});
@@ -964,7 +964,7 @@ export class App {
   private wireFolderRefresh() {
     getCurrentWebviewWindow()
       .onFocusChanged((event) => {
-        if (event.payload) this.refreshFolder();
+        if (event.payload) void this.refreshFolder();
       })
       .catch(() => {});
   }

@@ -1,5 +1,4 @@
 import { defineConfig, type Plugin } from "vite-plus";
-// @ts-expect-error type error without @types/node package
 import process from "node:process";
 const host = process.env.TAURI_DEV_HOST;
 
@@ -50,7 +49,12 @@ export default defineConfig(() => ({
     ignorePatterns: ["dist/**", "site/**", "src-tauri/**"],
     rules: {
       "vite-plus/prefer-vite-plus-imports": "error",
+      // Fire-and-forget calls from event handlers are marked with `void`.
+      "typescript/no-floating-promises": "error",
+      "typescript/restrict-template-expressions": "error",
     },
+    // node:test's top-level `test()` returns a promise the runner tracks itself.
+    overrides: [{ files: ["scripts/**/*.test.mjs"], rules: { "typescript/no-floating-promises": "off" } }],
     options: { typeAware: true, typeCheck: true },
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
   },
