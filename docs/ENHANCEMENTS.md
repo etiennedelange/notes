@@ -19,13 +19,6 @@ with `[app]`, `[site]`, or `[app, site]`.
   startup (`src/update.ts`). Notes has no settings view to put a button in;
   a command-palette command would fit once the palette runs commands as
   well as files. Deferred 2026-10-12.
-- **[app] Clear the `vp check` warnings.** The Vite+ migration
-  (2026-10-12) turned on type-aware oxlint, which warns about 18 unawaited
-  promises (`no-floating-promises`, mostly fire-and-forget `closeTab` and
-  `refreshFolder` calls) and 7 non-string template values
-  (`restrict-template-expressions`, mostly `${e}` in toasts). They're
-  warnings, so CI passes. Mark the intentional ones with `void`, then
-  make the rules errors. Deferred 2026-10-12.
 - **[app] Code-signed installer.** The NSIS installer is unsigned, so
   SmartScreen warns once on first install. Gitr's research (Azure Artifact
   Signing ~$10/month, SignPath Foundation free for open source, OV
@@ -85,8 +78,20 @@ with `[app]`, `[site]`, or `[app, site]`.
   the in-app unsaved-changes dialog: stay visually consistent rather than
   using the OS menu). Removing the suppression is not the answer.
 
+- **[app] Native `<dialog>`, Popover API and modern CSS.** `src/modal.ts`
+  hand-rolls an overlay, Escape handling, a Tab focus trap and focus
+  restore that `dialog.showModal()` gives for free (plus `::backdrop` and
+  an inert background); the command palette could use it too. Toasts fit
+  `popover="manual"`, and the editor context menu above fits `popover` plus
+  CSS anchor positioning. `src/styles.css` could use nesting,
+  `@starting-style` for enter animations, and `prefers-reduced-motion`.
+  Deferred 2026-10-13 to land after the toolchain housekeeping; check it
+  with `pnpm mock:web`, since it changes behaviour.
+
 ## Done
 
+- **[app] Clear the `vp check` warnings.** Done 2026-10-13; the two
+  rules are errors now. See the 2026-10-13 `HISTORY.md` entry.
 - **[app] Release notes from the commit log.** Done 2026-10-12 another way:
   the notes are now the version's `CHANGELOG.md` section, followed by
   GitHub's list of merged PRs. See the 2026-10-12 `HISTORY.md` entry.

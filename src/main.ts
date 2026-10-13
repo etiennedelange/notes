@@ -12,7 +12,7 @@ import { initUpdates } from "./update";
 installNativeChrome();
 
 window.addEventListener("DOMContentLoaded", async () => {
-  initTitlebar();
+  void initTitlebar();
 
   const host = document.getElementById("editor-host")!;
   const app = new App(host);
@@ -22,14 +22,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     await app.init();
     initUpdates(app);
   } catch (e) {
-    showToast(`Couldn't start: ${e}`, "error");
+    showToast(`Couldn't start: ${String(e)}`, "error");
   } finally {
     // The window starts hidden (see tauri.conf.json) to avoid a white flash
     // before the theme is applied; reveal it once painted, or on init failure
     // — an invisible stuck window is worse than an unstyled one.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        getCurrentWindow().show();
+        void getCurrentWindow().show();
       });
     });
   }

@@ -107,7 +107,7 @@ function renderResults() {
 function openSelected() {
   const entry = items[selected];
   if (!entry) return;
-  currentApp?.openFile(entry.item.path);
+  void currentApp?.openFile(entry.item.path);
   closeCommandPalette();
 }
 

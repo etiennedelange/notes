@@ -331,13 +331,14 @@ pub fn write_text_file(
     if !is_note(Path::new(&path)) || !resolved.as_deref().is_some_and(is_note) {
         return Err(Error::UnsupportedFileType(path));
     }
-    if let Some(parent) = Path::new(&path).parent() {
-        if !parent.as_os_str().is_empty() && !parent.exists() {
-            fs::create_dir_all(parent).map_err(|source| Error::Write {
-                path: path.clone(),
-                source,
-            })?;
-        }
+    if let Some(parent) = Path::new(&path).parent()
+        && !parent.as_os_str().is_empty()
+        && !parent.exists()
+    {
+        fs::create_dir_all(parent).map_err(|source| Error::Write {
+            path: path.clone(),
+            source,
+        })?;
     }
     write_atomic(Path::new(&path), &contents).map_err(|source| Error::Write {
         path: path.clone(),
