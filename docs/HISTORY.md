@@ -15,6 +15,40 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-13 — Native `<dialog>` and popovers; an editor right-click menu [app]
+
+- The unsaved-changes modal and the Ctrl+P palette are modal `<dialog>`s
+  (`showModal()`). The browser now does the inert background, focus
+  trap, Escape and focus restore that `src/modal.ts` hand-rolled; a
+  backdrop press is detected by the press point falling outside the
+  dialog's box (`src/dialog.ts`), since a click on `::backdrop` and one on
+  the dialog's padding both target the dialog.
+- Toasts live in a `popover="manual"` container, in the top layer. That
+  layer stacks by open order, so `raiseToasts()` re-shows the container
+  after the unsaved-changes modal opens, keeping an error readable above
+  the backdrop. It still can't be clicked away until the modal closes:
+  a modal dialog makes everything outside it inert, popovers included.
+- New right-click menu in the editor (`src/editorMenu.ts`), an auto
+  popover so Escape and a click elsewhere close it and focus returns to
+  the editor. Two non-obvious bits:
+  - macOS and Linux fire `contextmenu` on mouse-down. Opened then, the
+    release lands just outside the menu's rounded corner and counts as a
+    light-dismiss click, so the menu closed instantly. It now waits for
+    `pointerup` when the right button is still held (Windows fires on
+    release, so it opens straight away there).
+  - Paste dispatches a synthetic `paste` event into CodeMirror rather than
+    inserting the text, so a menu paste gets the same code-block fencing as
+    Ctrl+V. It needs `clipboard-manager:allow-read-text`, a new capability.
+- CSS for these parts uses nesting and `@starting-style` (no more rAF
+  class toggle for toast entry), and `prefers-reduced-motion` turns off
+  the dialog, toast and tree-chevron transitions. It's scoped to those, not
+  a blanket `*` rule, which would turn CodeMirror's cursor blink into a
+  flicker. The rest of `styles.css` isn't nested yet; convert sections as
+  they're touched rather than in one churny pass.
+- Checked end to end in Chromium against `pnpm mock:web` (Playwright); the
+  mock gained an in-memory clipboard for it. Not run in WebView2 or
+  WebKitGTK itself.
+
 ## 2026-10-13 — Toolchain housekeeping: ES2023, Rust 2024, Node 24 [app]
 
 - `tsconfig.json` targets and types against ES2023 (was ES2020). Every

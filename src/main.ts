@@ -2,6 +2,7 @@ import "./styles.css";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { App } from "./app";
 import { openCommandPalette } from "./commandPalette";
+import { installEditorMenu } from "./editorMenu";
 import { initTitlebar } from "./titlebar";
 import { installNativeChrome } from "./nativeChrome";
 import { showToast } from "./toast";
@@ -16,6 +17,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const host = document.getElementById("editor-host")!;
   const app = new App(host);
+  installEditorMenu(host, () => app.view);
   document.getElementById("empty-open-file")!.addEventListener("click", () => app.openFileDialog());
   document.getElementById("empty-quick-open")!.addEventListener("click", () => openCommandPalette(app));
   try {

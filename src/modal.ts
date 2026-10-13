@@ -1,4 +1,6 @@
+import { onBackdropPress } from "./dialog";
 import { escapeHtml } from "./html";
+import { raiseToasts } from "./toast";
 
 interface ModalButton {
   id: string;
@@ -19,12 +21,10 @@ interface ModalOptions {
 
 let wired = false;
 let resolver: ((value: string) => void) | null = null;
-let previouslyFocused: HTMLElement | null = null;
 
 function els() {
   return {
-    overlay: document.getElementById("confirm-overlay")!,
-    modal: document.getElementById("confirm-modal")!,
+    modal: document.getElementById("confirm-modal") as HTMLDialogElement,
     title: document.getElementById("confirm-title")!,
     message: document.getElementById("confirm-message")!,
     icon: document.getElementById("confirm-icon")!,
@@ -32,9 +32,14 @@ function els() {
   };
 }
 
-/** Shows the themed modal and resolves with the id of the clicked button, or "" if dismissed. */
+/**
+ * Shows the themed modal and resolves with the id of the clicked button, or
+ * "cancel" if dismissed. It's a native modal `<dialog>`: the browser traps
+ * focus, makes the rest of the window inert, and puts focus back where it
+ * was on close.
+ */
 export function showModal(opts: ModalOptions): Promise<string> {
-  const { overlay, modal, title, message, icon, actions } = els();
+  const { modal, title, message, icon, actions } = els();
 
   title.textContent = opts.title;
   message.textContent = opts.message;
@@ -42,26 +47,23 @@ export function showModal(opts: ModalOptions): Promise<string> {
   icon.classList.toggle("confirm-danger", !!opts.danger);
   icon.classList.toggle("hidden", opts.icon === false);
 
+  const autofocusId = opts.buttons.find((b) => b.autofocus)?.id ?? opts.buttons[opts.buttons.length - 1]?.id;
   actions.innerHTML = opts.buttons
     .map(
       (b) => `
       <button
         class="${b.variant === "ghost" ? "ghost-btn" : "solid-btn"} ${b.danger ? "btn-danger" : ""}"
         data-action="${escapeHtml(b.id)}"
+        ${b.id === autofocusId ? "autofocus" : ""}
       >${escapeHtml(b.label)}</button>`,
     )
     .join("");
 
-  previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  overlay.classList.remove("hidden");
-
-  const autofocusId = opts.buttons.find((b) => b.autofocus)?.id ?? opts.buttons[opts.buttons.length - 1]?.id;
-  requestAnimationFrame(() => {
-    const el = actions.querySelector<HTMLButtonElement>(`[data-action="${autofocusId}"]`);
-    el?.focus();
-  });
-
   wireOnce();
+  if (!modal.open) {
+    modal.showModal();
+    raiseToasts();
+  }
 
   return new Promise<string>((resolve) => {
     resolver = resolve;
@@ -105,46 +107,25 @@ export function unsavedChangesModal(opts: {
 }
 
 function settle(value: string) {
-  const { overlay } = els();
-  overlay.classList.add("hidden");
-  previouslyFocused?.focus();
-  previouslyFocused = null;
+  const { modal } = els();
+  if (modal.open) modal.close();
   resolver?.(value);
   resolver = null;
-}
-
-function focusable(actions: HTMLElement): HTMLButtonElement[] {
-  return Array.from(actions.querySelectorAll("button"));
 }
 
 function wireOnce() {
   if (wired) return;
   wired = true;
-  const { overlay, actions } = els();
+  const { modal, actions } = els();
 
   actions.addEventListener("click", (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-action]");
     if (btn) settle(btn.dataset.action!);
   });
-  overlay.addEventListener("mousedown", (e) => {
-    if (e.target === overlay) settle("cancel");
+  // Escape. Closing goes through settle so the promise resolves.
+  modal.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    settle("cancel");
   });
-  window.addEventListener("keydown", (e) => {
-    if (overlay.classList.contains("hidden")) return;
-    if (e.key === "Escape") {
-      e.preventDefault();
-      settle("cancel");
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      const active = document.activeElement as HTMLButtonElement | null;
-      if (active?.dataset.action) settle(active.dataset.action);
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      const btns = focusable(actions);
-      if (btns.length === 0) return;
-      const idx = btns.indexOf(document.activeElement as HTMLButtonElement);
-      const next = e.shiftKey ? btns[(idx - 1 + btns.length) % btns.length] : btns[(idx + 1) % btns.length];
-      next.focus();
-    }
-  });
+  onBackdropPress(modal, () => settle("cancel"));
 }

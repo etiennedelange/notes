@@ -69,27 +69,20 @@ with `[app]`, `[site]`, or `[app, site]`.
   background. A `notify`-crate watcher on the open folder (in
   `src-tauri`) emitting an event the frontend applies incrementally would
   close that gap without polling.
-- **[app] A real context menu for the editor.** `src/nativeChrome.ts` now
-  suppresses the webview's own context menu outright, because it offered
-  "Reload" and "Inspect Element" and nothing useful. That leaves right-click
-  doing nothing at all, which is fine but not native — Notepad++ and every
-  other editor give you Cut/Copy/Paste, and the sidebar wants
-  Rename/Delete/Reveal. Needs an in-app themed menu (the same reasoning as
-  the in-app unsaved-changes dialog: stay visually consistent rather than
-  using the OS menu). Removing the suppression is not the answer.
-
-- **[app] Native `<dialog>`, Popover API and modern CSS.** `src/modal.ts`
-  hand-rolls an overlay, Escape handling, a Tab focus trap and focus
-  restore that `dialog.showModal()` gives for free (plus `::backdrop` and
-  an inert background); the command palette could use it too. Toasts fit
-  `popover="manual"`, and the editor context menu above fits `popover` plus
-  CSS anchor positioning. `src/styles.css` could use nesting,
-  `@starting-style` for enter animations, and `prefers-reduced-motion`.
-  Deferred 2026-10-13 to land after the toolchain housekeeping; check it
-  with `pnpm mock:web`, since it changes behaviour.
+- **[app] A right-click menu for the sidebar.** The editor has one now
+  (Cut/Copy/Paste/Select All, `src/editorMenu.ts`, 2026-10-13); the sidebar
+  still does nothing on right-click, and wants Rename/Delete/Reveal in File
+  Explorer. Reuse the editor's in-app popover menu rather than the native
+  menu the tab strip uses. Rename and Delete need new Rust commands that go
+  through the consent checks in `src-tauri/core`.
 
 ## Done
 
+- **[app] Native `<dialog>`, Popover API and modern CSS.** Done
+  2026-10-13, with the editor's right-click menu. See the 2026-10-13
+  `HISTORY.md` entry.
+- **[app] A real context menu for the editor.** Done 2026-10-13 as an
+  in-app popover; the sidebar's is still open above.
 - **[app] Clear the `vp check` warnings.** Done 2026-10-13; the two
   rules are errors now. See the 2026-10-13 `HISTORY.md` entry.
 - **[app] Release notes from the commit log.** Done 2026-10-12 another way:

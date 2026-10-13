@@ -90,6 +90,8 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
 
   const exists = (p) => p === ROOT || p in FILES || Object.keys(FILES).some((f) => f.startsWith(p + "\\"));
 
+  // The clipboard plugin, kept in memory for the editor's right-click menu.
+  let clipboard = "";
   const handlers = {
     load_state: () => state,
     save_state: () => null,
@@ -112,6 +114,11 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     "plugin:window|is_maximized": () => false,
     "plugin:window|available_monitors": () => [],
     "plugin:event|listen": () => Math.floor(Math.random() * 1e9),
+    "plugin:clipboard-manager|write_text": ({ text }) => {
+      clipboard = text;
+      return null;
+    },
+    "plugin:clipboard-manager|read_text": () => clipboard,
   };
 
   let cbId = 0;
