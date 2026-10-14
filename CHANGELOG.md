@@ -7,6 +7,8 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-14
+
 ### Added
 - **Check for updates yourself.** The status bar shows the version of Notes
   you're running; click it to check for a newer one.
