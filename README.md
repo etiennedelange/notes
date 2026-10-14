@@ -45,7 +45,7 @@ platform. The dev container in `.devcontainer/` installs all of these.
 | `pnpm test:scripts` | Tests for the release scripts |
 | `cd src-tauri && cargo test --workspace` | Rust tests, including `notes-core` |
 | `pnpm tauri build` | Build installers for the current platform (needs the updater key, or `--config src-tauri/tauri.no-updater.conf.json`) |
-| `pnpm release <x.y.z>` | Release: version PR, merge, tag, and the Windows build (see [`docs/RELEASING.md`](./docs/RELEASING.md)) |
+| `pnpm release [x.y.z]` | Release (the next patch if no version): version PR, merge, tag, and the Windows build (see [`docs/RELEASING.md`](./docs/RELEASING.md)) |
 | `pnpm mock:web` | Run the front end in any browser against a mock backend, no Tauri needed |
 | `pnpm screenshots` | Regenerate the screenshots in `docs/screenshots/` and the site |
 

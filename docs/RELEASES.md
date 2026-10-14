@@ -20,6 +20,29 @@ date, and a one-line summary of what shipped, then check whether the
 Download section's platform-classification logic
 (`site/src/lib/github.ts`) still handles the new release's asset naming.
 
+## v0.7.0 — 2026-10-14
+
+- Notes checks for updates every hour, not only at startup, and the
+  version in the status bar checks on click.
+- The first update confirmed end to end: an open 0.6.0 offered 0.7.0.
+- Assets as in v0.5.0.
+- Full notes: https://github.com/etiennedelange/notes/releases/tag/v0.7.0
+
+## v0.6.0 — 2026-10-14
+
+- A right-click menu in the editor (Cut, Copy, Paste, Select All).
+- Assets as in v0.5.0.
+- Full notes: https://github.com/etiennedelange/notes/releases/tag/v0.6.0
+
+## v0.5.0 — 2026-10-12
+
+- The in-app updater: the status bar offers a newer release and installs it.
+  Copies from v0.4.0 or earlier need this installer once by hand.
+- Assets: `Notes_0.5.0_x64-setup.exe`, its `.sig`, `latest.json` and
+  `SHA256SUMS.txt`; no `.msi` any more. `site/src/lib/github.ts` already
+  matches `.exe`, so it needed no change.
+- Full notes: https://github.com/etiennedelange/notes/releases/tag/v0.5.0
+
 ## v0.4.0 — 2026-09-26
 
 First release built and published by the tag workflow rather than by hand.
