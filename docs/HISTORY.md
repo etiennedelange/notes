@@ -15,6 +15,65 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — Link the design system to the repo [app]
+
+- The design system (a claude.ai Design System artifact) had no pointer
+  back from the repo, so nothing reminded a session to update it.
+  `CLAUDE.md` now links it and says when and how to re-sync.
+- `pnpm design-tokens <tokens.json>` (`scripts/design-system/tokens.mjs`)
+  writes the theme colours into the design system's `tokens.json` straight
+  from `src/themes.ts`, keeping its hand-written usage notes. `--check`
+  only reports drift. Node 24 imports `themes.ts` directly.
+- `.claude/hooks/design-system-reminder.sh` is a PostToolUse hook: editing
+  a file the design system is built from adds a re-sync reminder, once per
+  file per session.
+- It can't sync from CI: publishing to the artifact needs a claude.ai login.
+
+## 2026-10-14 — UI pass: contrast, tab overflow, headings, line width, Noctis Hibernus [app] [site]
+
+- Contrast: `fgSubtle` measured 3.42–4.14:1 on `bgElevated` across the
+  three themes, below WCAG AA's 4.5:1 for the 11–12.5px text it colours.
+  The text tiers (`fgSubtle`, `accentText` and a new `dangerText`) now take
+  the personal brand's AA-checked values (personal-context
+  `design/brand.md`), which clear 4.5:1 on `bg`, `bgElevated` and
+  `bgHighlight`. Noctis Lux's `warning` is darkened to `#996000` for the
+  "unsaved" text. Solid fills (`.solid-btn`, the error toast, the update
+  pill's hover) use `accentText`/`dangerText`, since their label is
+  bg-coloured: Noctis Lux's `#0099ad` with a cream label was 3.22:1, and
+  Nord's danger fill 3.05:1.
+- Noctis Lux surfaces (`bg` → `borderStrong`) have half their chroma in
+  OKLCH, at the same lightness and hue (bg `#fef8ec` → `#fbf8f2`). The
+  paper read too yellow. Since lightness is kept, every contrast ratio is
+  unchanged. A third of the chroma was also tried, but it looked grey. This
+  departs from the brand's Noctis Lux ground, so it's proposed there too.
+- New fourth theme, Noctis Hibernus (`noctis-hibernus`): Lux's cool
+  sibling. All eleven Noctis variants were rendered in the app to choose
+  from. Replacing all three themes with Noctis, Minimus and Hibernus was
+  tried and dropped: the shipped themes stay, Lux gets the less yellow
+  surfaces, and Hibernus is added. Its derivation recipe is in the
+  `themes.ts` comment.
+- Site: the Themes section is "Four themes" with a Hibernus card, on a
+  4-column grid (2 under 64rem). Screenshots for `docs/`, the README and
+  the site were regenerated with `pnpm screenshots`. They were still v0.7.0.
+- Not taken from the brand yet: its Noctis Lux crimson danger
+  (`#d02a3a`/`#c11830`) and its re-hued warning colours. The app's
+  orange-red `#c73c00` still measures 4.25:1 as text on `bgHighlight`.
+- Tab strip: its scrollbar is hidden, so tabs past the edge could only be
+  reached with Ctrl+Tab. `tabs.ts` maps vertical wheel to `scrollLeft`
+  (Ctrl+wheel stays zoom) and toggles `overflow-start`/`overflow-end` for
+  a CSS mask fade.
+- "File changed on disk": Cancel is now autofocused instead of Overwrite,
+  since both other choices discard a version.
+- Headings: H1–H3 are 1.35/1.2/1.08em. Their `lineHeight: 1.2` keeps the
+  line box at the body's height, so the gutter's line numbers stay on the
+  text's baseline. With the default line height, a taller heading line put
+  its number visibly too high.
+- `.cm-content` is capped at `calc(80ch + 8px)` (80 characters plus the
+  line's padding). Fenced-code and active-line backgrounds now stop there
+  too.
+- Came from a frontend-design review; the rest of its suggestions are in
+  `ENHANCEMENTS.md`.
+
 ## 2026-10-14 — Retire `docs/RELEASES.md` [app] [site]
 
 - Nothing updated it automatically, so it had fallen two releases behind

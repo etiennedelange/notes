@@ -1,4 +1,4 @@
-// End-to-end tests for editing, saving and outside changes.
+// End-to-end tests for editing, saving, outside changes and dropping files.
 //
 // The real front end runs in headless Chromium against a Vite dev server,
 // with `scripts/screenshots/mock.js` standing in for the Rust backend (an
@@ -23,6 +23,7 @@ const MOCK = readFileSync(join(ROOT, "scripts", "screenshots", "mock.js"), "utf8
 const NOTES = "C:\\Users\\etienne\\Notes";
 const TODO = `${NOTES}\\todo.txt`;
 const STANDUP = `${NOTES}\\work\\standup.txt`;
+const GROCERIES = "C:\\Users\\etienne\\Desktop\\groceries.txt";
 const TODO_TEXT = "buy coffee beans\nrenew domain\nback up photos\ncall the plumber about the geyser\n";
 const SESSION = { openTabs: [TODO, STANDUP], activeTab: TODO, recent: [TODO] };
 
@@ -251,5 +252,14 @@ describe("outside changes", () => {
     await changeOutside(readme, "# Notes\n\nChanged elsewhere.\n");
     await waitForText("# Notes\n\nChanged elsewhere.\n");
     assert.equal(await tab("README.md").and(page.locator(".preview")).count(), 1);
+  });
+});
+
+describe("dropping a file", () => {
+  it("opens a file from outside the folder without pinning it", async () => {
+    await page.evaluate((p) => window.__MOCK__.emit("notes://drop", [p]), GROCERIES);
+    await tab("groceries.txt").waitFor();
+    await waitForText("eggs\nbread\nrooibos\nbiltong\n");
+    assert.equal(await page.locator("#loose-files", { hasText: "groceries.txt" }).count(), 0);
   });
 });

@@ -3,18 +3,20 @@ import { Picture } from "astro:assets";
 import nord from "../assets/screenshots/editor-nord.png";
 import tokyoNight from "../assets/screenshots/editor-tokyo-night.png";
 import noctisLux from "../assets/screenshots/editor-noctis-lux.png";
+import noctisHibernus from "../assets/screenshots/editor-noctis-hibernus.png";
 
 // Screenshots come from `pnpm screenshots` at the repo root.
 const themes = [
   { id: "nord", label: "Nord", kind: "dark", note: "cool and quiet", shot: nord },
   { id: "tokyo-night", label: "Tokyo Night", kind: "dark", note: "moody blue-violet", shot: tokyoNight },
   { id: "noctis-lux", label: "Noctis Lux", kind: "light", note: "warm daylight", shot: noctisLux },
+  { id: "noctis-hibernus", label: "Noctis Hibernus", kind: "light", note: "cool daylight", shot: noctisHibernus },
 ];
 ---
 
 <section class="section section--tight-bottom" id="themes">
   <div class="section-inner">
-    <h2 class="heading">Three themes, switchable live</h2>
+    <h2 class="heading">Four themes, switchable live</h2>
     <p class="lede">No restart, no settings file — pick one from the status bar.</p>
 
     <div class="grid">
@@ -26,7 +28,7 @@ const themes = [
               src={t.shot}
               formats={["avif", "webp"]}
               widths={[480, 960, 1440]}
-              sizes="(max-width: 40rem) 100vw, 22rem"
+              sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 17rem"
               alt={`Notes in the ${t.label} theme`}
             />
             <figcaption class="card-label">
@@ -56,8 +58,14 @@ const themes = [
   .grid {
     margin-top: 2.5rem;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.25rem;
+  }
+
+  @media (max-width: 64rem) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   .card {

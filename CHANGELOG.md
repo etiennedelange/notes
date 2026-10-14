@@ -7,7 +7,31 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **New theme: Noctis Hibernus.** A cool light theme, Noctis Lux's sibling,
+  with the same teal text on a blue-green off-white. Pick it from the four
+  swatches in the status bar.
+
+### Changed
+- **Markdown headings are bigger.** `#`, `##` and `###` headings now show
+  at a larger size, so a note's structure is visible at a glance.
+- **Text wraps at 80 characters.** Long lines wrap at a comfortable
+  reading width instead of running to the edge of a wide window.
+- **Easier-to-read small text.** Tab names, sidebar headings, line
+  numbers and other secondary text are a little brighter in the dark
+  themes and darker in Noctis Lux. The Save and Don't Save buttons, and
+  error messages, also have stronger contrast.
+- **Noctis Lux is less yellow.** The light theme's background, panels and
+  borders keep their brightness but have about half the yellow tint.
+
 ### Fixed
+- **Tabs that don't fit can be reached with the mouse wheel.** Scrolling
+  over the tab bar moves it sideways, and an edge fades out when more tabs
+  are hidden past it.
+- **"File changed on disk" no longer overwrites on Enter.** When a file
+  was changed in another app since you opened it, saving asks what to do.
+  Cancel is now the default there, so pressing Enter by reflex doesn't
+  replace the other app's version.
 - **Saving clears the "modified" dot in the sidebar.** The dot next to a
   file in the folder and pinned lists now goes away when you save, as the
   one on the tab already did.

@@ -45,7 +45,7 @@ Delivered in v1 build so far:
 - Sidebar: open-folder tree (loose, non-owning view) + pinned "loose files" section for individually opened files.
 - Tabs with dirty-state indicator, close/cycle shortcuts.
 - Ctrl+P fuzzy quick-open across tree + pinned + recent files.
-- Three built-in themes, switchable live from the status bar: Nord, Tokyo Night, Noctis Lux (light).
+- Four built-in themes, switchable live from the status bar: Nord, Tokyo Night, Noctis Lux (light), Noctis Hibernus (light).
 - Status bar: file path, unsaved indicator, cursor position, language, theme switcher.
 - Drag-and-drop of files/folders onto the window.
 - Unsaved-changes protection on tab close and app quit, via a themed in-app Save / Don't Save / Cancel dialog (not the OS-native message box, to stay visually consistent with the app's own theme).

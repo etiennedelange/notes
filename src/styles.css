@@ -12,13 +12,14 @@
   --border-strong: #5e6b84;
   --fg: #eceff4;
   --fg-muted: #d8dee9;
-  --fg-subtle: #9aa7bd;
+  --fg-subtle: #b2bccd;
   --accent: #88c0d0;
-  --accent-text: #88c0d0;
+  --accent-text: #8fc4d3;
   --accent-soft: rgba(136, 192, 208, 0.16);
   --success: #a3be8c;
   --warning: #ebcb8b;
   --danger: #bf616a;
+  --danger-text: #edaab1;
   --selection: rgba(136, 192, 208, 0.25);
   --caret: #88c0d0;
 
@@ -431,7 +432,7 @@ kbd {
   opacity: 1;
 }
 .unpin-btn:hover {
-  color: var(--danger);
+  color: var(--danger-text);
   background: var(--bg-highlight);
 }
 
@@ -468,6 +469,16 @@ kbd {
 }
 #tab-strip::-webkit-scrollbar {
   display: none;
+}
+/* Fade an edge with tabs scrolled past it (tabs.ts sets the classes). */
+#tab-strip.overflow-start {
+  mask-image: linear-gradient(to right, transparent, #000 32px);
+}
+#tab-strip.overflow-end {
+  mask-image: linear-gradient(to left, transparent, #000 32px);
+}
+#tab-strip.overflow-start.overflow-end {
+  mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
 }
 
 .tab {
@@ -665,7 +676,7 @@ kbd {
   cursor: pointer;
 }
 .status-update:hover:not(:disabled) {
-  background: var(--accent);
+  background: var(--accent-text);
   color: var(--bg);
 }
 .status-update:disabled {
@@ -888,7 +899,7 @@ dialog {
   margin-bottom: 12px;
 }
 .confirm-icon.confirm-danger {
-  color: var(--danger);
+  color: var(--danger-text);
   background: color-mix(in srgb, var(--danger) 16%, transparent);
 }
 
@@ -976,9 +987,11 @@ dialog {
   }
 }
 
+/* Filled with the *-text tokens: they're the shades that keep the bg-coloured
+   label above 4.5:1 (Noctis Lux's accent, and Nord's danger, are too light). */
 .solid-btn {
   padding: 8px 14px;
-  background: var(--accent);
+  background: var(--accent-text);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   color: var(--bg);
@@ -990,7 +1003,7 @@ dialog {
   filter: brightness(1.08);
 }
 .solid-btn.btn-danger {
-  background: var(--danger);
+  background: var(--danger-text);
 }
 
 .confirm-actions {
@@ -1005,11 +1018,11 @@ dialog {
   white-space: nowrap;
 }
 .confirm-actions .ghost-btn.btn-danger {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 .confirm-actions .ghost-btn.btn-danger:hover {
-  border-color: var(--danger);
-  color: var(--danger);
+  border-color: var(--danger-text);
+  color: var(--danger-text);
 }
 
 /* ---------- toasts ---------- */
@@ -1056,8 +1069,8 @@ dialog {
   }
 }
 .toast-error {
-  background: var(--danger);
-  border-color: var(--danger);
+  background: var(--danger-text);
+  border-color: var(--danger-text);
   color: var(--bg);
   font-weight: 650;
   padding-left: 32px;
@@ -1075,7 +1088,7 @@ dialog {
   height: 15px;
   border-radius: 50%;
   background: var(--bg);
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 11px;
   font-weight: 800;
   line-height: 15px;
@@ -1137,7 +1150,7 @@ dialog {
   }
 
   &.danger:not(:disabled) {
-    color: var(--danger);
+    color: var(--danger-text);
   }
 }
 

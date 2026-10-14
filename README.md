@@ -23,11 +23,12 @@ built around a workspace).
 - An optional folder sidebar. It's a view of the folder, not a managed
   workspace.
 - Markdown highlighting, including fenced code in its own language.
-- Three themes you can switch while it runs: Nord, Tokyo Night and Noctis Lux.
+- Four themes you can switch while it runs: Nord, Tokyo Night, Noctis Lux
+  and Noctis Hibernus.
 
-| Nord | Noctis Lux | Quick-open |
-| --- | --- | --- |
-| ![Nord theme](./docs/screenshots/editor-nord.png) | ![Noctis Lux theme](./docs/screenshots/editor-noctis-lux.png) | ![Ctrl+P quick-open](./docs/screenshots/palette-nord.png) |
+| Nord | Noctis Lux | Noctis Hibernus | Quick-open |
+| --- | --- | --- | --- |
+| ![Nord theme](./docs/screenshots/editor-nord.png) | ![Noctis Lux theme](./docs/screenshots/editor-noctis-lux.png) | ![Noctis Hibernus theme](./docs/screenshots/editor-noctis-hibernus.png) | ![Ctrl+P quick-open](./docs/screenshots/palette-nord.png) |
 
 ## Development
 

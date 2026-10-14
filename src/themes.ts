@@ -3,7 +3,7 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 import type { Extension } from "@codemirror/state";
 
-export type ThemeId = "nord" | "tokyo-night" | "noctis-lux";
+export type ThemeId = "nord" | "tokyo-night" | "noctis-lux" | "noctis-hibernus";
 
 export const BASE_EDITOR_FONT_PX = 14.5;
 
@@ -25,6 +25,8 @@ export interface ThemeTokens {
   success: string;
   warning: string;
   danger: string;
+  /** `danger` adjusted to read as text on bg/bgElevated (WCAG AA), and as a fill under bg-coloured text. */
+  dangerText: string;
   selection: string;
   caret: string;
 }
@@ -32,7 +34,24 @@ export interface ThemeTokens {
 // Palettes sourced from each project's own published values:
 // Nord — nordtheme.com/docs/colors-and-palettes
 // Tokyo Night — folke/tokyonight.nvim "storm" variant
-// Noctis Lux — liviuschera/noctis src/workbench/lux.mjs + src/colors.mjs
+// Noctis Lux and Noctis Hibernus — liviuschera/noctis src/workbench/lux.mjs,
+// hibernus.mjs + src/colors.mjs
+// except the text tiers (fgSubtle, accentText, dangerText), which take the
+// personal brand's AA-checked values (personal-context design/brand.md) so
+// small text clears 4.5:1 on bg, bgElevated and bgHighlight. Noctis Lux's
+// warning is darkened the same way for the "unsaved" status text. Noctis
+// Lux's surfaces and borders also have half their upstream chroma (OKLCH,
+// same lightness and hue), so the paper reads less yellow; contrast is
+// unchanged.
+// Hibernus takes upstream's backgrounds, text, accent, caret and selection
+// (editor.background, sideBar.background, editor.foreground,
+// badge.background, editorCursor.foreground, editor.selectionBackground).
+// bgHighlight/border/borderStrong are bgElevated mixed 7/14/24% toward fg,
+// fgMuted/fgSubtle are fg mixed 22/42% toward bg, and success/warning/danger
+// are its string, constant and tag colours. Text colours are then darkened
+// in OKLab lightness, hue kept, until they clear 4.5:1: fgMuted, fgSubtle,
+// accentText and dangerText on bg, bgElevated and bgHighlight; success and
+// warning on bg and bgElevated. danger clears 3:1 on bgElevated.
 export const THEMES: Record<ThemeId, ThemeTokens> = {
   nord: {
     id: "nord",
@@ -45,13 +64,14 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     borderStrong: "#5e6b84",
     fg: "#eceff4",
     fgMuted: "#d8dee9",
-    fgSubtle: "#9aa7bd",
+    fgSubtle: "#b2bccd",
     accent: "#88c0d0",
-    accentText: "#88c0d0",
+    accentText: "#8fc4d3",
     accentSoft: "rgba(136, 192, 208, 0.16)",
     success: "#a3be8c",
     warning: "#ebcb8b",
     danger: "#bf616a",
+    dangerText: "#edaab1",
     selection: "rgba(136, 192, 208, 0.25)",
     caret: "#88c0d0",
   },
@@ -66,13 +86,14 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     borderStrong: "#414868",
     fg: "#c0caf5",
     fgMuted: "#a9b1d6",
-    fgSubtle: "#7982a9",
+    fgSubtle: "#8c95b6",
     accent: "#7aa2f7",
     accentText: "#7aa2f7",
     accentSoft: "rgba(122, 162, 247, 0.16)",
     success: "#9ece6a",
     warning: "#e0af68",
     danger: "#f7768e",
+    dangerText: "#f7768e",
     selection: "rgba(122, 162, 247, 0.25)",
     caret: "#7aa2f7",
   },
@@ -80,26 +101,49 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     id: "noctis-lux",
     label: "Noctis Lux",
     kind: "light",
-    bg: "#fef8ec",
-    bgElevated: "#f9f1e1",
-    bgHighlight: "#f0e9d6",
-    border: "#e6d7b8",
-    borderStrong: "#d8c49c",
+    bg: "#fbf8f2",
+    bgElevated: "#f5f1e9",
+    bgHighlight: "#ede9e0",
+    border: "#dfd8c8",
+    borderStrong: "#cfc5b2",
     fg: "#00404a",
     fgMuted: "#3f6265",
-    fgSubtle: "#6d8788",
+    fgSubtle: "#576c6d",
     accent: "#0099ad",
-    accentText: "#00778a",
+    accentText: "#007386",
     accentSoft: "rgba(0, 153, 173, 0.12)",
     success: "#00834f",
-    warning: "#a86a00",
+    warning: "#996000",
     danger: "#c73c00",
+    dangerText: "#c73c00",
     selection: "rgba(173, 226, 235, 0.65)",
+    caret: "#0092a8",
+  },
+  "noctis-hibernus": {
+    id: "noctis-hibernus",
+    label: "Noctis Hibernus",
+    kind: "light",
+    bg: "#f4f6f6",
+    bgElevated: "#e7f2f3",
+    bgHighlight: "#d7e7e9",
+    border: "#c7dcdf",
+    borderStrong: "#b0cdd0",
+    fg: "#005661",
+    fgMuted: "#196169",
+    fgSubtle: "#3a6d74",
+    accent: "#0099ad",
+    accentText: "#007083",
+    accentSoft: "rgba(0, 153, 173, 0.12)",
+    success: "#007e37",
+    warning: "#866a00",
+    danger: "#e64100",
+    dangerText: "#c81c00",
+    selection: "rgba(173, 226, 235, 0.47)",
     caret: "#0092a8",
   },
 };
 
-export const THEME_ORDER: ThemeId[] = ["nord", "tokyo-night", "noctis-lux"];
+export const THEME_ORDER: ThemeId[] = ["nord", "tokyo-night", "noctis-lux", "noctis-hibernus"];
 
 export function applyChromeTheme(theme: ThemeTokens) {
   const root = document.documentElement;
@@ -119,13 +163,20 @@ export function applyChromeTheme(theme: ThemeTokens) {
   root.style.setProperty("--success", theme.success);
   root.style.setProperty("--warning", theme.warning);
   root.style.setProperty("--danger", theme.danger);
+  root.style.setProperty("--danger-text", theme.dangerText);
   root.style.setProperty("--selection", theme.selection);
   root.style.setProperty("--caret", theme.caret);
 }
 
 function markdownHighlightStyle(theme: ThemeTokens) {
   return HighlightStyle.define([
-    { tag: [t.heading1, t.heading2, t.heading3], color: theme.fg, fontWeight: "700" },
+    // Sized in em so editor zoom scales them; the `#` marks size with the
+    // heading. The tight line-height keeps the line box at the body's height,
+    // so heading lines don't grow and the gutter's line numbers stay on the
+    // text's baseline.
+    { tag: t.heading1, color: theme.fg, fontWeight: "700", fontSize: "1.35em", lineHeight: "1.2" },
+    { tag: t.heading2, color: theme.fg, fontWeight: "700", fontSize: "1.2em", lineHeight: "1.2" },
+    { tag: t.heading3, color: theme.fg, fontWeight: "700", fontSize: "1.08em", lineHeight: "1.2" },
     { tag: [t.heading4, t.heading5, t.heading6], color: theme.fg, fontWeight: "600" },
     { tag: t.strong, color: theme.fg, fontWeight: "700" },
     { tag: t.emphasis, color: theme.fg, fontStyle: "italic" },
@@ -168,6 +219,9 @@ export function editorTheme(theme: ThemeTokens): Extension {
         caretColor: theme.caret,
         fontFamily: "var(--font-mono)",
         padding: "20px 0",
+        // Wrap prose at a readable measure instead of the window edge: 80
+        // characters plus the line's own 8px of side padding.
+        maxWidth: "calc(80ch + 8px)",
       },
       ".cm-scroller": {
         lineHeight: "1.65",

@@ -103,7 +103,7 @@ A two-tone dark canvas — navy background, paper and cloud text — carrying ex
 
 ### Hierarchy
 - **Display** (500, `clamp(1.9rem, 4.6vw, 3.1rem)`, 1.3 line-height, -0.01em tracking): the hero line only. Mono, Warm Paper, revealed with a clip-path wipe and finished by a blinking cursor.
-- **Headline** (600, `clamp(1.5rem, 3vw, 1.9rem)`, 1.3 line-height, -0.01em tracking): section titles ("Where Notes sits", "What it does", "Three themes, switchable live", "Download"). Sans, Warm Paper.
+- **Headline** (600, `clamp(1.5rem, 3vw, 1.9rem)`, 1.3 line-height, -0.01em tracking): section titles ("Where Notes sits", "What it does", "Four themes, switchable live", "Download"). Sans, Warm Paper.
 - **Body** (400, 1.05rem intro/lede copy or 16px/1.6 base running text): Cloud Grey, capped at roughly 42–58ch per section for reading comfort.
 - **Caption** (400, 0.9rem, sans): secondary sans-serif text that's smaller than Body but isn't a mono signal — nav links, footer text, button labels, the release date, and the "see all releases" link. Cloud Grey unless otherwise noted.
 - **Label** (400, 0.72–0.85rem, mono, normal tracking): kickers, `kbd` shortcut chips, status-bar text, version tags, theme-card names and notes. 0.85rem is the tier's ceiling — nothing mono-labeled goes larger, even a value like a release version that feels like it deserves more weight; reach for Cursor Teal or the Mono-For-Signal placement itself for emphasis instead of breaking the ramp.
@@ -115,7 +115,7 @@ A two-tone dark canvas — navy background, paper and cloud text — carrying ex
 
 Everything sits inside a 64rem (`--wide-width`) centered container with responsive side gutters (`clamp(1.25rem, 5vw, 4.5rem)`). Section vertical rhythm runs `clamp(3.5rem, 9vw, 6.5rem)` top and bottom, tighter in the hero (`clamp(2rem, 6vw, 3.5rem)` / `clamp(3rem, 8vw, 5rem)`). Base type is 16px at 1.6 line-height.
 
-The page is a single reading column top to bottom — header, hero, positioning, features, themes, download, footer — with exactly two structural departures: the Features list becomes a two-column `11rem 1fr` label/description grid (collapsing to one column under 34rem), and the Themes section becomes a 3-column equal grid (collapsing to one column under 40rem). Header and footer are simple flex rows, space-between, wrapping on narrow viewports.
+The page is a single reading column top to bottom — header, hero, positioning, features, themes, download, footer — with exactly two structural departures: the Features list becomes a two-column `11rem 1fr` label/description grid (collapsing to one column under 34rem), and the Themes section becomes a 4-column equal grid (two columns under 64rem, one under 40rem). Header and footer are simple flex rows, space-between, wrapping on narrow viewports.
 
 ## Elevation & Depth
 
