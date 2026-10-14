@@ -7,6 +7,8 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-10-14
+
 ### Added
 - **See what's new before you update.** The update dialog now lists the
   new version's changes, so you don't have to open the release page first.
