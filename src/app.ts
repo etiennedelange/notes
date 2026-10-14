@@ -661,9 +661,10 @@ export class App {
           message: `"${basename(tab.path!)}" was modified outside Notes since you opened it. Overwrite the newer version on disk, or reload it and lose your changes here?`,
           danger: true,
           buttons: [
-            { id: "cancel", label: "Cancel", variant: "ghost" },
+            // Both other choices throw one version away, so a reflex Enter cancels.
+            { id: "cancel", label: "Cancel", variant: "ghost", autofocus: true },
             { id: "reload", label: "Reload from Disk", variant: "ghost", danger: true },
-            { id: "overwrite", label: "Overwrite", autofocus: true },
+            { id: "overwrite", label: "Overwrite" },
           ],
         });
         if (choice === "reload") {

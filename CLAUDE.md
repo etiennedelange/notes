@@ -43,3 +43,28 @@ releases hold the assets.
 Keep these updated as you work rather than batching it at the end of a
 session — it's cheap to add a line while the context is fresh, expensive
 to reconstruct later.
+
+## Design system (app)
+
+The app's design system lives in a claude.ai artifact, not in this repo:
+[Notes design system](https://claude.ai/artifact/QDL6zRFBoWW2hsvdQrwdjr).
+It's built from the app's code: tokens from `src/themes.ts` and
+`src/styles.css`, component styles copied from `src/styles.css`, and
+components from the files listed in its `tokens.json` `meta.components`.
+Read its `project/README.md` before designing new UI.
+
+When a change touches theme colours, `src/styles.css` or a component's
+markup, re-sync it in the same session, the way you'd add a CHANGELOG line:
+
+- Theme colours: read its `project/tokens.json` into a scratch folder, run
+  `pnpm design-tokens <that file>`, write usage notes for any token it
+  reports as added, and publish the file back. `--check` only reports
+  whether it's out of date.
+- Styles: apply the same edit to its `project/components/bundle.css`
+  (same selectors as `src/styles.css`).
+- Behaviour or rules: update the affected `components/<Name>/README.md` and
+  the brand book (`project/README.md`).
+- New screenshots (`pnpm screenshots`): upload them as assets and update the
+  Screenshots group in `project/design-system.json`, which goes last.
+
+Publishing needs the user's claude.ai login, so this can't run in CI.

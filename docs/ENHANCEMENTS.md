@@ -12,6 +12,31 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
+- **[app] Remaining UI review suggestions.** From the 2026-10-14 design
+  review (see `HISTORY.md`), not yet done:
+  - Show recent files, New File and Open Folder in the empty state.
+    `recentFiles` is already persisted.
+  - Show the sidebar headers in normal case. Uppercasing turns the
+    folder's real name, `Notes`, into `NOTES`.
+  - Show the fold arrows only when hovering the gutter.
+  - Rename "Pinned Files". It holds individually opened files, which
+    clashes with "Pin Tab".
+  - Port the native tab context menu to the themed `installContextMenu`.
+    It hardcodes "Reveal in File Explorer" on every OS.
+  - Drop the "Saved x" toast on every Ctrl+S.
+  - Screen-reader wiring for the palette (combobox and
+    `aria-activedescendant`), tabs (roving tabindex) and the tree
+    (`aria-expanded`). Unchecked: these came from an automated critique.
+  - Adopt the rest of the brand's ground values: Noctis Lux's crimson
+    danger and the warning/orange colours with their text variants
+    (`design/brand.md`). Today's `#c73c00` is 4.25:1 as text on
+    `bgHighlight`.
+  - Propose the less-yellow Noctis Lux surfaces to the brand
+    (`design/brand.md`), or note them as the app's deliberate departure.
+  - Maybe make the 80-character text width a setting, if wide code blocks
+    wrap annoyingly.
+
+  Deferred 2026-10-14.
 - **[app] Notes for every skipped version in the update dialog.** The
   dialog shows `latest.json`'s notes, which are only the newest version's
   CHANGELOG section, so someone on 0.5.0 updating to 0.7.1 doesn't see

@@ -37,6 +37,14 @@ export function renderTabs(app: App) {
   activeEl?.scrollIntoView({ block: "nearest", inline: "nearest" });
 
   wireOnce(strip);
+  updateOverflow(strip);
+}
+
+/** Marks which ends of the strip have tabs scrolled out of view, for the edge fades. */
+function updateOverflow(strip: HTMLElement) {
+  const max = strip.scrollWidth - strip.clientWidth;
+  strip.classList.toggle("overflow-start", strip.scrollLeft > 1);
+  strip.classList.toggle("overflow-end", strip.scrollLeft < max - 1);
 }
 
 async function showTabContextMenu(app: App, key: string) {
@@ -73,6 +81,19 @@ async function showTabContextMenu(app: App, key: string) {
 function wireOnce(strip: HTMLElement) {
   if (wired) return;
   wired = true;
+  // The strip hides its scrollbar, so a vertical wheel scrolls it sideways.
+  // Ctrl+wheel is left alone for zoom (app.ts).
+  strip.addEventListener(
+    "wheel",
+    (e) => {
+      if (e.ctrlKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      strip.scrollLeft += e.deltaY;
+    },
+    { passive: false },
+  );
+  strip.addEventListener("scroll", () => updateOverflow(strip), { passive: true });
+  new ResizeObserver(() => updateOverflow(strip)).observe(strip);
   strip.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
     const closeBtn = target.closest<HTMLElement>("[data-close]");

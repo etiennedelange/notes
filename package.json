@@ -15,6 +15,7 @@
     "tauri": "tauri",
     "release": "node scripts/release/ship.mjs",
     "release:version": "node scripts/release/release.mjs version",
+    "design-tokens": "node scripts/design-system/tokens.mjs",
     "screenshots": "node scripts/screenshots/capture.mjs",
     "mock:web": "node scripts/mock-web.mjs"
   },

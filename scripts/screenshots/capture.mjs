@@ -31,7 +31,7 @@ const MOCK = readFileSync(join(HERE, "mock.js"), "utf8");
 const W = 1440;
 const H = 900;
 
-const THEMES = ["nord", "tokyo-night", "noctis-lux"];
+const THEMES = ["nord", "tokyo-night", "noctis-lux", "noctis-hibernus"];
 const SCENES = ["editor", "palette"];
 
 // Segoe UI and Cascadia Code aren't on Linux; these are next in the app's
@@ -44,6 +44,7 @@ const BACKDROP = {
   nord: ["#5e81ac", "#88c0d0", "#2e3440"],
   "tokyo-night": ["#7aa2f7", "#bb9af7", "#1a1b26"],
   "noctis-lux": ["#8fd3dc", "#f3d9a6", "#e8dcc2"],
+  "noctis-hibernus": ["#8fd3dc", "#caedf2", "#dfe9ea"],
 };
 
 const NOTES = "C:\\Users\\etienne\\Notes";
