@@ -15,6 +15,22 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — Hourly update checks; the status bar version checks on click [app]
+
+- 0.6.0 didn't show up in an open copy of Notes. The release and its
+  `latest.json` were fine: the live manifest parses with the updater
+  crate and reports 0.6.0 as newer than 0.5.0. The cause wasn't pinned
+  down; candidates are a copy older than 0.5.0 (no updater) or a failed
+  check, which 0.5.0 only logs to a console release builds don't have.
+  Separately, the updater checked only once, 5 seconds after startup, so
+  a copy left open never saw a later release. `src/update.ts` now
+  re-checks every hour until it finds one.
+- Notes has no menu, About or settings screen to hang **Check for
+  updates** on, so the running version (`v0.6.0`) sits in the status bar
+  and checks when clicked: a toast if it's up to date or the check
+  failed, the usual update modal if not. Reading the version needs the
+  `core:app:allow-version` permission.
+
 ## 2026-10-13 — Native `<dialog>` and popovers; an editor right-click menu [app]
 
 - The unsaved-changes modal and the Ctrl+P palette are modal `<dialog>`s

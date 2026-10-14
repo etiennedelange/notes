@@ -7,6 +7,14 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Check for updates yourself.** The status bar shows the version of Notes
+  you're running; click it to check for a newer one.
+
+### Fixed
+- Notes now checks for updates every hour, not only when it starts, so a
+  copy left open finds a new release without being restarted.
+
 ## [0.6.0] - 2026-10-14
 
 ### Added

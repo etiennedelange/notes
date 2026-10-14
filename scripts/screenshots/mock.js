@@ -111,6 +111,7 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     path_exists: ({ path }) => exists(path),
     path_is_dir: ({ path }) => exists(path) && !(path in FILES),
     file_mtime_ms: () => 1758873600000,
+    "plugin:app|version": () => cfg.version || "0.6.0",
     "plugin:window|is_maximized": () => false,
     "plugin:window|available_monitors": () => [],
     "plugin:event|listen": () => Math.floor(Math.random() * 1e9),
