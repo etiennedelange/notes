@@ -15,6 +15,15 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — `pnpm release` picks the next patch; fresh screenshots [app] [site]
+
+- A bare `pnpm release` releases the newest `v*` tag with its patch bumped
+  (`nextPatch` in `scripts/release/ship.mjs`), like Gitr's release script.
+  Minor and major bumps still take an explicit version.
+- Screenshots regenerated for the README and the site, the first time since
+  2026-09-26. The mocks now take the status bar version from `Cargo.toml`
+  instead of a fixed string, so a rerun shows the version being released.
+
 ## 2026-10-14 — Hourly update checks; the status bar version checks on click [app]
 
 - 0.6.0 didn't show up in an open copy of Notes. The release and its

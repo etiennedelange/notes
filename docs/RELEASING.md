@@ -27,8 +27,13 @@ The version lives in one place: `version` under `[package]` in
 Tauri reads it from `Cargo.toml`.
 
 ```sh
-pnpm release 0.5.0
+pnpm release          # the next patch: v0.7.0 -> 0.7.1
+pnpm release 0.8.0    # any other version
 ```
+
+Without a version it bumps the patch of the newest `v*` tag, or releases a
+pre-release tag's version (`v0.8.0-beta.1` -> `0.8.0`). The question before
+anything happens shows which version it picked.
 
 `scripts/release/ship.mjs` checks first: no uncommitted changes to tracked
 files, `gh` signed in, `v0.5.0` not tagged yet and not older than the newest

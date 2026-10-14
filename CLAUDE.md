@@ -35,7 +35,7 @@ and the site, and doesn't belong in commit messages or `PRODUCT.md`:
   app (the `v*.*.*` tag builds in `.github/workflows/release.yml`). Add
   an entry when a new version is tagged/published.
 - [`docs/RELEASING.md`](./docs/RELEASING.md) — how to branch, cut a
-  release (`pnpm release <x.y.z>`) and keep the in-app updater working.
+  release (`pnpm release`, or `pnpm release <x.y.z>`) and keep the in-app updater working.
 
 User-visible app changes also get a line under `[Unreleased]` in
 [`CHANGELOG.md`](./CHANGELOG.md), in the same PR. It becomes the release

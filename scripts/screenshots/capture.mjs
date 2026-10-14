@@ -19,6 +19,7 @@ import { createServer } from "vite";
 import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { readVersion } from "../release/release.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
@@ -61,7 +62,9 @@ const SESSION = {
 async function captureRaw(browser, url, theme, scene, out) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
-  await page.addInitScript(`window.__SHOT__ = ${JSON.stringify({ ...SESSION, theme })};\n${MOCK}`);
+  await page.addInitScript(
+    `window.__SHOT__ = ${JSON.stringify({ ...SESSION, theme, version: readVersion() })};\n${MOCK}`,
+  );
   await page.goto(url);
   await page.addStyleTag({ url: FONTS });
   await page.evaluate(() => document.fonts.ready);

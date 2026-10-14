@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // One command for a whole release (docs/RELEASING.md, "Cutting a release"):
 //
-//   pnpm release 0.2.0          asks once, then does everything below
-//   pnpm release 0.2.0 --yes    without asking
+//   pnpm release                the next patch after the newest tag (v0.2.0 -> 0.2.1)
+//   pnpm release 0.3.0          a given version; asks once, then does everything below
+//   pnpm release 0.3.0 --yes    without asking
 //
 // 1. Checks: no uncommitted changes to tracked files, gh signed in, the version is new, and the
 //    CHANGELOG has entries under [Unreleased].
@@ -61,6 +62,23 @@ export function versionProblem(version, tags) {
   return null;
 }
 
+/**
+ * The version a bare `pnpm release` makes: the newest `v*` tag with its patch bumped, or the
+ * release of a pre-release tag (v0.3.0-beta.1 -> 0.3.0). Null when nothing is tagged yet.
+ */
+export function nextPatch(tags) {
+  const newest = tags
+    .filter((t) => /^v\d/.test(t))
+    .map((t) => t.slice(1))
+    .sort(compareVersions)
+    .at(-1);
+  if (!newest) return null;
+  const [core, pre] = newest.split(/-(.*)/s);
+  if (pre !== undefined) return core;
+  const [major, minor, patch] = core.split(".").map(Number);
+  return `${major}.${minor}.${patch + 1}`;
+}
+
 /** Whether the CHANGELOG has anything under [Unreleased] (or already a [version] section). */
 export function hasNotes(text, version) {
   const notes = (s) => !!s && /^\s*[-*] /m.test(s);
@@ -93,9 +111,7 @@ function findPr(branch) {
 
 async function main(argv) {
   const yes = argv.includes("--yes");
-  const version = parseVersion(argv.find((a) => !a.startsWith("--")));
-  const tag = `v${version}`;
-  const branch = `release/${version}`;
+  const arg = argv.find((a) => !a.startsWith("--"));
 
   step("Checking");
   try {
@@ -106,13 +122,18 @@ async function main(argv) {
   if (git("status", "--porcelain", "--untracked-files=no"))
     fail("there are uncommitted changes. Commit or stash them first.");
   git("fetch", "--quiet", "--tags", "origin");
+  const tags = () => git("tag", "--list", "v*").split("\n").filter(Boolean);
+  const version = arg ? parseVersion(arg) : nextPatch(tags());
+  if (!version) fail("nothing is tagged yet, so there's no patch to bump. Give a version: pnpm release 0.1.0");
+  const tag = `v${version}`;
+  const branch = `release/${version}`;
   if (git("ls-remote", "--tags", "origin", `refs/tags/${tag}`)) {
     console.log(`${tag} is already pushed; nothing to do but follow its Release run.`);
     return followRelease(tag);
   }
   let pr = findPr(branch);
   if (!pr) {
-    const problem = versionProblem(version, git("tag", "--list", "v*").split("\n").filter(Boolean));
+    const problem = versionProblem(version, tags());
     if (problem) fail(problem);
     const changelog = git("show", "origin/main:CHANGELOG.md");
     if (!hasNotes(changelog, version))

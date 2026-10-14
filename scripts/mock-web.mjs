@@ -12,6 +12,7 @@ import { createServer } from "vite";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { readVersion } from "./release/release.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
@@ -26,7 +27,7 @@ const injectMock = {
   transformIndexHtml: () => [
     {
       tag: "script",
-      children: `window.__SHOT__ = ${JSON.stringify(SESSION)};\n${readFileSync(MOCK, "utf8")}`,
+      children: `window.__SHOT__ = ${JSON.stringify({ ...SESSION, version: readVersion() })};\n${readFileSync(MOCK, "utf8")}`,
       injectTo: "head-prepend",
     },
   ],
