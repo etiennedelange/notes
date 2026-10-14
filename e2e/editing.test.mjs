@@ -66,6 +66,7 @@ const writes = () => page.evaluate(() => [...window.__MOCK__.writes]);
 const modalOpen = () => page.evaluate(() => document.getElementById("confirm-modal").open);
 const cursor = () => page.locator("#status-cursor").textContent();
 const isDirty = async (name) => (await tab(name).getAttribute("class")).split(/\s+/).includes("dirty");
+const sidebarDot = (name) => page.locator("#folder-tree .tree-row-file", { hasText: name }).locator(".dot");
 
 /** The editor's text. Every line of these short notes is rendered, so joining them gives the doc. */
 const docText = () =>
@@ -140,10 +141,12 @@ describe("saving", () => {
 
   it("writes a changed note once and marks it clean", async () => {
     await editEnd("x");
+    assert.equal(await sidebarDot("todo.txt").count(), 1);
     await page.keyboard.press("Control+s");
     await page.waitForFunction(() => window.__MOCK__.writes.length > 0);
     assert.deepEqual(await writes(), [TODO]);
     assert.equal(await isDirty("todo.txt"), false);
+    assert.equal(await sidebarDot("todo.txt").count(), 0);
     const onDisk = await page.evaluate((p) => window.__MOCK__.files[p], TODO);
     assert.equal(onDisk, `${TODO_TEXT}x`);
   });

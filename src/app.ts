@@ -680,6 +680,7 @@ export class App {
       this.markSaved(tab, doc);
       tab.diskMtime = await fileMtimeMs(tab.path!).catch(() => Date.now());
       renderTabs(this);
+      renderSidebar(this);
       renderStatusBar(this);
       this.persist();
       showToast(`Saved ${basename(tab.path!)}`);
@@ -699,6 +700,7 @@ export class App {
       tab.diskMtime = mtime;
       if (this.activeKey === tab.key) this.view.setState(tab.state);
       renderTabs(this);
+      renderSidebar(this);
       renderStatusBar(this);
       showToast(`Reloaded ${basename(tab.path!)} from disk`);
       if (result.lossy) {

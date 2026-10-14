@@ -7,6 +7,11 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Saving clears the "modified" dot in the sidebar.** The dot next to a
+  file in the folder and pinned lists now goes away when you save, as the
+  one on the tab already did.
+
 ## [0.7.3] - 2026-10-14
 
 ### Added
