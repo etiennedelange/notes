@@ -329,10 +329,19 @@
       </div>
       <h2 id="confirm-title"></h2>
       <p id="confirm-message"></p>
+      <input
+        id="confirm-input"
+        class="hidden"
+        type="text"
+        spellcheck="false"
+        autocomplete="off"
+        aria-labelledby="confirm-message"
+      />
       <div class="confirm-actions" id="confirm-actions"></div>
     </dialog>
 
     <div id="editor-menu" class="context-menu" popover role="menu" aria-label="Edit" tabindex="-1"></div>
+    <div id="sidebar-menu" class="context-menu" popover role="menu" aria-label="File" tabindex="-1"></div>
 
     <div id="toast-container" popover="manual" aria-live="polite"></div>
   </body>

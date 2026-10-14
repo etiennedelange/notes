@@ -15,6 +15,25 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — A right-click menu for the sidebar [app]
+
+- Notes get Rename, Delete and Reveal in File Explorer (Finder on macOS,
+  Show in Folder on Linux); folders get Reveal only. The popover logic
+  moved out of `src/editorMenu.ts` into `src/contextMenu.ts`, shared by
+  both menus.
+- Three new Rust commands, all behind the consent checks in
+  `notes-core`: `rename_note`, `trash_note` and `reveal_path`. Rename
+  takes a bare file name, not a path, so it can't move a note out of its
+  folder, and it refuses to replace an existing file (`fs::rename` would,
+  silently). The shell grants the new name, since a grant on just the old
+  file wouldn't cover it. Reveal runs through Rust rather than the opener
+  plugin's JS API so it gets the same check.
+- Delete moves to the Recycle Bin / Trash (`trash` crate) instead of
+  deleting outright: a slip on a right-click menu should be undoable
+  outside Notes. The core tests cover only its refusals, so a test run
+  doesn't fill anyone's trash.
+- Folders can't be renamed or deleted yet; see `ENHANCEMENTS.md`.
+
 ## 2026-10-14 — `pnpm release` picks the next patch; fresh screenshots [app] [site]
 
 - A bare `pnpm release` releases the newest `v*` tag with its patch bumped

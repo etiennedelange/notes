@@ -38,6 +38,12 @@ export const writeTextFile = (path: string, contents: string) => invoke<void>("w
 export const pathExists = (path: string) => invoke<boolean>("path_exists", { path });
 export const pathIsDir = (path: string) => invoke<boolean>("path_is_dir", { path });
 export const fileMtimeMs = (path: string) => invoke<number>("file_mtime_ms", { path });
+/** Renames a note within its folder; `newName` is a bare file name. Resolves to the new path. */
+export const renameNote = (path: string, newName: string) => invoke<string>("rename_note", { path, newName });
+/** Moves a note to the Recycle Bin / Trash. */
+export const trashNote = (path: string) => invoke<void>("trash_note", { path });
+/** Shows a file or folder in the OS file manager. */
+export const revealPath = (path: string) => invoke<void>("reveal_path", { path });
 export const loadState = () => invoke<PersistedState>("load_state");
 export const saveState = (state: PersistedState) => invoke<void>("save_state", { persisted: state });
 

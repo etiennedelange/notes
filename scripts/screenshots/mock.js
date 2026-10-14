@@ -108,6 +108,18 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
       FILES[path] = contents;
       return null;
     },
+    rename_note: ({ path, newName }) => {
+      const to = J(path.slice(0, path.lastIndexOf("\\")), newName);
+      if (to in FILES) throw `${to} already exists`;
+      FILES[to] = FILES[path];
+      delete FILES[path];
+      return to;
+    },
+    trash_note: ({ path }) => {
+      delete FILES[path];
+      return null;
+    },
+    reveal_path: () => null,
     path_exists: ({ path }) => exists(path),
     path_is_dir: ({ path }) => exists(path) && !(path in FILES),
     file_mtime_ms: () => 1758873600000,

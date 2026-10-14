@@ -57,14 +57,22 @@ with `[app]`, `[site]`, or `[app, site]`.
   background. A `notify`-crate watcher on the open folder (in
   `src-tauri`) emitting an event the frontend applies incrementally would
   close that gap without polling.
-- **[app] A right-click menu for the sidebar.** The editor has one now
-  (Cut/Copy/Paste/Select All, `src/editorMenu.ts`, 2026-10-13); the sidebar
-  still does nothing on right-click, and wants Rename/Delete/Reveal in File
-  Explorer. Reuse the editor's in-app popover menu rather than the native
-  menu the tab strip uses. Rename and Delete need new Rust commands that go
-  through the consent checks in `src-tauri/core`.
+- **[app] Rename and delete folders from the sidebar.** The sidebar menu
+  (2026-10-14) renames and deletes notes only; a folder gets Reveal alone.
+  A folder can hold files the tree hides (non-notes, dotfiles), so deleting
+  one needs a confirm that says what else goes with it, and renaming one
+  has to re-key every open tab, pinned tab and recent file under it.
+- **[app] Switch a renamed tab's language mode.** Renaming `todo.txt` to
+  `todo.md` keeps the open tab in plain-text mode until it's reopened, since
+  the mode is fixed when the tab's editor state is created. Rebuilding the
+  state on rename would drop its undo history.
 
 ## Done
+
+- **[app] A right-click menu for the sidebar.** Done 2026-10-14: Rename,
+  Delete (to the Recycle Bin / Trash) and Reveal for notes, Reveal for
+  folders. See the 2026-10-14 `HISTORY.md` entry. Folders still can't be
+  renamed or deleted (under Open).
 
 - **[app] Delete the unreleased `v0.3.0` tag.** Decided against,
   2026-10-14. The "release tags" ruleset (repo settings, `refs/tags/v*`,

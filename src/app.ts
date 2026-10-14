@@ -15,6 +15,9 @@ import {
   pickFolder,
   pickNoteFile,
   pickSaveTarget,
+  renameNote,
+  trashNote,
+  revealPath,
   dirTreesEqual,
   type DirNode,
   type PersistedState,
@@ -28,7 +31,8 @@ import { renderSidebar } from "./sidebar";
 import { renderTabs } from "./tabs";
 import { renderStatusBar, updateCursorLabel, updateDocStats } from "./statusbar";
 import { openCommandPalette } from "./commandPalette";
-import { unsavedChangesModal, showModal, confirmModal } from "./modal";
+import { unsavedChangesModal, showModal, confirmModal, promptModal } from "./modal";
+import { trashName } from "./sidebarMenu";
 
 const RECENT_LIMIT = 30;
 const CLOSED_TABS_LIMIT = 20;
@@ -678,6 +682,82 @@ export class App {
   closeLooseFile(path: string) {
     this.looseFiles = this.looseFiles.filter((p) => p !== path);
     renderSidebar(this);
+  }
+
+  /**
+   * Asks for a new name and renames a note in its folder, carrying an open
+   * tab (and any unsaved edits in it) over to the new name. Leaving off the
+   * extension keeps the old one.
+   */
+  async renameFile(path: string) {
+    const name = basename(path);
+    const dot = name.lastIndexOf(".");
+    const entered = await promptModal({
+      title: "Rename",
+      message: `New name for "${name}":`,
+      value: name,
+      selectTo: dot > 0 ? dot : undefined,
+      confirmLabel: "Rename",
+    });
+    let newName = entered?.trim();
+    if (!newName || newName === name) return;
+    if (!NOTE_EXT.test(newName) && dot > 0) newName += name.slice(dot);
+
+    let newPath: string;
+    try {
+      newPath = await renameNote(path, newName);
+    } catch (e) {
+      showToast(`Couldn't rename: ${String(e)}`, "error");
+      return;
+    }
+    const tab = this.tabs.get(path);
+    if (tab) this.rekeyTab(tab, path, newPath);
+    const swap = (p: string) => (p === path ? newPath : p);
+    this.looseFiles = this.looseFiles.map(swap);
+    this.recentFiles = this.recentFiles.map(swap);
+    this.closedTabs = this.closedTabs.map(swap);
+    await this.refreshFolder();
+    this.renderAll();
+    this.persist();
+  }
+
+  /**
+   * Moves a note to the Recycle Bin / Trash after asking, and closes its tab
+   * without the save prompt: there is nothing left to save it to.
+   */
+  async deleteFile(path: string) {
+    const tab = this.tabs.get(path);
+    const confirmed = await confirmModal({
+      title: "Delete file?",
+      message:
+        `"${basename(path)}" will be moved to the ${trashName()}.` +
+        (tab?.dirty ? " Its unsaved changes will be lost." : ""),
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    try {
+      await trashNote(path);
+    } catch (e) {
+      showToast(`Couldn't delete: ${String(e)}`, "error");
+      return;
+    }
+    if (tab) {
+      tab.dirty = false;
+      await this.closeTab(path);
+    }
+    const others = (p: string) => p !== path;
+    this.looseFiles = this.looseFiles.filter(others);
+    this.recentFiles = this.recentFiles.filter(others);
+    this.closedTabs = this.closedTabs.filter(others);
+    await this.refreshFolder();
+    renderSidebar(this);
+    this.persist();
+  }
+
+  async revealPath(path: string) {
+    await revealPath(path).catch((e) => showToast(`Couldn't show it: ${String(e)}`, "error"));
   }
 
   private touchRecent(path: string) {

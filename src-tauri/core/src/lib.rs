@@ -53,6 +53,16 @@ pub enum Error {
     StateFormat(serde_json::Error),
     #[error("Access to {0} was not granted")]
     AccessDenied(String),
+    #[error("Not a valid note name: {0}")]
+    InvalidName(String),
+    #[error("{0} already exists")]
+    AlreadyExists(String),
+    #[error("Couldn't rename {path}: {source}")]
+    Rename { path: String, source: io::Error },
+    #[error("Couldn't move {path} to the trash: {source}")]
+    Trash { path: String, source: trash::Error },
+    #[error("Couldn't show {path}: {message}")]
+    Reveal { path: String, message: String },
 }
 
 impl Serialize for Error {
@@ -312,25 +322,31 @@ pub fn read_text_file(path: String, granted: &HashSet<PathBuf>) -> Result<ReadFi
     }
 }
 
+/// These commands take raw paths from the webview, so the only thing standing
+/// between a compromised frontend and an arbitrary file overwrite (or
+/// rename, or delete) is this check. Keep it in sync with is_notable_file.
+/// Both the given name and the resolved one must pass, or a `note.md`
+/// symlink could aim a save at any other file in a granted folder.
+fn check_note(path: &str) -> Result<(), Error> {
+    let is_note = |p: &Path| {
+        p.file_name()
+            .is_some_and(|n| is_notable_file(&n.to_string_lossy()))
+    };
+    let resolved = resolve(Path::new(path));
+    if is_note(Path::new(path)) && resolved.as_deref().is_some_and(is_note) {
+        Ok(())
+    } else {
+        Err(Error::UnsupportedFileType(path.to_string()))
+    }
+}
+
 pub fn write_text_file(
     path: String,
     contents: String,
     granted: &HashSet<PathBuf>,
 ) -> Result<(), Error> {
     check_access(granted, &path)?;
-    // These commands take raw paths from the webview, so the only thing standing
-    // between a compromised frontend and an arbitrary file overwrite is this
-    // check. Keep it in sync with is_notable_file. Both the given name and
-    // the resolved one must pass, or a `note.md` symlink could aim a save at
-    // any other file in a granted folder.
-    let is_note = |p: &Path| {
-        p.file_name()
-            .is_some_and(|n| is_notable_file(&n.to_string_lossy()))
-    };
-    let resolved = resolve(Path::new(&path));
-    if !is_note(Path::new(&path)) || !resolved.as_deref().is_some_and(is_note) {
-        return Err(Error::UnsupportedFileType(path));
-    }
+    check_note(&path)?;
     if let Some(parent) = Path::new(&path).parent()
         && !parent.as_os_str().is_empty()
         && !parent.exists()
@@ -344,6 +360,70 @@ pub fn write_text_file(
         path: path.clone(),
         source,
     })
+}
+
+/// Renames a note within its own folder and returns the new path. `new_name`
+/// is a bare file name, not a path, so a rename can't move a note anywhere
+/// the webview couldn't already reach. The caller grants the returned path:
+/// it names the same file, and a grant on the old name no longer covers it
+/// when only the file itself was granted.
+pub fn rename_note(
+    path: String,
+    new_name: &str,
+    granted: &HashSet<PathBuf>,
+) -> Result<String, Error> {
+    check_access(granted, &path)?;
+    check_note(&path)?;
+    if new_name.is_empty()
+        || new_name == "."
+        || new_name == ".."
+        || new_name.contains(['/', '\\'])
+        || !is_notable_file(new_name)
+    {
+        return Err(Error::InvalidName(new_name.to_string()));
+    }
+    let from = Path::new(&path);
+    if !from.is_file() {
+        return Err(Error::Rename {
+            path: path.clone(),
+            source: io::Error::from(io::ErrorKind::NotFound),
+        });
+    }
+    let to = from.with_file_name(new_name);
+    // fs::rename replaces an existing file on every platform, so refuse
+    // first. The one existing target that's fine is the note itself, which
+    // is what a case-only rename finds on a case-insensitive filesystem.
+    // Something appearing between this check and the rename would still be
+    // replaced; there is no portable no-clobber rename in std.
+    if fs::symlink_metadata(&to).is_ok()
+        && fs::canonicalize(&to).ok() != fs::canonicalize(from).ok()
+    {
+        return Err(Error::AlreadyExists(to.to_string_lossy().into_owned()));
+    }
+    fs::rename(from, &to).map_err(|source| Error::Rename {
+        path: path.clone(),
+        source,
+    })?;
+    Ok(to.to_string_lossy().into_owned())
+}
+
+/// Moves a note to the Recycle Bin (the Trash on macOS and Linux) rather than
+/// deleting it, so a slip on the sidebar menu can be undone from outside
+/// Notes. A symlinked note loses the link, not the file it points to.
+pub fn trash_note(path: String, granted: &HashSet<PathBuf>) -> Result<(), Error> {
+    check_access(granted, &path)?;
+    check_note(&path)?;
+    trash::delete(&path).map_err(|source| Error::Trash { path, source })
+}
+
+/// Fails unless `path` exists and the user has granted it, for commands such
+/// as revealing a file in the OS file manager that do their own work.
+pub fn check_existing_access(path: &str, granted: &HashSet<PathBuf>) -> Result<(), Error> {
+    if is_existing_and_permitted(path, granted) {
+        Ok(())
+    } else {
+        Err(Error::AccessDenied(path.to_string()))
+    }
 }
 
 pub fn path_exists(path: &str, granted: &HashSet<PathBuf>) -> bool {
@@ -645,6 +725,119 @@ mod tests {
             "unexpected error: {err}"
         );
         assert!(!target.exists(), "file must not be created");
+    }
+
+    fn path_str(p: &Path) -> String {
+        p.to_string_lossy().into_owned()
+    }
+
+    #[test]
+    fn rename_note_renames_within_the_folder() {
+        let tree = TempTree::new("rename_ok");
+        tree.file("old.md");
+
+        let renamed = rename_note(path_str(&tree.0.join("old.md")), "new.txt", &tree.granted())
+            .expect("rename should succeed");
+
+        assert_eq!(renamed, path_str(&tree.0.join("new.txt")));
+        assert!(!tree.0.join("old.md").exists());
+        assert_eq!(
+            fs::read_to_string(tree.0.join("new.txt")).unwrap(),
+            "note body"
+        );
+    }
+
+    #[test]
+    fn rename_note_refuses_to_replace_another_file() {
+        let tree = TempTree::new("rename_clobber");
+        tree.file("a.md").file("b.md");
+        fs::write(tree.0.join("b.md"), "keep me").unwrap();
+
+        let err = rename_note(path_str(&tree.0.join("a.md")), "b.md", &tree.granted())
+            .expect_err("should refuse an existing target");
+
+        assert!(
+            err.to_string().contains("already exists"),
+            "unexpected error: {err}"
+        );
+        assert_eq!(fs::read_to_string(tree.0.join("b.md")).unwrap(), "keep me");
+        assert!(tree.0.join("a.md").exists());
+    }
+
+    #[test]
+    fn rename_note_refuses_names_that_leave_the_folder_or_the_note_types() {
+        let tree = TempTree::new("rename_names");
+        tree.file("a.md");
+        let from = path_str(&tree.0.join("a.md"));
+
+        for name in [
+            "",
+            ".",
+            "..",
+            "../a.md",
+            "sub/a.md",
+            "sub\\a.md",
+            "a.exe",
+            "a.md.bak",
+        ] {
+            let err = rename_note(from.clone(), name, &tree.granted())
+                .expect_err(&format!("should refuse {name:?}"));
+            assert!(
+                err.to_string().contains("valid note name"),
+                "{name:?}: {err}"
+            );
+        }
+        assert!(tree.0.join("a.md").exists());
+    }
+
+    #[test]
+    fn rename_note_refuses_ungranted_and_non_note_files() {
+        let tree = TempTree::new("rename_denied");
+        tree.file("a.md").file("script.sh");
+
+        let err = rename_note(path_str(&tree.0.join("a.md")), "b.md", &HashSet::new())
+            .expect_err("should refuse an ungranted path");
+        assert!(
+            err.to_string().contains("was not granted"),
+            "unexpected error: {err}"
+        );
+
+        let err = rename_note(
+            path_str(&tree.0.join("script.sh")),
+            "script.md",
+            &tree.granted(),
+        )
+        .expect_err("should refuse a non-note file");
+        assert!(
+            err.to_string().contains("non-note"),
+            "unexpected error: {err}"
+        );
+        assert!(tree.0.join("script.sh").exists());
+    }
+
+    // Only the refusals are tested: a successful trash_note would fill the
+    // trash of whoever runs the tests.
+    #[test]
+    fn trash_note_refuses_ungranted_and_non_note_files() {
+        let tree = TempTree::new("trash_denied");
+        tree.file("a.md").file("script.sh");
+
+        let err = trash_note(path_str(&tree.0.join("a.md")), &HashSet::new())
+            .expect_err("should refuse an ungranted path");
+        assert!(
+            err.to_string().contains("was not granted"),
+            "unexpected error: {err}"
+        );
+
+        let err = trash_note(path_str(&tree.0.join("script.sh")), &tree.granted())
+            .expect_err("should refuse a non-note file");
+        assert!(
+            err.to_string().contains("non-note"),
+            "unexpected error: {err}"
+        );
+
+        assert!(tree.0.join("a.md").exists());
+        assert!(tree.0.join("script.sh").exists());
     }
 
     #[test]

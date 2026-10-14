@@ -906,6 +906,25 @@ dialog {
   color: var(--fg-muted);
 }
 
+#confirm-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: -8px 0 18px;
+  padding: 7px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--fg);
+  font-size: 13px;
+  font-family: var(--font-ui);
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+}
+
 .solid-btn {
   padding: 8px 14px;
   background: var(--accent);
@@ -1065,6 +1084,16 @@ dialog {
     color: var(--fg-subtle);
     cursor: default;
   }
+
+  &.danger:not(:disabled) {
+    color: var(--danger);
+  }
+}
+
+.context-menu-separator {
+  margin: 4px 6px;
+  border: none;
+  border-top: 1px solid var(--border);
 }
 
 /* ---------- reduced motion ---------- */

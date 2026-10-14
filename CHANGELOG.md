@@ -7,6 +7,12 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Right-click menu in the sidebar.** Right-click a note to rename it,
+  delete it or show it in File Explorer. Deleted notes go to the Recycle
+  Bin, and an open tab follows a rename, unsaved changes included.
+  Right-click a folder to show it in File Explorer.
+
 ## [0.7.0] - 2026-10-14
 
 ### Added
