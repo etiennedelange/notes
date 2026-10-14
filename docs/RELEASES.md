@@ -58,7 +58,8 @@ First release built and published by the tag workflow rather than by hand.
 
 Tagged 2026-09-26, but the workflow failed to create the release (see the
 2026-09-26 `HISTORY.md` entry on `tauri-action`). The tag still exists
-with no GitHub release; everything in it shipped in v0.4.0.
+with no GitHub release; everything in it shipped in v0.4.0. It stays: the
+"release tags" ruleset blocks deleting `v*` tags.
 
 ## v0.2.0 — 2026-09-25
 

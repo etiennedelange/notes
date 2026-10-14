@@ -12,9 +12,6 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
-- **[app] Delete the unreleased `v0.3.0` tag.** It has no GitHub release
-  (see `RELEASES.md`). Harmless, but `pnpm release` and GitHub's
-  generated notes treat it as a real previous version.
 - **[app] Code-signed installer.** The NSIS installer is unsigned, so
   SmartScreen warns once on first install. Gitr's research (Azure Artifact
   Signing ~$10/month, SignPath Foundation free for open source, OV
@@ -68,6 +65,12 @@ with `[app]`, `[site]`, or `[app, site]`.
   through the consent checks in `src-tauri/core`.
 
 ## Done
+
+- **[app] Delete the unreleased `v0.3.0` tag.** Decided against,
+  2026-10-14. The "release tags" ruleset (repo settings, `refs/tags/v*`,
+  no bypass) blocks deleting it, and switching the ruleset off leaves
+  every release tag unprotected for no real gain. The tag has no GitHub
+  release (see `RELEASES.md`) and does no harm.
 
 - **[app] "Check for updates" on demand.** Done 2026-10-14 in 0.7.0:
   clicking the version in the status bar checks. See the 2026-10-14
