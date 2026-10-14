@@ -7,6 +7,21 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Notes picks up changes made in other apps.** When you switch back to
+  Notes, any open note without unsaved changes is updated to match the
+  file on disk, keeping your cursor where it was. Notes with unsaved
+  changes are left alone, and saving one still asks before overwriting
+  the newer file.
+
+### Fixed
+- **Undoing your edits clears the "modified" dot.** If you change a note
+  and then type or undo it back to how it was saved, the tab no longer
+  shows unsaved changes, and closing it doesn't ask you to save.
+- **Saving an unchanged note no longer rewrites it.** Ctrl+S with no
+  changes now leaves the file alone, so OneDrive doesn't re-sync it and
+  Notepad++'s folder panel doesn't list it twice.
+
 ## [0.7.2] - 2026-10-14
 
 ### Added

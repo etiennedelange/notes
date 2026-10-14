@@ -1,4 +1,4 @@
-import type { EditorState } from "@codemirror/state";
+import { Annotation, Text, type EditorState } from "@codemirror/state";
 import { EditorView, type ViewUpdate } from "@codemirror/view";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -33,6 +33,7 @@ import { renderStatusBar, updateCursorLabel, updateDocStats } from "./statusbar"
 import { openCommandPalette } from "./commandPalette";
 import { unsavedChangesModal, showModal, confirmModal, promptModal } from "./modal";
 import { trashName } from "./sidebarMenu";
+import { minimalChange } from "./textDiff";
 
 const RECENT_LIMIT = 30;
 const CLOSED_TABS_LIMIT = 20;
@@ -46,6 +47,9 @@ const EDITOR_ZOOM_STEP = 0.1;
 const SIDEBAR_W_MIN = 160;
 const SIDEBAR_W_MAX = 480;
 const SIDEBAR_W_DEFAULT = 240;
+
+/** Marks the transaction that applies an outside edit to a clean tab. */
+const reloadedFromDisk = Annotation.define<boolean>();
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -109,7 +113,7 @@ export class App {
       content,
       path,
       THEMES[this.theme],
-      () => this.markDirty(getTab().key),
+      (update) => this.updateDirty(getTab().key, !update.transactions.some((tr) => tr.annotation(reloadedFromDisk))),
       (update) => {
         getTab().state = update.state;
         this.handleCursorUpdate(update);
@@ -365,9 +369,11 @@ export class App {
       isUntitled: false,
       state: this.createTabState(() => tab, content, path),
       dirty: false,
+      savedDoc: Text.empty,
       diskMtime: mtime,
       pinned: false,
     };
+    tab.savedDoc = tab.state.doc;
 
     // A preview tab takes the slot of the previous preview tab (if any and
     // not dirty) instead of piling up a new tab, matching editors like VS
@@ -445,6 +451,7 @@ export class App {
       isUntitled: true,
       state: this.createTabState(() => tab, "", "untitled.md"),
       dirty: false,
+      savedDoc: Text.empty,
       diskMtime: null,
       pinned: false,
     };
@@ -521,14 +528,32 @@ export class App {
     this.activateTab(next);
   }
 
-  markDirty(key: string) {
+  /**
+   * Recomputes a tab's dirty flag after an edit by comparing the buffer with
+   * what was last loaded or saved, so typing a character and deleting it
+   * again leaves the tab clean. A user edit promotes a preview tab, even
+   * one that's undone; a reload from disk doesn't.
+   */
+  updateDirty(key: string, userEdit = true) {
     const tab = this.tabs.get(key);
-    if (!tab || tab.dirty) return;
-    tab.dirty = true;
-    if (this.previewKey === key) this.previewKey = null;
+    if (!tab) return;
+    const dirty = !tab.state.doc.eq(tab.savedDoc);
+    const wasPreview = userEdit && this.previewKey === key;
+    if (dirty === tab.dirty && !wasPreview) return;
+    tab.dirty = dirty;
+    if (wasPreview) this.previewKey = null;
     renderTabs(this);
     renderSidebar(this);
     renderStatusBar(this);
+  }
+
+  /**
+   * Records `doc` as the tab's on-disk content. Edits typed while the write
+   * was in flight aren't in `doc`, so they keep the tab dirty.
+   */
+  private markSaved(tab: Tab, doc: Text) {
+    tab.savedDoc = doc;
+    tab.dirty = !tab.state.doc.eq(doc);
   }
 
   tabLabel(tab: Tab): string {
@@ -551,6 +576,9 @@ export class App {
     const tab = this.tabs.get(key);
     if (!tab) return null;
     if (tab.isUntitled) return this.saveTabAs(key);
+    // Nothing to write. Skipping it also spares sync clients and folder
+    // watchers (Notepad++ lists a phantom copy per atomic save) a no-op.
+    if (!tab.dirty) return tab;
     const ok = await this.writeTab(tab);
     return ok ? tab : null;
   }
@@ -589,14 +617,15 @@ export class App {
     // Write before re-keying, so a failed save leaves the tab on its old
     // path. This skips writeTab's changed-on-disk check on purpose: the
     // user just chose to overwrite whatever is at the target.
+    const doc = tab.state.doc;
     try {
-      await writeTextFile(target, tab.state.doc.toString());
+      await writeTextFile(target, doc.toString());
     } catch (e) {
       showToast(`Couldn't save: ${String(e)}`, "error");
       return null;
     }
     this.rekeyTab(tab, key, target);
-    tab.dirty = false;
+    this.markSaved(tab, doc);
     tab.diskMtime = await fileMtimeMs(target).catch(() => Date.now());
     if (!this.openFolder || !isDescendant(this.openFolder, target)) {
       if (!this.looseFiles.includes(target)) this.looseFiles.push(target);
@@ -645,9 +674,10 @@ export class App {
       }
     }
 
+    const doc = tab.state.doc;
     try {
-      await writeTextFile(tab.path!, tab.state.doc.toString());
-      tab.dirty = false;
+      await writeTextFile(tab.path!, doc.toString());
+      this.markSaved(tab, doc);
       tab.diskMtime = await fileMtimeMs(tab.path!).catch(() => Date.now());
       renderTabs(this);
       renderStatusBar(this);
@@ -665,7 +695,7 @@ export class App {
       const result = await readTextFile(tab.path!);
       const mtime = await fileMtimeMs(tab.path!).catch(() => Date.now());
       tab.state = this.createTabState(() => tab, result.contents, tab.path!);
-      tab.dirty = false;
+      this.markSaved(tab, tab.state.doc);
       tab.diskMtime = mtime;
       if (this.activeKey === tab.key) this.view.setState(tab.state);
       renderTabs(this);
@@ -676,6 +706,50 @@ export class App {
       }
     } catch (e) {
       showToast(`Couldn't reload: ${String(e)}`, "error");
+    }
+  }
+
+  /**
+   * Picks up outside edits to open files, like VS Code: a tab without
+   * unsaved changes whose file changed on disk is quietly updated to match.
+   * Only the changed span is replaced, so the cursor and scroll stay put,
+   * and the reload is one undo step. Tabs with unsaved changes are left
+   * alone; saving them shows the "File changed on disk" choice. A file
+   * that's gone or unreadable is skipped, as is any tab edited, closed or
+   * renamed while its read was in flight.
+   */
+  async reloadChangedTabs() {
+    const candidates = [...this.tabs.values()].filter((t) => !t.dirty && !t.isUntitled);
+    await Promise.all(candidates.map((tab) => this.reloadIfChanged(tab)));
+  }
+
+  private async reloadIfChanged(tab: Tab) {
+    const path = tab.path!;
+    const mtime = await fileMtimeMs(path).catch(() => null);
+    if (mtime == null || mtime === tab.diskMtime) return;
+    const result = await readTextFile(path).catch(() => null);
+    if (!result || tab.dirty || this.tabs.get(tab.key) !== tab || tab.path !== path) return;
+
+    // toText normalizes line breaks the way the editor does, so a file
+    // saved with CRLF compares equal to the same text already open.
+    const after = tab.state.toText(result.contents);
+    tab.diskMtime = mtime;
+    const change = minimalChange(tab.state.doc.toString(), after.toString());
+    if (!change) return;
+    const tr = tab.state.update({ changes: change, annotations: reloadedFromDisk.of(true) });
+    // Record the new text as saved before applying it, so the update
+    // listener sees a clean tab.
+    tab.savedDoc = tr.newDoc;
+    if (this.activeKey === tab.key) {
+      this.view.dispatch(tr);
+    } else {
+      tab.state = tr.state;
+    }
+    if (result.lossy) {
+      showToast(
+        `${basename(path)} changed on disk and isn't valid UTF-8; reloaded with replacement characters.`,
+        "error",
+      );
     }
   }
 
@@ -1043,7 +1117,9 @@ export class App {
   private wireFolderRefresh() {
     getCurrentWebviewWindow()
       .onFocusChanged((event) => {
-        if (event.payload) void this.refreshFolder();
+        if (!event.payload) return;
+        void this.refreshFolder();
+        void this.reloadChangedTabs();
       })
       .catch(() => {});
   }

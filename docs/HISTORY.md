@@ -15,6 +15,38 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — Accurate dirty state, no-op saves skipped, clean tabs reload [app]
+
+- A tab used to go dirty on its first edit and only go clean on save, so
+  typing a character and backspacing it still showed the modified dot.
+  Each tab now keeps `savedDoc`, the CodeMirror `Text` last loaded or
+  saved, and `updateDirty` compares the buffer with it after every edit
+  (`Text.eq`, cheap because the trees share unchanged chunks).
+- Saves record the doc they actually wrote, not the buffer after the
+  write returns, so anything typed while a save is in flight keeps the
+  tab dirty. Before, those edits were marked saved without being written.
+- Any edit still promotes a preview tab, even one you undo.
+- `saveTab` now skips the write for a clean tab. Reported as "saving
+  duplicates the file": Notepad++'s Folder as Workspace panel adds an
+  entry for every rename-into event, and our atomic save (temp file, then
+  rename) is one, so each Ctrl+S showed another phantom copy there. Disk
+  was fine. Real saves still trigger it; writing in place would avoid it
+  but loses crash safety, which isn't worth it for another app's bug.
+- Skipping clean saves removed the accidental way to notice an outside
+  edit (Ctrl+S on a clean tab used to raise "File changed on disk"), so
+  clean tabs now reload on window focus, like VS Code:
+  `reloadChangedTabs` checks each clean tab's mtime and applies only the
+  changed span (`minimalChange` in `src/textDiff.ts`) so the cursor and
+  scroll survive. The reload is undoable and tagged with the
+  `reloadedFromDisk` annotation so it doesn't promote a preview tab.
+- New `pnpm test:e2e` suite (`e2e/`, also in CI): the real front end in
+  headless Chromium against the screenshot mock, which now bumps mtimes
+  on write and exposes `window.__MOCK__` to change files "from another
+  app", delete it, pause writes mid-save, and fire `tauri://focus`. 9 of
+  its 15 tests fail on the code before this change; the other 6 guard
+  behaviour that shouldn't change.
+  It can't catch Rust-side or OS-specific bugs (the Notepad++ one, say).
+
 ## 2026-10-14 — The update dialog shows the release notes [app]
 
 - `latest.json` has always carried the version's CHANGELOG section as

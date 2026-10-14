@@ -1,4 +1,4 @@
-import type { EditorState } from "@codemirror/state";
+import type { EditorState, Text } from "@codemirror/state";
 import type { ThemeId } from "./themes";
 import type { DirNode } from "./fs";
 
@@ -8,6 +8,8 @@ export interface Tab {
   isUntitled: boolean;
   state: EditorState;
   dirty: boolean;
+  /** The doc as last loaded or saved; `dirty` is whether the buffer differs from it. */
+  savedDoc: Text;
   diskMtime: number | null;
   pinned: boolean;
 }

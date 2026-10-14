@@ -25,7 +25,7 @@ export function createTabEditorState(
   content: string,
   path: string,
   theme: ThemeTokens,
-  onDocChanged: () => void,
+  onDocChanged: (update: ViewUpdate) => void,
   onUpdate?: (update: ViewUpdate) => void,
 ): EditorState {
   return EditorState.create({
@@ -40,7 +40,7 @@ export function createTabEditorState(
         // onUpdate first: it's where the app records the new state, and
         // onDocChanged re-renders from it.
         onUpdate?.(update);
-        if (update.docChanged) onDocChanged();
+        if (update.docChanged) onDocChanged(update);
       }),
     ],
   });
