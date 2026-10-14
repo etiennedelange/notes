@@ -57,6 +57,7 @@ const SESSION = {
     "C:\\Users\\etienne\\Desktop\\groceries.txt",
   ],
   activeTab: ACTIVE,
+  looseFiles: ["C:\\Users\\etienne\\Desktop\\groceries.txt"],
   recent: [ACTIVE, `${NOTES}\\journal\\2026-09-26.md`, `${NOTES}\\journal\\2026-09-25.md`, `${NOTES}\\todo.txt`],
 };
 

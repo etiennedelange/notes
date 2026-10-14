@@ -19,6 +19,7 @@ export interface PersistedState {
   openTabs: string[];
   activeTab?: string;
   pinnedTabs: string[];
+  looseFiles?: string[];
   windowX?: number;
   windowY?: number;
   windowWidth?: number;

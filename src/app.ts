@@ -24,7 +24,7 @@ import {
 } from "./fs";
 import { createTabEditorState, withTheme } from "./editor";
 import { THEMES, THEME_ORDER, applyChromeTheme, BASE_EDITOR_FONT_PX, type ThemeId } from "./themes";
-import { basename, isDescendant } from "./pathutil";
+import { basename } from "./pathutil";
 import { showToast } from "./toast";
 import type { Tab } from "./types";
 import { renderSidebar } from "./sidebar";
@@ -155,6 +155,11 @@ export class App {
       this.recentFiles = this.recentFiles.filter((_, i) => exists[i]);
     }
 
+    if (persisted?.looseFiles?.length) {
+      const exists = await Promise.all(persisted.looseFiles.map((p) => pathExists(p).catch(() => false)));
+      this.looseFiles = persisted.looseFiles.filter((_, i) => exists[i]);
+    }
+
     if (persisted?.lastFolder && (await pathExists(persisted.lastFolder))) {
       await this.setOpenFolder(persisted.lastFolder, { skipPersist: true });
     }
@@ -236,6 +241,7 @@ export class App {
       openTabs,
       activeTab: this.activeKey && !this.tabs.get(this.activeKey)?.isUntitled ? this.activeKey : undefined,
       pinnedTabs,
+      looseFiles: this.looseFiles,
       windowX: this.windowGeom?.x,
       windowY: this.windowGeom?.y,
       windowWidth: this.windowGeom?.width,
@@ -392,9 +398,6 @@ export class App {
     this.tabs.set(path, tab);
     if (opts.preview) this.previewKey = path;
 
-    if (!this.openFolder || !isDescendant(this.openFolder, path)) {
-      if (!this.looseFiles.includes(path)) this.looseFiles.push(path);
-    }
     if (!opts.skipRecent) this.touchRecent(path);
 
     if (activate) this.activateTab(path);
@@ -627,9 +630,6 @@ export class App {
     this.rekeyTab(tab, key, target);
     this.markSaved(tab, doc);
     tab.diskMtime = await fileMtimeMs(target).catch(() => Date.now());
-    if (!this.openFolder || !isDescendant(this.openFolder, target)) {
-      if (!this.looseFiles.includes(target)) this.looseFiles.push(target);
-    }
     this.touchRecent(target);
 
     renderTabs(this);
@@ -756,9 +756,21 @@ export class App {
     }
   }
 
+  /**
+   * Lists a file from outside the open folder under "Other Files" in the
+   * sidebar. Opening or dropping a file doesn't do this; only the user does.
+   */
+  addLooseFile(path: string) {
+    if (this.looseFiles.includes(path)) return;
+    this.looseFiles.push(path);
+    renderSidebar(this);
+    this.persist();
+  }
+
   closeLooseFile(path: string) {
     this.looseFiles = this.looseFiles.filter((p) => p !== path);
     renderSidebar(this);
+    this.persist();
   }
 
   /**

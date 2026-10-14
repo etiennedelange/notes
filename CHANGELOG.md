@@ -13,6 +13,11 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   swatches in the status bar.
 
 ### Changed
+- **"Pinned Files" is now "Other Files", and you choose what's in it.**
+  Opening or dropping a file from outside your folder no longer adds it
+  to the sidebar. To keep one there, right-click its tab and choose
+  **Add to Sidebar**; the list is remembered between sessions. Files
+  that were listed before need adding again.
 - **Markdown headings are bigger.** `#`, `##` and `###` headings now show
   at a larger size, so a note's structure is visible at a glance.
 - **Text wraps at 80 characters.** Long lines wrap at a comfortable

@@ -85,6 +85,7 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     openTabs: cfg.openTabs || [],
     activeTab: cfg.activeTab,
     pinnedTabs: cfg.pinnedTabs || [],
+    looseFiles: cfg.looseFiles || [],
     sidebarWidth: 250,
   };
 
