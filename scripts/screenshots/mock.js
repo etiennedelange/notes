@@ -88,6 +88,16 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     sidebarWidth: 250,
   };
 
+  // Each write bumps the file's mtime, so the app's "changed on disk" checks
+  // behave as they would against a real file system.
+  let clock = 1758873600000;
+  const mtimes = {};
+  const writes = [];
+  const calls = [];
+  const listeners = {};
+  // While set, writes wait on it, so a test can act mid-save.
+  let writeGate = null;
+
   const exists = (p) => p === ROOT || p in FILES || Object.keys(FILES).some((f) => f.startsWith(p + "\\"));
 
   // The clipboard plugin, kept in memory for the editor's right-click menu.
@@ -104,8 +114,11 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     read_dir_tree: () => tree(),
     read_text_file: ({ path }) => ({ contents: FILES[path] ?? "", lossy: false }),
     // Kept in memory so `pnpm mock:web` can save and reopen; lost on reload.
-    write_text_file: ({ path, contents }) => {
+    write_text_file: async ({ path, contents }) => {
+      await writeGate?.promise;
       FILES[path] = contents;
+      mtimes[path] = ++clock;
+      writes.push(path);
       return null;
     },
     rename_note: ({ path, newName }) => {
@@ -122,12 +135,18 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     reveal_path: () => null,
     path_exists: ({ path }) => exists(path),
     path_is_dir: ({ path }) => exists(path) && !(path in FILES),
-    file_mtime_ms: () => 1758873600000,
+    file_mtime_ms: ({ path }) => {
+      if (!(path in FILES)) throw `${path} not found`;
+      return mtimes[path] ?? 1758873600000;
+    },
     // The version from Cargo.toml (capture.mjs, mock-web.mjs), shown in the status bar.
     "plugin:app|version": () => cfg.version ?? "0.0.0",
     "plugin:window|is_maximized": () => false,
     "plugin:window|available_monitors": () => [],
-    "plugin:event|listen": () => Math.floor(Math.random() * 1e9),
+    "plugin:event|listen": ({ event, handler }) => {
+      (listeners[event] ||= []).push(handler);
+      return Math.floor(Math.random() * 1e9);
+    },
     "plugin:clipboard-manager|write_text": ({ text }) => {
       clipboard = text;
       return null;
@@ -146,9 +165,37 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     unregisterCallback: (id) => delete window[`_${id}`],
     convertFileSrc: (p) => p,
     invoke: async (cmd, args) => {
+      calls.push(cmd);
       const h = handlers[cmd];
       return h ? h(args || {}) : null;
     },
   };
   window.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: () => {} };
+
+  // Hooks for the end-to-end tests (e2e/): inspect and change the fake disk
+  // as another app would, and fire backend events such as window focus.
+  window.__MOCK__ = {
+    files: FILES,
+    writes,
+    calls,
+    writeExternally(path, contents) {
+      FILES[path] = contents;
+      mtimes[path] = ++clock;
+    },
+    deleteExternally(path) {
+      delete FILES[path];
+    },
+    pauseWrites() {
+      let resume;
+      const promise = new Promise((r) => (resume = r));
+      writeGate = { promise, resume };
+    },
+    resumeWrites() {
+      writeGate?.resume();
+      writeGate = null;
+    },
+    emit(event, payload = null) {
+      for (const id of listeners[event] || []) window[`_${id}`]?.({ event, id, payload });
+    },
+  };
 })();

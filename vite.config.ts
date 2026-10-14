@@ -34,7 +34,8 @@ function patchLegacyModesFrozenPrototype(): Plugin {
 export default defineConfig(() => ({
   plugins: [patchLegacyModesFrozenPrototype()],
 
-  // The scripts/ tests use node:test and run with `pnpm test:scripts`.
+  // The scripts/ and e2e/ tests use node:test and run with `pnpm test:scripts`
+  // and `pnpm test:e2e`.
   test: {
     include: ["src/**/*.test.ts"],
   },
@@ -54,7 +55,9 @@ export default defineConfig(() => ({
       "typescript/restrict-template-expressions": "error",
     },
     // node:test's top-level `test()` returns a promise the runner tracks itself.
-    overrides: [{ files: ["scripts/**/*.test.mjs"], rules: { "typescript/no-floating-promises": "off" } }],
+    overrides: [
+      { files: ["scripts/**/*.test.mjs", "e2e/**/*.test.mjs"], rules: { "typescript/no-floating-promises": "off" } },
+    ],
     options: { typeAware: true, typeCheck: true },
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
   },

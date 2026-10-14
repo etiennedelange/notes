@@ -77,3 +77,13 @@ jobs:
       - name: Script tests
         if: steps.scope.outputs.frontend != 'false'
         run: pnpm test:scripts
+
+      # The real front end in headless Chromium, with scripts/screenshots/mock.js
+      # standing in for the Rust backend (e2e/).
+      - name: Install Chromium
+        if: steps.scope.outputs.frontend != 'false'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        if: steps.scope.outputs.frontend != 'false'
+        run: pnpm test:e2e

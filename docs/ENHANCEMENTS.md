@@ -62,7 +62,8 @@ with `[app]`, `[site]`, or `[app, site]`.
   the app stays focused — e.g. a sync client writing files in the
   background. A `notify`-crate watcher on the open folder (in
   `src-tauri`) emitting an event the frontend applies incrementally would
-  close that gap without polling.
+  close that gap without polling. The same watcher could reload clean
+  open tabs immediately; today they catch up on focus regain (2026-10-14).
 - **[app] Rename and delete folders from the sidebar.** The sidebar menu
   (2026-10-14) renames and deletes notes only; a folder gets Reveal alone.
   A folder can hold files the tree hides (non-notes, dotfiles), so deleting
