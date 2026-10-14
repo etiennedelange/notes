@@ -7,6 +7,8 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-10-14
+
 ### Added
 - **Notes picks up changes made in other apps.** When you switch back to
   Notes, any open note without unsaved changes is updated to match the
