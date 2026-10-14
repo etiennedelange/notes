@@ -15,6 +15,16 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — Retire `docs/RELEASES.md` [app] [site]
+
+- Nothing updated it automatically, so it had fallen two releases behind
+  (last entry v0.7.0). Since `pnpm release` dates the CHANGELOG section in
+  the release commit, the CHANGELOG already records what shipped when, in
+  more detail, and the GitHub releases hold the assets.
+- Its one standing instruction, checking that the site's Download section
+  still classifies renamed assets, moved to `RELEASING.md`. Older entries
+  (pre-0.5 `.msi` assets, the unreleased v0.3.0 tag) stay in git history.
+
 ## 2026-10-14 — Accurate dirty state, no-op saves skipped, clean tabs reload [app]
 
 - A tab used to go dirty on its first edit and only go clean on save, so

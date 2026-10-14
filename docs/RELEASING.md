@@ -71,7 +71,10 @@ release branch and run it again.
   release up. A release made with the job's own token doesn't fire the
   `release: published` event that workflow also listens for.
 
-Afterwards, add the release to `docs/RELEASES.md`.
+Nothing to record afterwards: the release commit already dated the
+CHANGELOG section. If a release changes the assets' file names, check that
+the site's Download section (`site/src/lib/github.ts`) still classifies
+them.
 
 A version with a pre-release part (`v0.5.0-beta.1`) is published as a
 pre-release. Installed copies never see it, because the updater asks for

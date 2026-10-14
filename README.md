@@ -88,8 +88,9 @@ it, and the tag runs `.github/workflows/release.yml`, which builds the
 installer and publishes the GitHub release. Installed copies update
 themselves from there. The steps, the updater and its signing key are in
 [`docs/RELEASING.md`](./docs/RELEASING.md); what changed in each version is
-in [`CHANGELOG.md`](./CHANGELOG.md), and past releases are listed in
-[`docs/RELEASES.md`](./docs/RELEASES.md).
+in [`CHANGELOG.md`](./CHANGELOG.md), and past releases with their
+installers are on the
+[releases page](https://github.com/etiennedelange/notes/releases).
 
 ## Docs
 
