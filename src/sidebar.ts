@@ -80,7 +80,7 @@ export function renderSidebar(app: App) {
               <span class="tree-label">${escapeHtml(basename(path))}</span>
               ${dirty ? '<span class="dot" aria-hidden="true"></span>' : ""}
             </button>
-            <button class="unpin-btn" data-unpin="${escapeHtml(path)}" title="Remove from list">
+            <button class="unpin-btn" data-unpin="${escapeHtml(path)}" title="Remove from sidebar">
               <svg class="icon" width="11" height="11"><use href="#icon-close" /></svg>
             </button>
           </div>`;

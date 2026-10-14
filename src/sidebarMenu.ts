@@ -32,7 +32,7 @@ export function installSidebarMenu(app: App) {
     const loose = target.closest<HTMLElement>(".loose-row")?.querySelector<HTMLElement>("[data-file]");
     if (loose) {
       const path = loose.dataset.file!;
-      return [...fileItems(app, path), { label: "Remove from List", run: () => app.closeLooseFile(path) }];
+      return [...fileItems(app, path), { label: "Remove from Sidebar", run: () => app.closeLooseFile(path) }];
     }
     const file = target.closest<HTMLElement>("#folder-tree [data-file]");
     if (file) return fileItems(app, file.dataset.file!);

@@ -19,8 +19,6 @@ with `[app]`, `[site]`, or `[app, site]`.
   - Show the sidebar headers in normal case. Uppercasing turns the
     folder's real name, `Notes`, into `NOTES`.
   - Show the fold arrows only when hovering the gutter.
-  - Rename "Pinned Files". It holds individually opened files, which
-    clashes with "Pin Tab".
   - Port the native tab context menu to the themed `installContextMenu`.
     It hardcodes "Reveal in File Explorer" on every OS.
   - Drop the "Saved x" toast on every Ctrl+S.
@@ -101,6 +99,9 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Done
 
+- **[app] Rename "Pinned Files".** Done 2026-10-14: now "Other Files",
+  filled only by the tab menu's "Add to Sidebar" (issue #8). See the
+  2026-10-14 `HISTORY.md` entry.
 - **[app] A right-click menu for the sidebar.** Done 2026-10-14: Rename,
   Delete (to the Recycle Bin / Trash) and Reveal for notes, Reveal for
   folders. See the 2026-10-14 `HISTORY.md` entry. Folders still can't be

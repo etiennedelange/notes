@@ -3,6 +3,7 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import type { App } from "./app";
 import { escapeHtml } from "./html";
+import { isDescendant } from "./pathutil";
 import { showToast } from "./toast";
 
 let currentApp: App | null = null;
@@ -61,8 +62,18 @@ async function showTabContextMenu(app: App, key: string) {
 
   if (tab.path) {
     const path = tab.path;
+    items.push(await PredefinedMenuItem.new({ item: "Separator" }));
+    // Files in the open folder are already in the tree.
+    if (!app.openFolder || !isDescendant(app.openFolder, path)) {
+      const listed = app.looseFiles.includes(path);
+      items.push(
+        await MenuItem.new({
+          text: listed ? "Remove from Sidebar" : "Add to Sidebar",
+          action: () => (listed ? app.closeLooseFile(path) : app.addLooseFile(path)),
+        }),
+      );
+    }
     items.push(
-      await PredefinedMenuItem.new({ item: "Separator" }),
       await MenuItem.new({
         text: "Reveal in File Explorer",
         action: () => revealItemInDir(path).catch((e) => showToast(`Couldn't reveal file: ${e}`, "error")),

@@ -498,6 +498,8 @@ pub struct AppStateDto {
     open_tabs: Vec<String>,
     active_tab: Option<String>,
     pinned_tabs: Vec<String>,
+    /// Files outside the open folder that the user added to the sidebar.
+    loose_files: Vec<String>,
     window_x: Option<f64>,
     window_y: Option<f64>,
     window_width: Option<f64>,
@@ -514,7 +516,8 @@ impl AppStateDto {
             .last_folder
             .iter()
             .chain(&self.open_tabs)
-            .chain(&self.recent_files);
+            .chain(&self.recent_files)
+            .chain(&self.loose_files);
         for path in remembered {
             if Path::new(path).exists() {
                 let _ = grant_path_access(path, granted);
@@ -532,6 +535,7 @@ impl AppStateDto {
         self.recent_files.retain(ok);
         self.open_tabs.retain(ok);
         self.pinned_tabs.retain(ok);
+        self.loose_files.retain(ok);
     }
 }
 
@@ -1085,14 +1089,16 @@ mod tests {
         let state = AppStateDto {
             recent_files: vec![mine.clone(), theirs.clone()],
             open_tabs: vec![theirs.clone()],
+            loose_files: vec![mine.clone(), theirs.clone()],
             last_folder: Some(notes.0.to_string_lossy().to_string()),
             ..Default::default()
         };
         save_state(&config.0, state, &granted).expect("save");
 
         let saved = read_state(&config.0).unwrap();
-        assert_eq!(saved.recent_files, vec![mine]);
+        assert_eq!(saved.recent_files, vec![mine.clone()]);
         assert!(saved.open_tabs.is_empty());
+        assert_eq!(saved.loose_files, vec![mine]);
         assert_eq!(saved.last_folder, None);
     }
 
@@ -1111,6 +1117,22 @@ mod tests {
 
         assert!(read_text_file(kept, &granted).is_ok());
         assert_eq!(granted.len(), 1, "a deleted note must not grant its folder");
+    }
+
+    #[test]
+    fn loading_state_regrants_files_added_to_the_sidebar() {
+        let config = TempTree::new("loose_config");
+        let notes = TempTree::new("loose_notes");
+        notes.file("outside.md");
+        let outside = notes.0.join("outside.md").to_string_lossy().to_string();
+        let raw = serde_json::json!({ "looseFiles": [outside.clone()] }).to_string();
+        fs::write(config.0.join("state.json"), raw).unwrap();
+
+        let mut granted = HashSet::new();
+        let state = load_state(&config.0, &mut granted).expect("load");
+
+        assert_eq!(state.loose_files, vec![outside.clone()]);
+        assert!(read_text_file(outside, &granted).is_ok());
     }
 
     /// Errors cross the IPC boundary as plain strings, so `${e}` in a toast

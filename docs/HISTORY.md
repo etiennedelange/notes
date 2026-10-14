@@ -15,6 +15,18 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — "Pinned Files" becomes an opt-in "Other Files" list [app]
+
+- Issue #8: dropping a file onto the window (or Ctrl+O, or Save As) listed
+  it under "Pinned Files" whenever it was outside the open folder, which
+  read as pinning it, and clashed with Pin Tab.
+- The section is now "Other Files", and only the tab menu's "Add to
+  Sidebar" puts a file there. Because nothing re-adds files on launch any
+  more, the list is now persisted (`looseFiles` in the state file, granted
+  and filtered by Rust like the other remembered paths). Lists from older
+  versions aren't migrated: they were never saved, only rebuilt from tabs.
+- The internal name stays `looseFiles` / `.loose-row`.
+
 ## 2026-10-14 — Link the design system to the repo [app]
 
 - The design system (a claude.ai Design System artifact) had no pointer

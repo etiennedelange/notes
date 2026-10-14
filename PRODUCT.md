@@ -42,9 +42,9 @@ Future enhancements (deferred, not rejected):
 - Paste image from clipboard: save to disk and insert a markdown `![]()` reference. No paste handling for image/file clipboard data exists yet — only plain-text paste is handled (for code-block auto-fencing).
 
 Delivered in v1 build so far:
-- Sidebar: open-folder tree (loose, non-owning view) + pinned "loose files" section for individually opened files.
+- Sidebar: open-folder tree (loose, non-owning view) + an "Other Files" section for files outside the folder that the user adds from the tab menu.
 - Tabs with dirty-state indicator, close/cycle shortcuts.
-- Ctrl+P fuzzy quick-open across tree + pinned + recent files.
+- Ctrl+P fuzzy quick-open across tree + other files + recent files.
 - Four built-in themes, switchable live from the status bar: Nord, Tokyo Night, Noctis Lux (light), Noctis Hibernus (light).
 - Status bar: file path, unsaved indicator, cursor position, language, theme switcher.
 - Drag-and-drop of files/folders onto the window.

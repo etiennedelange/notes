@@ -17,8 +17,8 @@ built around a workspace).
 
 - Edits `.txt` and `.md` files in place on disk. Saves are atomic, and it
   warns you if a file changed on disk while it was open.
-- `Ctrl+P` fuzzy quick-open across the open folder, pinned files and recent
-  files.
+- `Ctrl+P` fuzzy quick-open across the open folder, other files in the
+  sidebar and recent files.
 - Tabs with unsaved-changes protection on close and on quit.
 - An optional folder sidebar. It's a view of the folder, not a managed
   workspace.

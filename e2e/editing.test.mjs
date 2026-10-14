@@ -49,16 +49,19 @@ after(async () => {
   await server?.close();
 });
 
-beforeEach(async () => {
+beforeEach(() => launch(SESSION));
+
+/** Starts the app in a fresh page, as if the last session saved `session`. */
+async function launch(session) {
   await page?.context().close();
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   page = await ctx.newPage();
   page.on("pageerror", (e) => assert.fail(`page error: ${e.message}`));
-  await page.addInitScript(`window.__SHOT__ = ${JSON.stringify(SESSION)};\n${MOCK}`);
+  await page.addInitScript(`window.__SHOT__ = ${JSON.stringify(session)};\n${MOCK}`);
   await page.goto(url);
   await page.locator(".cm-content").waitFor();
   await waitForText(TODO_TEXT);
-});
+}
 
 // ---------- helpers ----------
 
@@ -255,11 +258,28 @@ describe("outside changes", () => {
   });
 });
 
-describe("dropping a file", () => {
-  it("opens a file from outside the folder without pinning it", async () => {
+describe("other files", () => {
+  const otherFiles = () => page.locator("#loose-files-section");
+
+  it("doesn't list a file from outside the folder just because it was dropped", async () => {
     await page.evaluate((p) => window.__MOCK__.emit("notes://drop", [p]), GROCERIES);
     await tab("groceries.txt").waitFor();
     await waitForText("eggs\nbread\nrooibos\nbiltong\n");
-    assert.equal(await page.locator("#loose-files", { hasText: "groceries.txt" }).count(), 0);
+    assert.equal(await otherFiles().isHidden(), true);
+  });
+
+  it("restores the files the user added, under the Other Files heading", async () => {
+    await launch({ ...SESSION, looseFiles: [GROCERIES] });
+    assert.equal(await otherFiles().isVisible(), true);
+    assert.match(await otherFiles().locator(".sidebar-header").textContent(), /Other Files/);
+    assert.equal(await otherFiles().locator(".loose-row", { hasText: "groceries.txt" }).count(), 1);
+  });
+
+  it("removes a file from the list without closing its tab", async () => {
+    await launch({ ...SESSION, openTabs: [...SESSION.openTabs, GROCERIES], looseFiles: [GROCERIES] });
+    await otherFiles().locator(".loose-row").hover();
+    await otherFiles().locator(".unpin-btn").click();
+    assert.equal(await otherFiles().isHidden(), true);
+    assert.equal(await tab("groceries.txt").count(), 1);
   });
 });
