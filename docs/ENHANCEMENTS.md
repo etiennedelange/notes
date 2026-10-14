@@ -15,20 +15,11 @@ with `[app]`, `[site]`, or `[app, site]`.
 - **[app] Delete the unreleased `v0.3.0` tag.** It has no GitHub release
   (see `RELEASES.md`). Harmless, but `pnpm release` and GitHub's
   generated notes treat it as a real previous version.
-- **[app] "Check for updates" on demand.** The updater only checks at
-  startup (`src/update.ts`). Notes has no settings view to put a button in;
-  a command-palette command would fit once the palette runs commands as
-  well as files. Deferred 2026-10-12.
 - **[app] Code-signed installer.** The NSIS installer is unsigned, so
   SmartScreen warns once on first install. Gitr's research (Azure Artifact
   Signing ~$10/month, SignPath Foundation free for open source, OV
   certificate $100–400/year) applies here too; a new certificate doesn't
   stop SmartScreen until it builds reputation. Deferred 2026-10-12.
-- **[app] Cut CodeQL scope on PRs.** CodeQL default setup (repo settings,
-  no workflow file) analyses actions, JS/TS and Rust on every PR push, about
-  5 minutes a run. Options: drop languages that add little (actions), or
-  switch to advanced setup with path filters. Deferred on 2026-09-26 when
-  the other workflows were trimmed.
 - **[site] Track download/GitHub button clicks.** Cloudflare Web Analytics
   gives page views but no events. If GitHub's per-asset download counts
   aren't enough, options are a small Pages Function logging clicks to
@@ -77,6 +68,14 @@ with `[app]`, `[site]`, or `[app, site]`.
   through the consent checks in `src-tauri/core`.
 
 ## Done
+
+- **[app] "Check for updates" on demand.** Done 2026-10-14 in 0.7.0:
+  clicking the version in the status bar checks. See the 2026-10-14
+  `HISTORY.md` entry on hourly update checks.
+- **[app] Cut CodeQL scope on PRs.** Moot as of 2026-10-14: CodeQL default
+  setup is turned off (the API reports `not-configured`; last run
+  2026-09-26), so it no longer runs on PRs. If code scanning comes back,
+  drop the `actions` language or use advanced setup with path filters.
 
 - **[app] Native `<dialog>`, Popover API and modern CSS.** Done
   2026-10-13, with the editor's right-click menu. See the 2026-10-13
