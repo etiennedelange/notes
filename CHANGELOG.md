@@ -7,6 +7,8 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-14
+
 ### Added
 - **Right-click menu in the editor**, with Cut, Copy, Paste and Select All.
   Pasting code from it into a markdown file wraps it in a code block, the
