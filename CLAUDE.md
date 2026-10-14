@@ -31,15 +31,14 @@ and the site, and doesn't belong in commit messages or `PRODUCT.md`:
   ideas. When you defer something instead of doing it now, write it here
   rather than letting it live only in chat — move it to "Done" (linking
   the `HISTORY.md` entry) once it ships.
-- [`docs/RELEASES.md`](./docs/RELEASES.md) — release history of the Notes
-  app (the `v*.*.*` tag builds in `.github/workflows/release.yml`). Add
-  an entry when a new version is tagged/published.
 - [`docs/RELEASING.md`](./docs/RELEASING.md) — how to branch, cut a
   release (`pnpm release`, or `pnpm release <x.y.z>`) and keep the in-app updater working.
 
 User-visible app changes also get a line under `[Unreleased]` in
 [`CHANGELOG.md`](./CHANGELOG.md), in the same PR. It becomes the release
-notes and what the in-app updater shows.
+notes and what the in-app updater shows. `pnpm release` dates the section,
+so the CHANGELOG is also the record of what shipped when; the GitHub
+releases hold the assets.
 
 Keep these updated as you work rather than batching it at the end of a
 session — it's cheap to add a line while the context is fresh, expensive

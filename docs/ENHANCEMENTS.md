@@ -85,7 +85,7 @@ with `[app]`, `[site]`, or `[app, site]`.
   2026-10-14. The "release tags" ruleset (repo settings, `refs/tags/v*`,
   no bypass) blocks deleting it, and switching the ruleset off leaves
   every release tag unprotected for no real gain. The tag has no GitHub
-  release (see `RELEASES.md`) and does no harm.
+  release and does no harm.
 
 - **[app] "Check for updates" on demand.** Done 2026-10-14 in 0.7.0:
   clicking the version in the status bar checks. See the 2026-10-14
