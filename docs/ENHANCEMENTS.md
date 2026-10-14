@@ -12,6 +12,12 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
+- **[app] Notes for every skipped version in the update dialog.** The
+  dialog shows `latest.json`'s notes, which are only the newest version's
+  CHANGELOG section, so someone on 0.5.0 updating to 0.7.1 doesn't see
+  0.6.0's changes. Options: `updater-manifest` puts every section newer
+  than some cutoff into `notes`, or the app fetches the CHANGELOG from
+  the tag. Deferred 2026-10-14.
 - **[app] Code-signed installer.** The NSIS installer is unsigned, so
   SmartScreen warns once on first install. Gitr's research (Azure Artifact
   Signing ~$10/month, SignPath Foundation free for open source, OV

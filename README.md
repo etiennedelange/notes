@@ -59,7 +59,9 @@ sample notes folder, so it works anywhere, not just on Windows. Run
 `pnpm mock:web` serves the same front end and mock on the dev server
 (`http://localhost:1420`, with hot reload) for working on the UI in a normal
 browser. Saves go to memory and are lost on reload; native dialogs act as if
-cancelled.
+cancelled. `pnpm mock:web --update` also offers an update to the next patch
+version, with the `[Unreleased]` CHANGELOG entries as its notes, for working
+on the update button and dialog.
 
 ## How it works
 

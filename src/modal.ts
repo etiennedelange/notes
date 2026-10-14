@@ -17,6 +17,8 @@ interface ModalOptions {
   /** The warning icon; on by default. Off for news, such as an update. */
   icon?: boolean;
   buttons: ModalButton[];
+  /** A scrolling block of rich text under the message, such as release notes. Already-escaped HTML. */
+  notesHtml?: string;
   /** A text field under the message, prefilled with this value. */
   input?: { value: string; selectTo?: number };
   /** The button pressing Enter in the text field clicks. */
@@ -35,6 +37,7 @@ function els() {
     icon: document.getElementById("confirm-icon")!,
     actions: document.getElementById("confirm-actions")!,
     input: document.getElementById("confirm-input") as HTMLInputElement,
+    notes: document.getElementById("confirm-notes")!,
   };
 }
 
@@ -45,10 +48,14 @@ function els() {
  * was on close.
  */
 export function showModal(opts: ModalOptions): Promise<string> {
-  const { modal, title, message, icon, actions, input } = els();
+  const { modal, title, message, icon, actions, input, notes } = els();
 
   title.textContent = opts.title;
   message.textContent = opts.message;
+  notes.innerHTML = opts.notesHtml ?? "";
+  notes.scrollTop = 0;
+  notes.classList.toggle("hidden", !opts.notesHtml);
+  modal.classList.toggle("confirm-wide", !!opts.notesHtml);
   modal.classList.toggle("confirm-danger", !!opts.danger);
   icon.classList.toggle("confirm-danger", !!opts.danger);
   icon.classList.toggle("hidden", opts.icon === false);
