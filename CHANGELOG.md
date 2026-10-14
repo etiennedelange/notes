@@ -7,6 +7,8 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-10-14
+
 ### Added
 - **New theme: Noctis Hibernus.** A cool light theme, Noctis Lux's sibling,
   with the same teal text on a blue-green off-white. Pick it from the four
