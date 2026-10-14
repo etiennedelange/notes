@@ -47,8 +47,10 @@ tag, and entries under the CHANGELOG's `[Unreleased]`. After you confirm, it:
    squash auto-merge. CI sees a version-only change and skips its build and
    test steps, because the code already passed when it merged. Any other
    change on the release branch gets the full run.
-3. Waits for the merge (checking every 10 seconds), tags the merge commit
-   `v0.5.0`, pushes the tag, and switches you back to an up-to-date `main`.
+3. Follows the PR's CI and Rust runs live with `gh run watch` (the
+   workflows behind the required checks), waits for the auto-merge, tags
+   the merge commit `v0.5.0`, pushes the tag, and switches you back to an
+   up-to-date `main`.
 4. Follows the Release workflow and prints the release page.
 
 Ctrl+C is safe at any point. Run the same command again and it carries on

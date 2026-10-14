@@ -10,7 +10,8 @@
 // 2. Branch release/<version> from origin/main: `release.mjs version` (src-tauri/Cargo.toml and
 //    Cargo.lock, the dated CHANGELOG section), commit "Release <version>", push.
 // 3. PR "Release <version>" (label skip-changelog), squash auto-merge once CI is green.
-// 4. Waits for the merge, tags the merge commit v<version> and pushes the tag.
+// 4. Follows the PR's CI and Rust runs (`gh run watch`), waits for the merge, tags the merge commit
+//    v<version> and pushes the tag.
 // 5. Follows the Release workflow and prints the release page.
 //
 // Safe to run again after a failure or Ctrl+C: steps already done (branch pushed, PR open,
@@ -25,10 +26,14 @@ import { changelogSection, parseVersion, readVersion, setVersion } from "./relea
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REPO = "etiennedelange/notes";
-// How often to look at the PR; GitHub's API allows this easily.
-const POLL_MS = 10_000;
-// CI on a release PR takes about a minute (Rust is skipped); a merge that hasn't happened in an hour needs a look.
-const MERGE_TIMEOUT_MS = 60 * 60_000;
+// The workflows behind the required checks (`frontend`, `rust`); keep in step with
+// scripts/release/github-settings.sh. Their runs on the PR are what auto-merge waits for.
+const CI_WORKFLOWS = ["CI", "Rust"];
+// How often to look at the PR once CI is green; GitHub's API allows this easily.
+const POLL_MS = 5_000;
+// Auto-merge lands seconds after the checks pass; ten minutes without it means something else
+// is blocking the merge (an unresolved review thread, say).
+const MERGE_TIMEOUT_MS = 10 * 60_000;
 
 /** -1, 0 or 1. Semver precedence, without build metadata (like SEMVER in release.mjs). */
 export function compareVersions(a, b) {
@@ -104,9 +109,46 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** The release PR for `branch`, open or merged, or null. */
 function findPr(branch) {
   const prs = JSON.parse(
-    gh("pr", "list", "-R", REPO, "--head", branch, "--state", "all", "--json", "number,state,url,mergeCommit"),
+    gh(
+      "pr",
+      "list",
+      "-R",
+      REPO,
+      "--head",
+      branch,
+      "--state",
+      "all",
+      "--json",
+      "number,state,url,headRefOid,mergeCommit",
+    ),
   );
   return prs.find((p) => p.state === "MERGED") ?? prs.find((p) => p.state === "OPEN") ?? null;
+}
+
+/** The newest run of each of CI_WORKFLOWS for the PR's head commit, or null if GitHub hasn't started them all. */
+async function ciRuns(pr, branch) {
+  for (let i = 0; i < 20; i++) {
+    const runs = JSON.parse(
+      gh(
+        "run",
+        "list",
+        "-R",
+        REPO,
+        "--branch",
+        branch,
+        "--commit",
+        pr.headRefOid,
+        "--event",
+        "pull_request",
+        "--json",
+        "databaseId,workflowName",
+      ),
+    );
+    const found = CI_WORKFLOWS.map((w) => runs.find((r) => r.workflowName === w));
+    if (found.every(Boolean)) return found;
+    await sleep(3000);
+  }
+  return null;
 }
 
 async function main(argv) {
@@ -199,24 +241,23 @@ async function main(argv) {
         `couldn't turn on auto-merge for ${pr.url}.\nRun scripts/release/github-settings.sh once (it allows auto-merge and sets the required checks), then run this again.`,
       );
     }
-    step("Waiting for CI and the merge (Ctrl+C is safe; run the same command again to carry on)");
+    step("Waiting for CI (Ctrl+C is safe; run the same command again to carry on)");
+    const runs =
+      (await ciRuns(pr, branch)) ??
+      fail(`no ${CI_WORKFLOWS.join(" and ")} runs for ${pr.url} yet. Check the PR, then run this again.`);
+    // One after the other; a run that has already finished returns straight away.
+    for (const r of runs) {
+      console.log(`\n${r.workflowName}:`);
+      if (!show("gh", ["run", "watch", "-R", REPO, String(r.databaseId), "--interval", "10", "--exit-status"]))
+        fail(`CI failed (${r.workflowName}): ${pr.url}\nFix it on ${branch}, then run this again.`);
+    }
+
+    step("Waiting for the merge");
     const deadline = Date.now() + MERGE_TIMEOUT_MS;
     for (;;) {
       pr = findPr(branch) ?? fail(`the PR for ${branch} was closed without merging.`);
       if (pr.state === "MERGED") break;
-      // gh exits non-zero while checks are pending or failed, so read its output either way.
-      const checks = spawnSync("gh", ["pr", "checks", "-R", REPO, String(pr.number), "--json", "name,bucket"], {
-        cwd: root,
-        encoding: "utf8",
-      });
-      const failed = JSON.parse(checks.stdout.trim() || "[]").filter(
-        (c) => c.bucket === "fail" || c.bucket === "cancel",
-      );
-      if (failed.length)
-        fail(
-          `CI failed (${failed.map((c) => c.name).join(", ")}): ${pr.url}\nFix it on ${branch}, then run this again.`,
-        );
-      if (Date.now() > deadline) fail(`not merged after an hour: ${pr.url}`);
+      if (Date.now() > deadline) fail(`CI passed but the PR isn't merged after ten minutes: ${pr.url}`);
       process.stdout.write(".");
       await sleep(POLL_MS);
     }

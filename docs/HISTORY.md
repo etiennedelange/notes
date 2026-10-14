@@ -15,6 +15,18 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — `pnpm release` watches the PR's CI live [app]
+
+- `ship.mjs` used to poll `gh pr checks` every 10 seconds and print a dot.
+  It now finds the PR head commit's CI and Rust runs (the workflows
+  behind the required `frontend` and `rust` checks) and runs
+  `gh run watch` on each in turn, so you see jobs and steps as they go.
+  After that it polls only for the auto-merge, with a ten-minute limit.
+- `gh run watch` follows one run, so it watches only the required
+  workflows. A failing Security audit or Claude Code Review no longer
+  stops the script. It never blocked the merge, but the old poll failed
+  on any red check.
+
 ## 2026-10-14 — A right-click menu for the sidebar [app]
 
 - Notes get Rename, Delete and Reveal in File Explorer (Finder on macOS,
