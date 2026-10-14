@@ -15,6 +15,24 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-14 — The update dialog shows the release notes [app]
+
+- `latest.json` has always carried the version's CHANGELOG section as
+  `notes`, and `check_update` passed it to the webview, but the dialog
+  never showed it. It now renders it in a scrolling box. With the notes
+  shown, the What's New button is now Release Page.
+- `releaseNotesHtml` in `src/update.ts` renders only what the CHANGELOG
+  uses (### headings, wrapped bullets, paragraphs, bold, code; a link
+  keeps its text) and escapes the input first. This avoids pulling in a
+  Markdown library, and the notes come off the network, so nothing in
+  them reaches the dialog as markup.
+- An update that skips versions shows only the newest version's notes,
+  because that's all `latest.json` holds.
+- `pnpm mock:web --update` offers a fake update to the next patch, with
+  the `[Unreleased]` notes. `mock.js` already answered `check_update` from
+  `cfg.update`, but nothing set it. Checked with it in Chromium: status
+  bar button, dialog with notes, Later closes it.
+
 ## 2026-10-14 — `pnpm release` watches the PR's CI live [app]
 
 - `ship.mjs` used to poll `gh pr checks` every 10 seconds and print a dot.

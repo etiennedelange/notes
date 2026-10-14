@@ -1,6 +1,7 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import type { App } from "./app";
+import { escapeHtml } from "./html";
 import { showModal } from "./modal";
 import { showToast } from "./toast";
 
@@ -33,6 +34,57 @@ export function updateLabel(version: string, phase: UpdatePhase): string {
     case "restarting":
       return "Restarting…";
   }
+}
+
+/** `**bold**` and `` `code` ``; a link keeps only its text, since the dialog can't open it. */
+function inline(text: string): string {
+  return escapeHtml(text)
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+/**
+ * The CHANGELOG section as HTML for the update dialog. It handles what the
+ * CHANGELOG uses (### headings, bullets that wrap onto indented lines,
+ * paragraphs, bold, code) and escapes everything else, so the release notes
+ * can't put markup into the app.
+ */
+export function releaseNotesHtml(notes: string): string {
+  const out: string[] = [];
+  let list: string[] | null = null;
+  let item: string | null = null;
+  let para: string | null = null;
+  const flush = () => {
+    if (item !== null) list!.push(`<li>${inline(item)}</li>`);
+    item = null;
+    if (list) out.push(`<ul>${list.join("")}</ul>`);
+    list = null;
+    if (para !== null) out.push(`<p>${inline(para)}</p>`);
+    para = null;
+  };
+  for (const raw of notes.split(/\r?\n/)) {
+    const line = raw.trim();
+    const heading = /^#{1,6}\s+(.*)$/.exec(line);
+    const bullet = /^[-*]\s+(.*)$/.exec(line);
+    if (!line) {
+      flush();
+    } else if (heading) {
+      flush();
+      out.push(`<h3>${inline(heading[1]!)}</h3>`);
+    } else if (bullet) {
+      if (para !== null || !list) flush();
+      if (item !== null) list!.push(`<li>${inline(item)}</li>`);
+      list ??= [];
+      item = bullet[1]!;
+    } else if (item !== null) {
+      item += ` ${line}`;
+    } else {
+      para = para === null ? line : `${para} ${line}`;
+    }
+  }
+  flush();
+  return out.join("");
 }
 
 /** The update the status bar button offers, once a check has found one. */
@@ -107,13 +159,16 @@ function showUpdate(app: App, update: UpdateInfo) {
 async function offerUpdate(app: App) {
   const update = found!;
   const { setPhase } = updateButton();
+  const notesHtml = update.notes ? releaseNotesHtml(update.notes) : "";
   const choice = await showModal({
     title: `Notes ${update.version} is available`,
     icon: false,
     message:
       "Notes downloads it, asks about any unsaved changes, then restarts on the new version with your tabs open.",
+    notesHtml,
     buttons: [
-      { id: "notes", label: "What's New", variant: "ghost" },
+      // With the notes shown here, the page is for the rest: the installer, earlier releases.
+      { id: "notes", label: notesHtml ? "Release Page" : "What's New", variant: "ghost" },
       { id: "later", label: "Later", variant: "ghost" },
       { id: "update", label: "Update Now", autofocus: true },
     ],
