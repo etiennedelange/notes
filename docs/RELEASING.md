@@ -80,8 +80,11 @@ make a new patch version instead.
 `tauri-plugin-updater` reads
 `https://github.com/etiennedelange/notes/releases/latest/download/latest.json`
 (`plugins.updater` in `tauri.conf.json`). `src/update.ts` checks 5 seconds
-after startup; a failed check is only logged to the console. When a newer
-version exists, the status bar shows **Update to x.y.z**. **Update Now**
+after startup and then every hour until it finds one, since Notes is often
+left open for days; a failed check is only logged to the console. Clicking
+the version (**v0.6.0**) in the status bar checks right away and says
+whether Notes is up to date, showing any error. When a newer version
+exists, the status bar shows **Update to x.y.z**. **Update Now**
 then:
 
 1. downloads the installer and checks its signature against

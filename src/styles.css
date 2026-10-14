@@ -672,6 +672,22 @@ kbd {
   cursor: default;
   opacity: 0.8;
 }
+/* The running version; clicking it checks for updates (update.ts). */
+.status-version {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.status-version:hover:not(:disabled) {
+  color: var(--fg);
+}
+.status-version:disabled {
+  cursor: progress;
+}
 #status-cursor {
   font-variant-numeric: tabular-nums;
   opacity: 0.9;
