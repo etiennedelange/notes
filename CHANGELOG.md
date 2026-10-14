@@ -7,6 +7,11 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Right-click menu in the editor**, with Cut, Copy, Paste and Select All.
+  Pasting code from it into a markdown file wraps it in a code block, the
+  same as Ctrl+V.
+
 ## [0.5.0] - 2026-10-12
 
 ### Added

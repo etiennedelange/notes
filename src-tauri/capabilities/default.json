@@ -25,6 +25,7 @@
     "core:menu:allow-new",
     "core:menu:allow-popup",
     "opener:default",
+    "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-write-text"
   ]
 }

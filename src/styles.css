@@ -714,41 +714,45 @@ kbd {
 
 /* ---------- command palette ---------- */
 
-#command-palette-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 14vh;
-  z-index: 50;
+/* Shared by the palette and the confirm modal: native modal <dialog>s, so
+   the browser handles the top layer, inert background and focus. */
+dialog {
+  padding: 0;
+  color: var(--fg);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 140ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  @starting-style {
+    &[open] {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+  }
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+  }
 }
 
 #command-palette {
   width: min(560px, 88vw);
   max-height: 60vh;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
+  margin: 14vh auto auto;
   box-shadow:
     0 24px 60px -12px rgba(0, 0, 0, 0.45),
     0 4px 16px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  animation: cp-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-@keyframes cp-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
+  &[open] {
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -844,27 +848,16 @@ kbd {
 
 /* ---------- confirm modal ---------- */
 
-#confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 70;
-}
-
 #confirm-modal {
   width: min(380px, 88vw);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
   box-shadow:
     0 24px 60px -12px rgba(0, 0, 0, 0.5),
     0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 22px 22px 18px;
-  animation: cp-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+  }
 }
 
 .confirm-icon {
@@ -935,17 +928,23 @@ kbd {
 
 /* ---------- toasts ---------- */
 
+/* A manual popover, for the top layer; undo the UA's centred-box defaults. */
 #toast-container {
-  position: fixed;
-  bottom: calc(var(--status-h) + 14px);
-  left: 50%;
+  inset: auto auto calc(var(--status-h) + 14px) 50%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  overflow: visible;
   transform: translateX(-50%);
-  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  z-index: 60;
   pointer-events: none;
+
+  &:popover-open {
+    display: flex;
+  }
 }
 
 .toast {
@@ -956,15 +955,19 @@ kbd {
   border-radius: var(--radius-md);
   font-size: 12.5px;
   box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.4);
-  opacity: 0;
-  transform: translateY(6px);
   transition:
     opacity 160ms ease,
     transform 160ms ease;
-}
-.toast-in {
-  opacity: 1;
-  transform: none;
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  &.toast-out {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 .toast-error {
   background: var(--danger);
@@ -991,4 +994,71 @@ kbd {
   font-weight: 800;
   line-height: 15px;
   text-align: center;
+}
+
+/* ---------- context menu ---------- */
+
+.context-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-width: 190px;
+  padding: 4px;
+  color: var(--fg);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.45);
+  font-size: 12.5px;
+
+  &:popover-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  & kbd {
+    color: var(--fg-subtle);
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: var(--accent-soft);
+    outline: none;
+  }
+
+  &:disabled {
+    color: var(--fg-subtle);
+    cursor: default;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+
+/* Only the things that move. Not a blanket `*` rule: that would also speed
+   up CodeMirror's cursor blink into a flicker. */
+@media (prefers-reduced-motion: reduce) {
+  dialog,
+  .toast,
+  .tree-row-dir .chevron {
+    transition: none;
+  }
 }

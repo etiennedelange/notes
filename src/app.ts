@@ -787,8 +787,7 @@ export class App {
     window.addEventListener("keydown", (e) => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
-      const overlay = document.getElementById("confirm-overlay");
-      if (overlay && !overlay.classList.contains("hidden")) return;
+      if ((document.getElementById("confirm-modal") as HTMLDialogElement).open) return;
       const key = e.key.toLowerCase();
 
       if (key === "p" && !e.shiftKey) {

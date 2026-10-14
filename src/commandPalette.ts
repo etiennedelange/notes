@@ -1,4 +1,5 @@
 import type { App } from "./app";
+import { onBackdropPress } from "./dialog";
 import { fuzzyFilter, type FuzzyMatch } from "./fuzzy";
 import { escapeHtml } from "./html";
 import { basename, dirname } from "./pathutil";
@@ -9,7 +10,7 @@ interface Candidate {
   dir: string;
 }
 
-let overlay: HTMLElement;
+let dialog: HTMLDialogElement;
 let input: HTMLInputElement;
 let results: HTMLElement;
 let currentApp: App | null = null;
@@ -18,7 +19,7 @@ let selected = 0;
 let wired = false;
 
 function ensureEls() {
-  overlay = document.getElementById("command-palette-overlay")!;
+  dialog = document.getElementById("command-palette") as HTMLDialogElement;
   input = document.getElementById("command-palette-input") as HTMLInputElement;
   results = document.getElementById("command-palette-results")!;
 }
@@ -35,14 +36,13 @@ export function openCommandPalette(app: App) {
   }));
 
   input.value = "";
-  overlay.classList.remove("hidden");
+  if (!dialog.open) dialog.showModal();
   input.focus();
   runFilter(candidates, "");
 }
 
 function closeCommandPalette() {
-  overlay.classList.add("hidden");
-  currentApp?.view.focus();
+  dialog.close();
 }
 
 function runFilter(candidates: Candidate[], query: string) {
@@ -136,9 +136,6 @@ function wireOnce() {
     } else if (e.key === "Enter") {
       e.preventDefault();
       openSelected();
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      closeCommandPalette();
     }
   });
 
@@ -149,7 +146,13 @@ function wireOnce() {
     openSelected();
   });
 
-  overlay.addEventListener("mousedown", (e) => {
-    if (e.target === overlay) closeCommandPalette();
+  onBackdropPress(dialog, closeCommandPalette);
+  // Keep typing in the search box when a click lands on the palette's chrome
+  // (padding, footer, a result) rather than moving focus to the dialog.
+  dialog.addEventListener("mousedown", (e) => {
+    if (e.target !== input) e.preventDefault();
   });
+  // However it closed (Escape, the backdrop, opening a file), typing goes
+  // back to the editor rather than wherever focus was before.
+  dialog.addEventListener("close", () => currentApp?.view.focus());
 }
