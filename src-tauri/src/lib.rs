@@ -92,6 +92,38 @@ fn file_mtime_ms(path: String, state: tauri::State<ConsentedPaths>) -> Result<u6
     notes_core::file_mtime_ms(path, &state.lock())
 }
 
+/// Renames a note in place and grants the new name, which names the same
+/// file the webview already had: when the grant was the note itself rather
+/// than its folder, the old grant no longer covers it.
+#[tauri::command(async)]
+fn rename_note(
+    path: String,
+    new_name: String,
+    state: tauri::State<ConsentedPaths>,
+) -> Result<String, Error> {
+    let mut granted = state.lock();
+    let renamed = notes_core::rename_note(path, &new_name, &granted)?;
+    notes_core::grant_path_access(&renamed, &mut granted)?;
+    Ok(renamed)
+}
+
+#[tauri::command(async)]
+fn trash_note(path: String, state: tauri::State<ConsentedPaths>) -> Result<(), Error> {
+    notes_core::trash_note(path, &state.lock())
+}
+
+/// Opens the OS file manager on the item's folder with the item selected.
+/// Done here rather than through the opener plugin's JS API, so it goes
+/// through the same consent check as everything else.
+#[tauri::command(async)]
+fn reveal_path(path: String, state: tauri::State<ConsentedPaths>) -> Result<(), Error> {
+    notes_core::check_existing_access(&path, &state.lock())?;
+    tauri_plugin_opener::reveal_item_in_dir(&path).map_err(|e| Error::Reveal {
+        path,
+        message: e.to_string(),
+    })
+}
+
 #[tauri::command(async)]
 fn load_state(
     app: tauri::AppHandle,
@@ -224,6 +256,9 @@ pub fn run() {
             path_exists,
             path_is_dir,
             file_mtime_ms,
+            rename_note,
+            trash_note,
+            reveal_path,
             load_state,
             save_state,
             pick_folder,

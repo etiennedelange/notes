@@ -17,10 +17,15 @@ interface ModalOptions {
   /** The warning icon; on by default. Off for news, such as an update. */
   icon?: boolean;
   buttons: ModalButton[];
+  /** A text field under the message, prefilled with this value. */
+  input?: { value: string; selectTo?: number };
+  /** The button pressing Enter in the text field clicks. */
+  submitId?: string;
 }
 
 let wired = false;
 let resolver: ((value: string) => void) | null = null;
+let submitId: string | null = null;
 
 function els() {
   return {
@@ -29,6 +34,7 @@ function els() {
     message: document.getElementById("confirm-message")!,
     icon: document.getElementById("confirm-icon")!,
     actions: document.getElementById("confirm-actions")!,
+    input: document.getElementById("confirm-input") as HTMLInputElement,
   };
 }
 
@@ -39,7 +45,7 @@ function els() {
  * was on close.
  */
 export function showModal(opts: ModalOptions): Promise<string> {
-  const { modal, title, message, icon, actions } = els();
+  const { modal, title, message, icon, actions, input } = els();
 
   title.textContent = opts.title;
   message.textContent = opts.message;
@@ -59,10 +65,18 @@ export function showModal(opts: ModalOptions): Promise<string> {
     )
     .join("");
 
+  input.classList.toggle("hidden", !opts.input);
+  input.value = opts.input?.value ?? "";
+  submitId = opts.submitId ?? null;
+
   wireOnce();
   if (!modal.open) {
     modal.showModal();
     raiseToasts();
+  }
+  if (opts.input) {
+    input.focus();
+    input.setSelectionRange(0, opts.input.selectTo ?? input.value.length);
   }
 
   return new Promise<string>((resolve) => {
@@ -86,6 +100,32 @@ export function confirmModal(opts: {
       { id: "confirm", label: opts.confirmLabel ?? "Confirm", danger: opts.danger, autofocus: true },
     ],
   }).then((id) => id === "confirm");
+}
+
+/**
+ * Asks for a line of text. Resolves with what was entered, or null if
+ * cancelled. `selectTo` preselects the start of the value, such as a file
+ * name without its extension.
+ */
+export async function promptModal(opts: {
+  title: string;
+  message: string;
+  value: string;
+  selectTo?: number;
+  confirmLabel: string;
+}): Promise<string | null> {
+  const id = await showModal({
+    title: opts.title,
+    message: opts.message,
+    icon: false,
+    input: { value: opts.value, selectTo: opts.selectTo },
+    submitId: "confirm",
+    buttons: [
+      { id: "cancel", label: "Cancel", variant: "ghost" },
+      { id: "confirm", label: opts.confirmLabel },
+    ],
+  });
+  return id === "confirm" ? els().input.value : null;
 }
 
 /** Save / Don't Save / Cancel — the standard unsaved-changes choice. */
@@ -116,8 +156,14 @@ function settle(value: string) {
 function wireOnce() {
   if (wired) return;
   wired = true;
-  const { modal, actions } = els();
+  const { modal, actions, input } = els();
 
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && submitId) {
+      e.preventDefault();
+      settle(submitId);
+    }
+  });
   actions.addEventListener("click", (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-action]");
     if (btn) settle(btn.dataset.action!);
