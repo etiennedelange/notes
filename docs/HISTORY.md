@@ -15,6 +15,20 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-16 — Upgrade the site to Astro 7.4 and pin Node 22.22 [site]
+
+- Astro 7.4 raises the minimum Node to 22.22.0, and its CLI exits on
+  anything older. Cloudflare Pages' v3 build image defaults to Node
+  22.16.0, so `site/.node-version` now pins 22.22.0 (Pages reads it; a
+  `NODE_VERSION` variable in the Pages dashboard would override it).
+  `engines.node` in `site/package.json` matches.
+- What 7.4 brings the site: build-time warnings for font weights a
+  provider can't serve, and `astro build --timings`. Most of the build
+  is AVIF encoding of the screenshots. The rest of 7.4 (redirect page,
+  parallel prerendering, split build/runtime image services,
+  `notFound()` for `astro/hono`) targets redirects, many-page sites or
+  on-demand rendering, none of which the site has yet.
+
 ## 2026-10-14 — "Pinned Files" becomes an opt-in "Other Files" list [app]
 
 - Issue #8: dropping a file onto the window (or Ctrl+O, or Save As) listed
