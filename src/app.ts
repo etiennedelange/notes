@@ -22,9 +22,9 @@ import {
   type DirNode,
   type PersistedState,
 } from "./fs";
-import { createTabEditorState, withTheme } from "./editor";
+import { createTabEditorState, isMarkdownPath, withLanguage, withTheme } from "./editor";
 import { THEMES, THEME_ORDER, applyChromeTheme, BASE_EDITOR_FONT_PX, type ThemeId } from "./themes";
-import { basename } from "./pathutil";
+import { basename, suggestedFileName } from "./pathutil";
 import { showToast } from "./toast";
 import type { Tab } from "./types";
 import { renderSidebar } from "./sidebar";
@@ -589,7 +589,9 @@ export class App {
   private async saveTabAs(key: string): Promise<Tab | null> {
     const tab = this.tabs.get(key);
     if (!tab) return null;
-    const picked = await pickSaveTarget(tab.isUntitled ? "Untitled.md" : tab.path!).catch((e) => {
+    const picked = await pickSaveTarget(
+      tab.isUntitled ? `${suggestedFileName(tab.state.doc.toString())}.md` : tab.path!,
+    ).catch((e) => {
       showToast(`Couldn't save: ${e}`, "error");
       return null;
     });
@@ -640,8 +642,17 @@ export class App {
     return tab;
   }
 
-  /** Re-keys a tab's Map entry and order slot after Save As changes its path. */
+  /**
+   * Re-keys a tab's Map entry and order slot after Save As or a rename
+   * changes its path, and switches its highlighting if the extension moved
+   * between Markdown and plain text (untitled tabs start as Markdown).
+   */
   private rekeyTab(tab: Tab, oldKey: string, newKey: string) {
+    const oldPath = tab.path ?? "untitled.md";
+    if (isMarkdownPath(oldPath) !== isMarkdownPath(newKey)) {
+      tab.state = withLanguage(tab.state, newKey);
+      if (this.activeKey === oldKey) this.view.setState(tab.state);
+    }
     this.tabs.delete(oldKey);
     this.order = this.order.map((k) => (k === oldKey ? newKey : k));
     tab.key = newKey;

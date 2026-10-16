@@ -15,6 +15,19 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-16 — Save As names new notes and switches highlighting [app]
+
+- The save dialog for an untitled tab always proposed `Untitled.md`; it
+  now proposes the first non-blank line (`suggestedFileName` in
+  `pathutil.ts`: heading/list markers and characters file systems refuse
+  stripped, 60 chars max, `Untitled` fallback), still as `.md`.
+- The language mode is set once, from the path, when a tab's
+  `EditorState` is created. Untitled tabs are created as `untitled.md`,
+  so Save As to `.txt` (and renames across `.md`/`.txt`) kept Markdown
+  highlighting. `rekeyTab` now reconfigures the language compartment
+  when the extension changes kind. The status bar called untitled tabs
+  "Plain Text" despite that; it now says "Markdown".
+
 ## 2026-10-14 — "Pinned Files" becomes an opt-in "Other Files" list [app]
 
 - Issue #8: dropping a file onto the window (or Ctrl+O, or Save As) listed

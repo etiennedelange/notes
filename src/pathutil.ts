@@ -22,3 +22,22 @@ export function isDescendant(root: string, path: string): boolean {
   const normPath = path.toLowerCase();
   return normPath.startsWith(normRoot + "/") || normPath.startsWith(normRoot + "\\");
 }
+
+/**
+ * A file name for an untitled note, taken from its first non-blank line the
+ * way most editors suggest one: Markdown heading and list markers dropped,
+ * characters Windows or macOS refuse in names removed, capped in length.
+ * Falls back to "Untitled". Has no extension.
+ */
+export function suggestedFileName(text: string): string {
+  const first = text.split(/\r?\n/).find((l) => l.trim() !== "") ?? "";
+  const name = first
+    .replace(/^\s*(#{1,6}\s+|[-*+>]\s+|\d+[.)]\s+)?/, "")
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60)
+    .trim()
+    .replace(/^\.+|\.+$/g, "");
+  return name || "Untitled";
+}

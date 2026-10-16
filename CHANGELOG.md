@@ -7,6 +7,16 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Saving a new note suggests a name from its first line** instead of
+  always offering `Untitled.md`, so a note starting `# Shopping list`
+  saves as `Shopping list.md` by default.
+- **Highlighting follows the file type after Save As or Rename.** A new
+  note saved as `.txt`, or a note renamed between `.md` and `.txt`, no
+  longer keeps the old Markdown (or plain-text) highlighting until it's
+  reopened. The status bar also now says "Markdown" for new notes,
+  matching how they're edited.
+
 ## [0.7.4] - 2026-10-14
 
 ### Added
