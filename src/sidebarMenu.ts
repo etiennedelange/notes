@@ -21,10 +21,17 @@ function fileItems(app: App, path: string): MenuItem[] {
   ];
 }
 
+function folderItems(app: App, dir: string): MenuItem[] {
+  return [
+    { label: "New Note…", run: () => app.newNoteInFolder(dir) },
+    { label: revealLabel(), separator: true, run: () => app.revealPath(dir) },
+  ];
+}
+
 /**
  * The sidebar's right-click menu: Rename, Delete and Reveal for a note, and
- * Reveal alone for a folder. Folders can't be renamed or deleted from here;
- * they can hold files the tree doesn't show.
+ * New Note and Reveal for a folder. Folders can't be renamed or deleted from
+ * here; they can hold files the tree doesn't show.
  */
 export function installSidebarMenu(app: App) {
   const sidebar = document.getElementById("sidebar")!;
@@ -37,10 +44,8 @@ export function installSidebarMenu(app: App) {
     const file = target.closest<HTMLElement>("#folder-tree [data-file]");
     if (file) return fileItems(app, file.dataset.file!);
     const dir = target.closest<HTMLElement>("#folder-tree [data-dir]");
-    if (dir) return [{ label: revealLabel(), run: () => app.revealPath(dir.dataset.dir!) }];
-    if (app.openFolder && target.closest("#folder-label")) {
-      return [{ label: revealLabel(), run: () => app.revealPath(app.openFolder!) }];
-    }
+    if (dir) return folderItems(app, dir.dataset.dir!);
+    if (app.openFolder && target.closest("#folder-label")) return folderItems(app, app.openFolder);
     return null;
   });
 }

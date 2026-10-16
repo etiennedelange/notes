@@ -15,6 +15,23 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-16 — Everyday file-handling fixes: line endings, new notes [app]
+
+- An audit after the Save As naming fix below, looking for everyday flows
+  the tests didn't reach. The e2e mock now records what the save dialog
+  is offered and can "pick" a path, so those flows are tested.
+- CodeMirror splits on any line break and joins with `\n`, so saving a
+  CRLF file rewrote every line. Tabs now record the file's first line
+  break (`lineEndings.ts`) and saves write with it; reloads re-detect it.
+- Save As for an untitled tab now defaults into the open folder.
+- A note saved into the folder only appeared if the window's focus-regain
+  refresh happened to read the folder after the write. Save As now
+  refreshes itself, and `refreshFolder` drops a read that a later one has
+  superseded, so the stale focus read can't land last.
+- There was no way to create a note in the folder except Save As. Added
+  a sidebar button and a folder **New Note…** menu item, backed by a Rust
+  `create_note` that uses `create_new`, so it can never replace a file.
+
 ## 2026-10-16 — Save As names new notes and switches highlighting [app]
 
 - The save dialog for an untitled tab always proposed `Untitled.md`; it

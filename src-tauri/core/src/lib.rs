@@ -362,6 +362,42 @@ pub fn write_text_file(
     })
 }
 
+/// A bare note file name: no path separators, and a note extension.
+fn check_note_name(name: &str) -> Result<(), Error> {
+    if name.is_empty()
+        || name == "."
+        || name == ".."
+        || name.contains(['/', '\\'])
+        || !is_notable_file(name)
+    {
+        return Err(Error::InvalidName(name.to_string()));
+    }
+    Ok(())
+}
+
+/// Creates an empty note named `name` in `dir` and returns its path. Refuses
+/// if anything already has that name: unlike Save As, nobody confirmed
+/// replacing it, and `create_new` makes that check and the create one step.
+pub fn create_note(dir: String, name: &str, granted: &HashSet<PathBuf>) -> Result<String, Error> {
+    check_note_name(name)?;
+    let path = Path::new(&dir).join(name);
+    let path_s = path.to_string_lossy().into_owned();
+    check_access(granted, &path_s)?;
+    check_note(&path_s)?;
+    fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .map_err(|source| match source.kind() {
+            io::ErrorKind::AlreadyExists => Error::AlreadyExists(path_s.clone()),
+            _ => Error::Write {
+                path: path_s.clone(),
+                source,
+            },
+        })?;
+    Ok(path_s)
+}
+
 /// Renames a note within its own folder and returns the new path. `new_name`
 /// is a bare file name, not a path, so a rename can't move a note anywhere
 /// the webview couldn't already reach. The caller grants the returned path:
@@ -374,14 +410,7 @@ pub fn rename_note(
 ) -> Result<String, Error> {
     check_access(granted, &path)?;
     check_note(&path)?;
-    if new_name.is_empty()
-        || new_name == "."
-        || new_name == ".."
-        || new_name.contains(['/', '\\'])
-        || !is_notable_file(new_name)
-    {
-        return Err(Error::InvalidName(new_name.to_string()));
-    }
+    check_note_name(new_name)?;
     let from = Path::new(&path);
     if !from.is_file() {
         return Err(Error::Rename {
@@ -749,6 +778,40 @@ mod tests {
             fs::read_to_string(tree.0.join("new.txt")).unwrap(),
             "note body"
         );
+    }
+
+    #[test]
+    fn create_note_creates_an_empty_note() {
+        let tree = TempTree::new("create_ok");
+        let dir = path_str(&tree.0);
+
+        let created = create_note(dir, "new.md", &tree.granted()).expect("create should succeed");
+
+        assert_eq!(created, path_str(&tree.0.join("new.md")));
+        assert_eq!(fs::read_to_string(tree.0.join("new.md")).unwrap(), "");
+    }
+
+    #[test]
+    fn create_note_refuses_existing_bad_and_ungranted_names() {
+        let tree = TempTree::new("create_refuse");
+        tree.file("a.md");
+        let dir = path_str(&tree.0);
+
+        let err = create_note(dir.clone(), "a.md", &tree.granted()).unwrap_err();
+        assert!(err.to_string().contains("already exists"), "{err}");
+        assert_eq!(
+            fs::read_to_string(tree.0.join("a.md")).unwrap(),
+            "note body"
+        );
+
+        for bad in ["../x.md", "sub/x.md", "x.sh", ""] {
+            assert!(
+                create_note(dir.clone(), bad, &tree.granted()).is_err(),
+                "{bad}"
+            );
+        }
+        assert!(create_note(dir, "x.md", &HashSet::new()).is_err());
+        assert!(!tree.0.join("x.md").exists());
     }
 
     #[test]

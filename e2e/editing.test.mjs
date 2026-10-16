@@ -258,6 +258,51 @@ describe("outside changes", () => {
   });
 });
 
+describe("saving", () => {
+  const saveNewNote = async (text, pick) => {
+    if (pick) await page.evaluate((p) => window.__MOCK__.pickSavePath(p), pick);
+    await page.keyboard.press("Control+n");
+    await tab("Untitled").waitFor();
+    await page.keyboard.type(text);
+    await page.keyboard.press("Control+s");
+    await page.waitForFunction(() => window.__MOCK__.calls.includes("pick_save_path"));
+  };
+  const saveDialogs = () => page.evaluate(() => [...window.__MOCK__.saveDialogs]);
+
+  it("keeps a file's Windows line endings", async () => {
+    await changeOutside(TODO, TODO_TEXT.replaceAll("\n", "\r\n"));
+    await page.waitForTimeout(200);
+    await editEnd("x");
+    await page.keyboard.press("Control+s");
+    await page.waitForFunction(() => window.__MOCK__.writes.length > 0);
+    const onDisk = await page.evaluate((p) => window.__MOCK__.files[p], TODO);
+    assert.equal(onDisk, `${TODO_TEXT}x`.replaceAll("\n", "\r\n"));
+  });
+
+  it("offers a new note's first line as its name, in the open folder", async () => {
+    await saveNewNote("# Shopping list\nmilk");
+    assert.deepEqual(await saveDialogs(), [`${NOTES}\\Shopping list.md`]);
+  });
+
+  it("shows a note saved into the folder in the sidebar, titled and highlighted by its new name", async () => {
+    await saveNewNote("plain words", `${NOTES}\\fresh.txt`);
+    await tab("fresh.txt").waitFor();
+    await page.locator("#folder-tree .tree-row-file", { hasText: "fresh.txt" }).waitFor();
+    assert.equal(await page.locator("#titlebar-title-text").textContent(), "fresh.txt — Notes");
+    assert.equal(await page.locator("#status-lang").textContent(), "Plain Text");
+  });
+
+  it("creates a note in the open folder from the sidebar", async () => {
+    await page.locator("#new-note-btn").click();
+    await page.locator("#confirm-modal input").fill("plan");
+    await page.locator("#confirm-modal").getByRole("button", { name: "Create" }).click();
+    await tab("plan.md").waitFor();
+    await page.locator("#folder-tree .tree-row-file", { hasText: "plan.md" }).waitFor();
+    const onDisk = await page.evaluate((p) => window.__MOCK__.files[p], `${NOTES}\\plan.md`);
+    assert.equal(onDisk, "");
+  });
+});
+
 describe("other files", () => {
   const otherFiles = () => page.locator("#loose-files-section");
 

@@ -95,6 +95,10 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
   const mtimes = {};
   const writes = [];
   const calls = [];
+  // What the app offered the save dialog, and what the "user" picks there
+  // (null cancels, as before).
+  const saveDialogs = [];
+  let nextSavePath = null;
   const listeners = {};
   // While set, writes wait on it, so a test can act mid-save.
   let writeGate = null;
@@ -128,6 +132,19 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
       FILES[to] = FILES[path];
       delete FILES[path];
       return to;
+    },
+    create_note: ({ dir, name }) => {
+      const path = J(dir, name);
+      if (exists(path)) throw `${path} already exists`;
+      FILES[path] = "";
+      mtimes[path] = ++clock;
+      return path;
+    },
+    pick_save_path: ({ defaultPath }) => {
+      saveDialogs.push(defaultPath);
+      const path = nextSavePath;
+      nextSavePath = null;
+      return path && { path, extensionAdded: false };
     },
     trash_note: ({ path }) => {
       delete FILES[path];
@@ -179,6 +196,10 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
     files: FILES,
     writes,
     calls,
+    saveDialogs,
+    pickSavePath(path) {
+      nextSavePath = path;
+    },
     writeExternally(path, contents) {
       FILES[path] = contents;
       mtimes[path] = ++clock;

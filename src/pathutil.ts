@@ -10,6 +10,12 @@ export function dirname(path: string): string {
   return idx === -1 ? "" : norm.slice(0, idx);
 }
 
+/** Joins a file name onto a folder, using the separator the folder path already uses. */
+export function joinPath(dir: string, name: string): string {
+  const sep = dir.includes("\\") ? "\\" : "/";
+  return dir.replace(/[/\\]+$/, "") + sep + name;
+}
+
 /**
  * Display heuristic only: decides whether an opened file appears under the
  * folder tree vs. "Pinned Files". Case-insensitive and does not resolve `..`

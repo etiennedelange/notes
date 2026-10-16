@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { basename, dirname, isDescendant, suggestedFileName } from "./pathutil";
+import { basename, dirname, isDescendant, joinPath, suggestedFileName } from "./pathutil";
 
 describe("basename", () => {
   it("returns the last segment for forward slashes", () => {
@@ -76,5 +76,12 @@ describe("suggestedFileName", () => {
     expect(suggestedFileName("")).toBe("Untitled");
     expect(suggestedFileName("  \n# \n")).toBe("Untitled");
     expect(suggestedFileName("...")).toBe("Untitled");
+  });
+});
+
+describe("joinPath", () => {
+  it("keeps the folder's separator", () => {
+    expect(joinPath("C:\\Notes", "a.md")).toBe("C:\\Notes\\a.md");
+    expect(joinPath("/home/me/notes/", "a.md")).toBe("/home/me/notes/a.md");
   });
 });

@@ -41,6 +41,8 @@ export const pathIsDir = (path: string) => invoke<boolean>("path_is_dir", { path
 export const fileMtimeMs = (path: string) => invoke<number>("file_mtime_ms", { path });
 /** Renames a note within its folder; `newName` is a bare file name. Resolves to the new path. */
 export const renameNote = (path: string, newName: string) => invoke<string>("rename_note", { path, newName });
+/** Creates an empty note named `name` in `dir`, refusing an existing name. Resolves to its path. */
+export const createNote = (dir: string, name: string) => invoke<string>("create_note", { dir, name });
 /** Moves a note to the Recycle Bin / Trash. */
 export const trashNote = (path: string) => invoke<void>("trash_note", { path });
 /** Shows a file or folder in the OS file manager. */

@@ -16,6 +16,7 @@ import {
   pickNoteFile,
   pickSaveTarget,
   renameNote,
+  createNote,
   trashNote,
   revealPath,
   dirTreesEqual,
@@ -24,7 +25,8 @@ import {
 } from "./fs";
 import { createTabEditorState, isMarkdownPath, withLanguage, withTheme } from "./editor";
 import { THEMES, THEME_ORDER, applyChromeTheme, BASE_EDITOR_FONT_PX, type ThemeId } from "./themes";
-import { basename, suggestedFileName } from "./pathutil";
+import { basename, joinPath, suggestedFileName } from "./pathutil";
+import { detectLineEnding, textForDisk } from "./lineEndings";
 import { showToast } from "./toast";
 import type { Tab } from "./types";
 import { renderSidebar } from "./sidebar";
@@ -280,6 +282,8 @@ export class App {
     renderSidebar(this);
   }
 
+  private refreshSeq = 0;
+
   /**
    * Re-reads the open folder from disk. Nothing watches the folder for
    * outside changes (another editor, a sync client, Explorer), so this is
@@ -291,10 +295,14 @@ export class App {
   async refreshFolder(): Promise<void> {
     const folder = this.openFolder;
     if (!folder) return;
+    const seq = ++this.refreshSeq;
     const next = await readDirTree(folder).catch(() => null);
     // The open folder may have changed (or been closed) while this read was
-    // in flight — e.g. focus regains right as a folder picker resolves.
-    if (!next || folder !== this.openFolder || dirTreesEqual(this.tree, next)) return;
+    // in flight — e.g. focus regains right as a folder picker resolves. And
+    // a later refresh may have started: closing the save dialog refocuses
+    // the window just before the file is written, and that read must not
+    // land after the one that sees the new file.
+    if (!next || seq !== this.refreshSeq || folder !== this.openFolder || dirTreesEqual(this.tree, next)) return;
     this.tree = next;
     renderSidebar(this);
   }
@@ -378,6 +386,7 @@ export class App {
       savedDoc: Text.empty,
       diskMtime: mtime,
       pinned: false,
+      lineEnding: detectLineEnding(content),
     };
     tab.savedDoc = tab.state.doc;
 
@@ -457,6 +466,7 @@ export class App {
       savedDoc: Text.empty,
       diskMtime: null,
       pinned: false,
+      lineEnding: "\n",
     };
     this.tabs.set(key, tab);
     this.order.push(key);
@@ -589,9 +599,11 @@ export class App {
   private async saveTabAs(key: string): Promise<Tab | null> {
     const tab = this.tabs.get(key);
     if (!tab) return null;
-    const picked = await pickSaveTarget(
-      tab.isUntitled ? `${suggestedFileName(tab.state.doc.toString())}.md` : tab.path!,
-    ).catch((e) => {
+    // A new note starts in the open folder, if there is one; otherwise the
+    // dialog opens wherever the OS last left it.
+    const name = `${suggestedFileName(tab.state.doc.toString())}.md`;
+    const defaultPath = tab.isUntitled ? (this.openFolder ? joinPath(this.openFolder, name) : name) : tab.path!;
+    const picked = await pickSaveTarget(defaultPath).catch((e) => {
       showToast(`Couldn't save: ${e}`, "error");
       return null;
     });
@@ -624,7 +636,7 @@ export class App {
     // user just chose to overwrite whatever is at the target.
     const doc = tab.state.doc;
     try {
-      await writeTextFile(target, doc.toString());
+      await writeTextFile(target, textForDisk(doc, tab.lineEnding));
     } catch (e) {
       showToast(`Couldn't save: ${String(e)}`, "error");
       return null;
@@ -633,6 +645,8 @@ export class App {
     this.markSaved(tab, doc);
     tab.diskMtime = await fileMtimeMs(target).catch(() => Date.now());
     this.touchRecent(target);
+    // Show the new file in the sidebar if it landed in the open folder.
+    await this.refreshFolder();
 
     renderTabs(this);
     renderSidebar(this);
@@ -688,7 +702,7 @@ export class App {
 
     const doc = tab.state.doc;
     try {
-      await writeTextFile(tab.path!, doc.toString());
+      await writeTextFile(tab.path!, textForDisk(doc, tab.lineEnding));
       this.markSaved(tab, doc);
       tab.diskMtime = await fileMtimeMs(tab.path!).catch(() => Date.now());
       renderTabs(this);
@@ -708,6 +722,7 @@ export class App {
       const result = await readTextFile(tab.path!);
       const mtime = await fileMtimeMs(tab.path!).catch(() => Date.now());
       tab.state = this.createTabState(() => tab, result.contents, tab.path!);
+      tab.lineEnding = detectLineEnding(result.contents);
       this.markSaved(tab, tab.state.doc);
       tab.diskMtime = mtime;
       if (this.activeKey === tab.key) this.view.setState(tab.state);
@@ -748,6 +763,7 @@ export class App {
     // saved with CRLF compares equal to the same text already open.
     const after = tab.state.toText(result.contents);
     tab.diskMtime = mtime;
+    tab.lineEnding = detectLineEnding(result.contents);
     const change = minimalChange(tab.state.doc.toString(), after.toString());
     if (!change) return;
     const tr = tab.state.update({ changes: change, annotations: reloadedFromDisk.of(true) });
@@ -782,6 +798,35 @@ export class App {
     this.looseFiles = this.looseFiles.filter((p) => p !== path);
     renderSidebar(this);
     this.persist();
+  }
+
+  /**
+   * Asks for a name and creates an empty note in `dir` (the open folder by
+   * default), then opens it. Leaving off the extension makes it Markdown.
+   */
+  async newNoteInFolder(dir = this.openFolder) {
+    if (!dir) return;
+    const entered = await promptModal({
+      title: "New Note",
+      message: `Name for the new note in "${basename(dir)}":`,
+      value: "Untitled.md",
+      selectTo: "Untitled".length,
+      confirmLabel: "Create",
+    });
+    let name = entered?.trim();
+    if (!name) return;
+    if (!NOTE_EXT.test(name)) name += ".md";
+
+    let path: string;
+    try {
+      path = await createNote(dir, name);
+    } catch (e) {
+      showToast(`Couldn't create note: ${String(e)}`, "error");
+      return;
+    }
+    this.expandedDirs.add(dir);
+    await this.refreshFolder();
+    await this.openFile(path);
   }
 
   /**

@@ -7,7 +7,18 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **New Note in the sidebar.** A new-note button sits next to the open
+  folder's name, and right-clicking a folder offers **New Note…**, so a
+  note can be created right where you want it instead of via Save As.
+
 ### Fixed
+- **Saving keeps a file's Windows line endings.** Files using CRLF line
+  breaks were saved back with LF ones, so editing one line changed every
+  line as far as Git or a sync client could tell.
+- **Saving a new note starts in the open folder**, rather than wherever
+  the save dialog was last, and the saved note shows up in the sidebar
+  straight away.
 - **Saving a new note suggests a name from its first line** instead of
   always offering `Untitled.md`, so a note starting `# Shopping list`
   saves as `Shopping list.md` by default.

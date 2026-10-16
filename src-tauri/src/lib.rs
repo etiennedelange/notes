@@ -107,6 +107,16 @@ fn rename_note(
     Ok(renamed)
 }
 
+/// Creates an empty note in a granted folder.
+#[tauri::command(async)]
+fn create_note(
+    dir: String,
+    name: String,
+    state: tauri::State<ConsentedPaths>,
+) -> Result<String, Error> {
+    notes_core::create_note(dir, &name, &state.lock())
+}
+
 #[tauri::command(async)]
 fn trash_note(path: String, state: tauri::State<ConsentedPaths>) -> Result<(), Error> {
     notes_core::trash_note(path, &state.lock())
@@ -257,6 +267,7 @@ pub fn run() {
             path_is_dir,
             file_mtime_ms,
             rename_note,
+            create_note,
             trash_note,
             reveal_path,
             load_state,
