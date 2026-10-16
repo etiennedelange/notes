@@ -40,6 +40,14 @@ import { minimalChange } from "./textDiff";
 const RECENT_LIMIT = 30;
 const CLOSED_TABS_LIMIT = 20;
 const NOTE_EXT = /\.(txt|md|markdown)$/i;
+/** `"a.md"`, `"a.md" and "b.md"`, or `"a.md", "b.md" and 3 others` for messages. */
+function quotedNames(paths: string[]): string {
+  const names = paths.map((p) => `"${basename(p)}"`);
+  if (names.length === 1) return names[0];
+  if (names.length <= 3) return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  return `${names.slice(0, 2).join(", ")} and ${names.length - 2} others`;
+}
+
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2.0;
 const ZOOM_STEP = 0.1;
@@ -71,7 +79,6 @@ export class App {
   editorZoom = 1;
   sidebarWidth = SIDEBAR_W_DEFAULT;
   expandedDirs = new Set<string>();
-  untitledCounter = 1;
   private closedTabs: string[] = [];
   private windowGeom: { x: number; y: number; width: number; height: number; maximized: boolean } | null = null;
 
@@ -167,10 +174,17 @@ export class App {
     }
 
     if (persisted?.openTabs?.length) {
+      const missing: string[] = [];
       for (const path of persisted.openTabs) {
         if (await pathExists(path)) {
           await this.openFile(path, { activate: false, skipPersist: true, skipRecent: true });
+        } else {
+          missing.push(path);
         }
+      }
+      // Said once: the session saved next won't list them again.
+      if (missing.length > 0) {
+        showToast(`Couldn't reopen ${quotedNames(missing)}: moved or deleted since Notes last ran.`);
       }
     }
 
@@ -456,7 +470,11 @@ export class App {
   }
 
   newUntitledTab() {
-    const key = `untitled:${this.untitledCounter++}`;
+    // The lowest number no open untitled tab has, so tabs read "Untitled",
+    // "Untitled 2", ... and the numbers are reused as they close.
+    let n = 1;
+    while (this.tabs.has(`untitled:${n}`)) n++;
+    const key = `untitled:${n}`;
     const tab: Tab = {
       key,
       path: null,
@@ -508,11 +526,14 @@ export class App {
       this.closedTabs.push(tab.path);
       if (this.closedTabs.length > CLOSED_TABS_LIMIT) this.closedTabs.shift();
     }
+    // Closing the active tab moves to its right-hand neighbour, or the left
+    // one at the end of the strip, as browsers and most editors do.
+    const idx = this.order.indexOf(key);
     this.tabs.delete(key);
     this.order = this.order.filter((k) => k !== key);
     if (this.previewKey === key) this.previewKey = null;
     if (this.activeKey === key) {
-      const next = this.order[this.order.length - 1] ?? null;
+      const next = this.order[Math.min(idx, this.order.length - 1)] ?? null;
       this.activeKey = null;
       if (next) this.activateTab(next);
       else {
@@ -570,7 +591,10 @@ export class App {
   }
 
   tabLabel(tab: Tab): string {
-    if (tab.isUntitled) return "Untitled";
+    if (tab.isUntitled) {
+      const n = Number(tab.key.slice("untitled:".length));
+      return n > 1 ? `Untitled ${n}` : "Untitled";
+    }
     return basename(tab.path!);
   }
 
@@ -1174,12 +1198,18 @@ export class App {
     // Emitted by Rust once it has granted the dropped paths (on_drop in
     // src-tauri/src/lib.rs), in place of Tauri's own drag-drop event.
     listen<string[]>("notes://drop", async (event) => {
+      const skipped: string[] = [];
       for (const p of event.payload) {
         if (NOTE_EXT.test(p)) {
           await this.openFile(p);
         } else if (await pathIsDir(p)) {
           await this.setOpenFolder(p);
+        } else {
+          skipped.push(p);
         }
+      }
+      if (skipped.length > 0) {
+        showToast(`Couldn't open ${quotedNames(skipped)}: Notes opens .txt and .md files.`, "error");
       }
     }).catch(() => {});
   }

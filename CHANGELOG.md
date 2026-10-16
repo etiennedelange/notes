@@ -19,6 +19,15 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Saving a new note starts in the open folder**, rather than wherever
   the save dialog was last, and the saved note shows up in the sidebar
   straight away.
+- **New tabs are numbered** ("Untitled", "Untitled 2", ...), so the
+  unsaved-changes prompt can tell them apart.
+- **Closing a tab moves to the tab beside it**, not the last tab.
+- **The tab menu's "Reveal" item is named for your OS** (Finder on macOS,
+  "Show in Folder" on Linux), as it already was in the sidebar.
+- **Files that can't be opened say so.** Dropping a file Notes can't open
+  (anything but `.txt` and `.md`) shows a message instead of doing
+  nothing, as does a tab from the last session whose file has since been
+  moved or deleted.
 - **Saving a new note suggests a name from its first line** instead of
   always offering `Untitled.md`, so a note starting `# Shopping list`
   saves as `Shopping list.md` by default.

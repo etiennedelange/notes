@@ -303,6 +303,50 @@ describe("saving", () => {
   });
 });
 
+describe("tabs", () => {
+  const labels = () => page.locator(".tab .tab-label").allTextContents();
+  const activeLabel = () => page.locator(".tab.active .tab-label").textContent();
+
+  it("numbers new tabs, reusing a number once its tab closes", async () => {
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("Control+n");
+    await page.keyboard.press("Control+n");
+    assert.deepEqual(await labels(), ["todo.txt", "standup.txt", "Untitled", "Untitled 2"]);
+    await page.locator('.tab[data-tab="untitled:1"]').click();
+    await page.keyboard.press("Control+w");
+    await page.keyboard.press("Control+n");
+    assert.deepEqual(await labels(), ["todo.txt", "standup.txt", "Untitled 2", "Untitled"]);
+  });
+
+  it("moves to the neighbouring tab when the active one closes", async () => {
+    const readme = `${NOTES}\\README.md`;
+    await page.locator(`.tree-row-file[data-file="${readme.replaceAll("\\", "\\\\")}"]`).dblclick();
+    await tab("README.md").waitFor();
+    await tab("todo.txt").click();
+    await page.keyboard.press("Control+w");
+    assert.equal(await activeLabel(), "standup.txt");
+    await tab("README.md").click();
+    await page.keyboard.press("Control+w");
+    assert.equal(await activeLabel(), "standup.txt");
+  });
+});
+
+describe("files that can't be opened", () => {
+  const toast = () => page.locator("#toast-container .toast");
+
+  it("says why a dropped file wasn't opened", async () => {
+    await page.evaluate(() => window.__MOCK__.emit("notes://drop", ["C:\\Users\\etienne\\Desktop\\photo.png"]));
+    await toast().waitFor();
+    assert.match(await toast().textContent(), /Couldn't open "photo\.png": Notes opens \.txt and \.md files/);
+  });
+
+  it("says which tabs from the last session are gone", async () => {
+    await launch({ ...SESSION, openTabs: [...SESSION.openTabs, `${NOTES}\\gone.md`] });
+    await toast().waitFor();
+    assert.match(await toast().textContent(), /Couldn't reopen "gone\.md"/);
+  });
+});
+
 describe("other files", () => {
   const otherFiles = () => page.locator("#loose-files-section");
 

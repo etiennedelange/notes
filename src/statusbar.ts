@@ -18,7 +18,7 @@ export function renderStatusBar(app: App) {
   const titlebarTitle = document.getElementById("titlebar-title-text");
   if (tab) {
     const label = app.tabLabel(tab);
-    pathEl.textContent = tab.isUntitled ? "Untitled" : tab.path!;
+    pathEl.textContent = tab.isUntitled ? label : tab.path!;
     dirtyEl.classList.toggle("hidden", !tab.dirty);
     // Untitled tabs are edited as Markdown (see newUntitledTab).
     langEl.textContent = tab.isUntitled || isMarkdownPath(tab.path!) ? "Markdown" : "Plain Text";

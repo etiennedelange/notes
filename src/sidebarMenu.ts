@@ -7,7 +7,8 @@ const platform = () => document.documentElement.dataset.platform;
 /** What the OS calls the place deleted files go. */
 export const trashName = () => (platform() === "windows" ? "Recycle Bin" : "Trash");
 
-function revealLabel(): string {
+/** What the OS file manager's "show this file" command is called. */
+export function revealLabel(): string {
   if (platform() === "windows") return "Reveal in File Explorer";
   if (platform() === "macos") return "Reveal in Finder";
   return "Show in Folder";

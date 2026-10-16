@@ -5,6 +5,7 @@ import type { App } from "./app";
 import { escapeHtml } from "./html";
 import { isDescendant } from "./pathutil";
 import { showToast } from "./toast";
+import { revealLabel } from "./sidebarMenu";
 
 let currentApp: App | null = null;
 let wired = false;
@@ -23,7 +24,7 @@ export function renderTabs(app: App) {
         ? `<svg class="icon tab-pin-icon" width="11" height="11" aria-hidden="true"><use href="#icon-pin" /></svg>`
         : "";
       return `
-        <div class="tab ${active ? "active" : ""} ${tab.dirty ? "dirty" : ""} ${preview ? "preview" : ""} ${tab.pinned ? "pinned" : ""}" data-tab="${escapeHtml(key)}" role="tab" aria-selected="${active}" title="${escapeHtml(tab.path ?? "Untitled")}">
+        <div class="tab ${active ? "active" : ""} ${tab.dirty ? "dirty" : ""} ${preview ? "preview" : ""} ${tab.pinned ? "pinned" : ""}" data-tab="${escapeHtml(key)}" role="tab" aria-selected="${active}" title="${escapeHtml(tab.path ?? label)}">
           ${pinIcon}
           <span class="tab-label">${escapeHtml(label)}</span>
           <span class="dot" aria-hidden="true"></span>
@@ -75,7 +76,7 @@ async function showTabContextMenu(app: App, key: string) {
     }
     items.push(
       await MenuItem.new({
-        text: "Reveal in File Explorer",
+        text: revealLabel(),
         action: () => revealItemInDir(path).catch((e) => showToast(`Couldn't reveal file: ${e}`, "error")),
       }),
       await MenuItem.new({
