@@ -20,6 +20,7 @@
   --warning: #ebcb8b;
   --danger: #bf616a;
   --danger-text: #edaab1;
+  --on-danger-window: #ffffff;
   --selection: rgba(136, 192, 208, 0.25);
   --caret: #88c0d0;
 
@@ -205,7 +206,7 @@ kbd {
 }
 .tb-btn-close:hover {
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger-window);
 }
 
 /* macOS keeps its native traffic-light controls (see tauri.macos.conf.json);

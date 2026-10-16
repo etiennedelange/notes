@@ -28,6 +28,10 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (anything but `.txt` and `.md`) shows a message instead of doing
   nothing, as does a tab from the last session whose file has since been
   moved or deleted.
+- **Easier-to-read red in two places.** Red text such as a hovered
+  "Delete…" menu item is a little darker in Noctis Lux, so it's legible
+  on the hover highlight, and the close button's ✕ is dark on Tokyo
+  Night's pink hover instead of white.
 - **Saving a new note suggests a name from its first line** instead of
   always offering `Untitled.md`, so a note starting `# Shopping list`
   saves as `Shopping list.md` by default.

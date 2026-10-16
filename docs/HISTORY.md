@@ -15,6 +15,20 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-16 — Contrast fixes from the design system's checker [app]
+
+- The design system's colour table flagged two pairs. Noctis Lux
+  `dangerText` was upstream's `#c73c00`, 4.25:1 on `bgHighlight` despite
+  the themes.ts comment promising 4.5:1 there; now `#c23700`, same hue
+  (the brand's crimson was the alternative, left for a deliberate change
+  of the status colours).
+- The close button's hover glyph was a literal `#fff`, 2.65:1 on Tokyo
+  Night's pink `danger`. It's now a theme token, `onDangerWindow`: Tokyo
+  Night uses its `bg` (5.5:1), the others stay white (4.1–5.2:1; an icon
+  needs 3:1, so Nord and Hibernus weren't re-tinted).
+- `themes.test.ts` now checks every theme's text tiers on every surface,
+  and that glyph, so a palette edit can't quietly break the guarantee.
+
 ## 2026-10-16 — Everyday file-handling fixes: line endings, new notes [app]
 
 - An audit after the Save As naming fix below, looking for everyday flows
