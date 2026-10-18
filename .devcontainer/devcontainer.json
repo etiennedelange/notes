@@ -7,7 +7,7 @@
 			"wrangler": true
 		},
 		"ghcr.io/devcontainers/features/node:2.1.1": {
-			"version": "lts"
+			"version": "26"
 		}
 	},
 

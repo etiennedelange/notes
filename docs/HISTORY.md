@@ -15,6 +15,25 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-16 — Upgrade the site to Astro 7.4; Node 26 everywhere [app, site]
+
+- Astro 7.4 raises the minimum Node to 22.22.0, and its CLI exits on
+  anything older. Cloudflare Pages' v3 build image defaults to Node
+  22.16.0, so `site/.node-version` now pins the latest Node, 26.12.0
+  (Pages reads it; a `NODE_VERSION` variable in the Pages dashboard would
+  override it). `engines.node` in `site/package.json` is Astro's floor,
+  `>=22.22.0`, not the pin.
+- To match, the dev container's Node feature moved from `lts` to `26`
+  (`lts` resolved to 24 and would have jumped on its own), and the CI,
+  release and release-cache workflows from Node 24 to 26. Supersedes the
+  Node 24 choice in "Toolchain housekeeping" (2026-10-13).
+- What 7.4 brings the site: build-time warnings for font weights a
+  provider can't serve, and `astro build --timings`. Most of the build
+  is AVIF encoding of the screenshots. The rest of 7.4 (redirect page,
+  parallel prerendering, split build/runtime image services,
+  `notFound()` for `astro/hono`) targets redirects, many-page sites or
+  on-demand rendering, none of which the site has yet.
+
 ## 2026-10-16 — Contrast fixes from the design system's checker [app]
 
 - The design system's colour table flagged two pairs. Noctis Lux
