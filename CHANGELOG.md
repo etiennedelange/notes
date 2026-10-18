@@ -7,6 +7,40 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **New Note in the sidebar.** A new-note button sits next to the open
+  folder's name, and right-clicking a folder offers **New Note…**, so a
+  note can be created right where you want it instead of via Save As.
+
+### Fixed
+- **Saving keeps a file's Windows line endings.** Files using CRLF line
+  breaks were saved back with LF ones, so editing one line changed every
+  line as far as Git or a sync client could tell.
+- **Saving a new note starts in the open folder**, rather than wherever
+  the save dialog was last, and the saved note shows up in the sidebar
+  straight away.
+- **New tabs are numbered** ("Untitled", "Untitled 2", ...), so the
+  unsaved-changes prompt can tell them apart.
+- **Closing a tab moves to the tab beside it**, not the last tab.
+- **The tab menu's "Reveal" item is named for your OS** (Finder on macOS,
+  "Show in Folder" on Linux), as it already was in the sidebar.
+- **Files that can't be opened say so.** Dropping a file Notes can't open
+  (anything but `.txt` and `.md`) shows a message instead of doing
+  nothing, as does a tab from the last session whose file has since been
+  moved or deleted.
+- **Easier-to-read red in two places.** Red text such as a hovered
+  "Delete…" menu item is a little darker in Noctis Lux, so it's legible
+  on the hover highlight, and the close button's ✕ is dark on Tokyo
+  Night's pink hover instead of white.
+- **Saving a new note suggests a name from its first line** instead of
+  always offering `Untitled.md`, so a note starting `# Shopping list`
+  saves as `Shopping list.md` by default.
+- **Highlighting follows the file type after Save As or Rename.** A new
+  note saved as `.txt`, or a note renamed between `.md` and `.txt`, no
+  longer keeps the old Markdown (or plain-text) highlighting until it's
+  reopened. The status bar also now says "Markdown" for new notes,
+  matching how they're edited.
+
 ## [0.7.4] - 2026-10-14
 
 ### Added

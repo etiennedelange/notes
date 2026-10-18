@@ -15,6 +15,57 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-16 — Contrast fixes from the design system's checker [app]
+
+- The design system's colour table flagged two pairs. Noctis Lux
+  `dangerText` was upstream's `#c73c00`, 4.25:1 on `bgHighlight` despite
+  the themes.ts comment promising 4.5:1 there; now `#c23700`, same hue
+  (the brand's crimson was the alternative, left for a deliberate change
+  of the status colours).
+- The close button's hover glyph was a literal `#fff`, 2.65:1 on Tokyo
+  Night's pink `danger`. It's now a theme token, `onDangerWindow`: Tokyo
+  Night uses its `bg` (5.5:1), the others stay white (4.1–5.2:1; an icon
+  needs 3:1, so Nord and Hibernus weren't re-tinted).
+- `themes.test.ts` now checks every theme's text tiers on every surface,
+  and that glyph, so a palette edit can't quietly break the guarantee.
+
+## 2026-10-16 — Everyday file-handling fixes: line endings, new notes [app]
+
+- An audit after the Save As naming fix below, looking for everyday flows
+  the tests didn't reach. The e2e mock now records what the save dialog
+  is offered and can "pick" a path, so those flows are tested.
+- CodeMirror splits on any line break and joins with `\n`, so saving a
+  CRLF file rewrote every line. Tabs now record the file's first line
+  break (`lineEndings.ts`) and saves write with it; reloads re-detect it.
+- Save As for an untitled tab now defaults into the open folder.
+- A note saved into the folder only appeared if the window's focus-regain
+  refresh happened to read the folder after the write. Save As now
+  refreshes itself, and `refreshFolder` drops a read that a later one has
+  superseded, so the stale focus read can't land last.
+- There was no way to create a note in the folder except Save As. Added
+  a sidebar button and a folder **New Note…** menu item, backed by a Rust
+  `create_note` that uses `create_new`, so it can never replace a file.
+  The folder header's icons now group at the right (`margin-right: auto`
+  on the title); with `space-between` a fourth button spread them out.
+- Smaller ones from the same audit: untitled tabs take the lowest free
+  number ("Untitled 2"), closing the active tab activates its right-hand
+  neighbour (was: the last tab), the tab menu uses the sidebar's
+  per-OS Reveal label, and dropped non-note files and session tabs whose
+  files are gone now get a toast instead of being skipped silently.
+
+## 2026-10-16 — Save As names new notes and switches highlighting [app]
+
+- The save dialog for an untitled tab always proposed `Untitled.md`; it
+  now proposes the first non-blank line (`suggestedFileName` in
+  `pathutil.ts`: heading/list markers and characters file systems refuse
+  stripped, 60 chars max, `Untitled` fallback), still as `.md`.
+- The language mode is set once, from the path, when a tab's
+  `EditorState` is created. Untitled tabs are created as `untitled.md`,
+  so Save As to `.txt` (and renames across `.md`/`.txt`) kept Markdown
+  highlighting. `rekeyTab` now reconfigures the language compartment
+  when the extension changes kind. The status bar called untitled tabs
+  "Plain Text" despite that; it now says "Markdown".
+
 ## 2026-10-14 — "Pinned Files" becomes an opt-in "Other Files" list [app]
 
 - Issue #8: dropping a file onto the window (or Ctrl+O, or Save As) listed

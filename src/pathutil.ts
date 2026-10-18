@@ -10,6 +10,12 @@ export function dirname(path: string): string {
   return idx === -1 ? "" : norm.slice(0, idx);
 }
 
+/** Joins a file name onto a folder, using the separator the folder path already uses. */
+export function joinPath(dir: string, name: string): string {
+  const sep = dir.includes("\\") ? "\\" : "/";
+  return dir.replace(/[/\\]+$/, "") + sep + name;
+}
+
 /**
  * Display heuristic only: decides whether an opened file appears under the
  * folder tree vs. "Pinned Files". Case-insensitive and does not resolve `..`
@@ -21,4 +27,23 @@ export function isDescendant(root: string, path: string): boolean {
   const normRoot = root.replace(/[/\\]+$/, "").toLowerCase();
   const normPath = path.toLowerCase();
   return normPath.startsWith(normRoot + "/") || normPath.startsWith(normRoot + "\\");
+}
+
+/**
+ * A file name for an untitled note, taken from its first non-blank line the
+ * way most editors suggest one: Markdown heading and list markers dropped,
+ * characters Windows or macOS refuse in names removed, capped in length.
+ * Falls back to "Untitled". Has no extension.
+ */
+export function suggestedFileName(text: string): string {
+  const first = text.split(/\r?\n/).find((l) => l.trim() !== "") ?? "";
+  const name = first
+    .replace(/^\s*(#{1,6}\s+|[-*+>]\s+|\d+[.)]\s+)?/, "")
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60)
+    .trim()
+    .replace(/^\.+|\.+$/g, "");
+  return name || "Untitled";
 }

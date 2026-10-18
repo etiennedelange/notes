@@ -1,6 +1,7 @@
 import type { EditorState, Text } from "@codemirror/state";
 import type { ThemeId } from "./themes";
 import type { DirNode } from "./fs";
+import type { LineEnding } from "./lineEndings";
 
 export interface Tab {
   key: string;
@@ -12,6 +13,8 @@ export interface Tab {
   savedDoc: Text;
   diskMtime: number | null;
   pinned: boolean;
+  /** The file's own line breaks, restored on save. */
+  lineEnding: LineEnding;
 }
 
 export interface AppSnapshot {

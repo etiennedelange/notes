@@ -46,6 +46,13 @@ export function createTabEditorState(
   });
 }
 
+/** Switches a state's language to match `path`, e.g. after Save As or a rename changes its extension. */
+export function withLanguage(state: EditorState, path: string): EditorState {
+  return state.update({
+    effects: languageCompartment.reconfigure(languageExtension(path)),
+  }).state;
+}
+
 export function withTheme(state: EditorState, theme: ThemeTokens): EditorState {
   return state.update({
     effects: themeCompartment.reconfigure(editorTheme(theme)),

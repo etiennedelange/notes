@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { basename, dirname, isDescendant } from "./pathutil";
+import { basename, dirname, isDescendant, joinPath, suggestedFileName } from "./pathutil";
 
 describe("basename", () => {
   it("returns the last segment for forward slashes", () => {
@@ -52,5 +52,36 @@ describe("isDescendant", () => {
 
   it("is case-insensitive", () => {
     expect(isDescendant("C:/Notes", "c:/notes/todo.md")).toBe(true);
+  });
+});
+
+describe("suggestedFileName", () => {
+  it("uses the first heading without its marker", () => {
+    expect(suggestedFileName("\n\n# Shopping list\n- milk")).toBe("Shopping list");
+  });
+
+  it("uses a plain first line as is", () => {
+    expect(suggestedFileName("Meeting notes\r\nmore")).toBe("Meeting notes");
+  });
+
+  it("drops characters file systems refuse", () => {
+    expect(suggestedFileName('Q3: plans/ideas? "draft"')).toBe("Q3 plansideas draft");
+  });
+
+  it("caps the length", () => {
+    expect(suggestedFileName("a".repeat(100))).toHaveLength(60);
+  });
+
+  it("falls back to Untitled for empty or symbol-only notes", () => {
+    expect(suggestedFileName("")).toBe("Untitled");
+    expect(suggestedFileName("  \n# \n")).toBe("Untitled");
+    expect(suggestedFileName("...")).toBe("Untitled");
+  });
+});
+
+describe("joinPath", () => {
+  it("keeps the folder's separator", () => {
+    expect(joinPath("C:\\Notes", "a.md")).toBe("C:\\Notes\\a.md");
+    expect(joinPath("/home/me/notes/", "a.md")).toBe("/home/me/notes/a.md");
   });
 });

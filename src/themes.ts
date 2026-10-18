@@ -29,6 +29,8 @@ export interface ThemeTokens {
   dangerText: string;
   selection: string;
   caret: string;
+  /** The close-window button's glyph on its `danger` hover fill: white, or `bg` where `danger` is too light for white. */
+  onDangerWindow: string;
 }
 
 // Palettes sourced from each project's own published values:
@@ -52,6 +54,11 @@ export interface ThemeTokens {
 // in OKLab lightness, hue kept, until they clear 4.5:1: fgMuted, fgSubtle,
 // accentText and dangerText on bg, bgElevated and bgHighlight; success and
 // warning on bg and bgElevated. danger clears 3:1 on bgElevated.
+// Noctis Lux's dangerText is upstream's #c73c00 darkened the same way (to
+// #c23700), which it needed to clear 4.5:1 on bgHighlight.
+// onDangerWindow, the close button's hover glyph, is white like Windows'
+// own, except on Tokyo Night's light pink danger, where white is 2.65:1
+// and bg is 5.5:1. The rest clear 4:1 (3:1 is the bar for an icon).
 export const THEMES: Record<ThemeId, ThemeTokens> = {
   nord: {
     id: "nord",
@@ -74,6 +81,7 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     dangerText: "#edaab1",
     selection: "rgba(136, 192, 208, 0.25)",
     caret: "#88c0d0",
+    onDangerWindow: "#ffffff",
   },
   "tokyo-night": {
     id: "tokyo-night",
@@ -96,6 +104,7 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     dangerText: "#f7768e",
     selection: "rgba(122, 162, 247, 0.25)",
     caret: "#7aa2f7",
+    onDangerWindow: "#24283b",
   },
   "noctis-lux": {
     id: "noctis-lux",
@@ -115,9 +124,10 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     success: "#00834f",
     warning: "#996000",
     danger: "#c73c00",
-    dangerText: "#c73c00",
+    dangerText: "#c23700",
     selection: "rgba(173, 226, 235, 0.65)",
     caret: "#0092a8",
+    onDangerWindow: "#ffffff",
   },
   "noctis-hibernus": {
     id: "noctis-hibernus",
@@ -140,6 +150,7 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     dangerText: "#c81c00",
     selection: "rgba(173, 226, 235, 0.47)",
     caret: "#0092a8",
+    onDangerWindow: "#ffffff",
   },
 };
 
@@ -166,6 +177,7 @@ export function applyChromeTheme(theme: ThemeTokens) {
   root.style.setProperty("--danger-text", theme.dangerText);
   root.style.setProperty("--selection", theme.selection);
   root.style.setProperty("--caret", theme.caret);
+  root.style.setProperty("--on-danger-window", theme.onDangerWindow);
 }
 
 function markdownHighlightStyle(theme: ThemeTokens) {
