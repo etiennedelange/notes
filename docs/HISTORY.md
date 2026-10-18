@@ -15,6 +15,21 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-18 — `pnpm release` picks up a release stopped after its tag [app]
+
+- Ctrl+C while 0.7.5's Release workflow was being followed left it
+  running on GitHub (it finished fine), but rerunning `pnpm release` moved
+  on to 0.7.6 and stopped on the empty `[Unreleased]`. The next version is
+  worked out from the newest tag, so a pushed tag looked like a finished
+  release.
+- `ship.mjs` now treats a newest tag with no GitHub Release as unfinished
+  and follows its Release run. The Release is what the workflow publishes
+  last, so it's the signal for "done". An explicit `pnpm release <x.y.z>`
+  skips this. The uncommitted-changes check now runs after the follow
+  paths, since watching a run doesn't touch the tree.
+
+---
+
 ## 2026-10-16 — Upgrade the site to Astro 7.4; Node 26 everywhere [app, site]
 
 - Astro 7.4 raises the minimum Node to 22.22.0, and its CLI exits on

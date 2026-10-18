@@ -54,7 +54,11 @@ tag, and entries under the CHANGELOG's `[Unreleased]`. After you confirm, it:
 4. Follows the Release workflow and prints the release page.
 
 Ctrl+C is safe at any point. Run the same command again and it carries on
-from where it stopped. `--yes` skips the question. If CI fails, fix it on the
+from where it stopped. That includes stopping after the tag is pushed: if
+the newest tag has no GitHub Release yet, a bare `pnpm release` follows
+that tag's Release run instead of starting the next patch. (A tag whose
+Release run failed stays that way until you rerun the workflow, or give a
+newer version.) `--yes` skips the question. If CI fails, fix it on the
 release branch and run it again.
 
 `.github/workflows/release.yml` then:

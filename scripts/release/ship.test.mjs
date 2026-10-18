@@ -1,7 +1,7 @@
 // pnpm test:tools (node --test)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { compareVersions, hasNotes, nextPatch, versionProblem } from "./ship.mjs";
+import { compareVersions, hasNotes, newestVersion, nextPatch, versionProblem } from "./ship.mjs";
 
 test("compareVersions follows semver precedence", () => {
   const ordered = [
@@ -30,6 +30,13 @@ test("versionProblem refuses a tagged or older version", () => {
   assert.equal(versionProblem("0.2.0", tags), "v0.2.0 is already tagged");
   assert.equal(versionProblem("0.1.5", tags), "0.1.5 is older than the newest tag, v0.2.0");
   assert.equal(versionProblem("0.1.0", []), null);
+});
+
+test("newestVersion picks the highest v* tag", () => {
+  assert.equal(newestVersion(["v0.7.5", "v0.10.0", "v0.7.10", "not-a-version"]), "0.10.0");
+  assert.equal(newestVersion(["v0.8.0-beta.1", "v0.7.5"]), "0.8.0-beta.1");
+  assert.equal(newestVersion(["not-a-version"]), null);
+  assert.equal(newestVersion([]), null);
 });
 
 test("nextPatch bumps the newest tag's patch", () => {
