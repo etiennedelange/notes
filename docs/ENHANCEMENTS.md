@@ -12,6 +12,19 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Open
 
+- **[app] Adopt the brand's status colours.** `design/brand.md` gives
+  Noctis Lux a crimson danger (`#d02a3a`, text `#c11830`) so an orange
+  fits between it and warning; the app still has upstream's orange-red
+  (`#c73c00`, text `#c23700` since the 2026-10-16 contrast fix).
+  Hibernus derives its own from syntax colours. Change `danger`,
+  `dangerText` and `warning` together; `themes.test.ts` checks contrast.
+- **[app] Show when an open file was deleted outside Notes.** A clean
+  tab whose file disappears stays as it was with no sign (VS Code marks
+  it "deleted"); saving quietly recreates the file.
+- **[app] Design system: FileTree preview still says "Pinned Files".**
+  The section was renamed "Other Files" on 2026-10-14; the preview and
+  its README weren't updated.
+
 - **[app] Remaining UI review suggestions.** From the 2026-10-14 design
   review (see `HISTORY.md`), not yet done:
   - Show recent files, New File and Open Folder in the empty state.
