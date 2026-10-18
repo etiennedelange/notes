@@ -7,6 +7,8 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-10-18
+
 ### Added
 - **New Note in the sidebar.** A new-note button sits next to the open
   folder's name, and right-clicking a folder offers **New Note…**, so a
