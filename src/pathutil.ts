@@ -30,6 +30,18 @@ export function isDescendant(root: string, path: string): boolean {
 }
 
 /**
+ * True if `path` is inside the folder `root`, matching case exactly. For
+ * re-pointing or closing what was under a folder the app itself renamed or
+ * deleted, where both paths come from the same tree: unlike isDescendant, a
+ * sibling that differs only in case (`Work` next to `work`, on Linux) isn't
+ * caught up in it. Not a security check either; see isDescendant.
+ */
+export function isUnder(root: string, path: string): boolean {
+  const normRoot = root.replace(/[/\\]+$/, "");
+  return path.startsWith(normRoot + "/") || path.startsWith(normRoot + "\\");
+}
+
+/**
  * A file name for an untitled note, taken from its first non-blank line the
  * way most editors suggest one: Markdown heading and list markers dropped,
  * characters Windows or macOS refuse in names removed, capped in length.

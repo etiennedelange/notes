@@ -150,6 +150,25 @@ See [the datasheet](https://example.com/sensor.pdf) for timings.
       delete FILES[path];
       return null;
     },
+    // Folders only exist as path prefixes of FILES, so these work on those.
+    folder_contents: ({ path }) => ({
+      notes: Object.keys(FILES).filter((f) => f.startsWith(path + "\\")).length,
+      otherFiles: 0,
+      truncated: false,
+    }),
+    rename_folder: ({ path, newName }) => {
+      const to = J(path.slice(0, path.lastIndexOf("\\")), newName);
+      if (exists(to)) throw `${to} already exists`;
+      for (const f of Object.keys(FILES).filter((f) => f.startsWith(path + "\\"))) {
+        FILES[to + f.slice(path.length)] = FILES[f];
+        delete FILES[f];
+      }
+      return to;
+    },
+    trash_folder: ({ path }) => {
+      for (const f of Object.keys(FILES).filter((f) => f.startsWith(path + "\\"))) delete FILES[f];
+      return null;
+    },
     reveal_path: () => null,
     path_exists: ({ path }) => exists(path),
     path_is_dir: ({ path }) => exists(path) && !(path in FILES),

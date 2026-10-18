@@ -445,6 +445,108 @@ pub fn trash_note(path: String, granted: &HashSet<PathBuf>) -> Result<(), Error>
     trash::delete(&path).map_err(|source| Error::Trash { path, source })
 }
 
+/// Stops `folder_contents` from walking forever into something like a
+/// `node_modules` the tree never showed. Past this, the count is a floor.
+const MAX_COUNTED_ENTRIES: usize = 20_000;
+
+/// What a folder holds, for the delete confirmation: the notes the sidebar
+/// shows, and everything else that would go to the trash with them.
+#[derive(Debug, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderContents {
+    pub notes: usize,
+    /// Files the tree hides: non-notes, dotfiles, anything under a hidden or
+    /// ignored folder, and symlinks (which go as links, not targets).
+    pub other_files: usize,
+    /// True when MAX_COUNTED_ENTRIES stopped the count early.
+    pub truncated: bool,
+}
+
+/// Checks a folder for a rename or a trash: it has to be a real directory
+/// (not a symlink to one), and its *parent* has to be granted. So neither
+/// the open folder itself nor a folder that was dropped in or picked whole
+/// can be renamed or deleted from inside Notes, only folders within one.
+fn check_subfolder(path: &str, granted: &HashSet<PathBuf>) -> Result<(), Error> {
+    let p = Path::new(path);
+    let parent = p
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .ok_or_else(|| Error::AccessDenied(path.to_string()))?;
+    check_access(granted, &parent.to_string_lossy())?;
+    match fs::symlink_metadata(p) {
+        Ok(meta) if meta.is_dir() => Ok(()),
+        _ => Err(Error::NotADirectory(path.to_string())),
+    }
+}
+
+/// A folder name is any bare name: not empty, not `.` or `..`, no separator.
+fn check_folder_name(name: &str) -> Result<(), Error> {
+    if name.trim().is_empty() || name == "." || name == ".." || name.contains(['/', '\\', '\0']) {
+        return Err(Error::InvalidName(name.to_string()));
+    }
+    Ok(())
+}
+
+/// Counts what `folder_contents` reports, without following symlinks and
+/// without recursion, so a deep tree can't overflow the stack.
+pub fn folder_contents(path: String, granted: &HashSet<PathBuf>) -> Result<FolderContents, Error> {
+    check_subfolder(&path, granted)?;
+    let mut counts = FolderContents::default();
+    let mut budget = MAX_COUNTED_ENTRIES;
+    // (folder, whether the tree hides everything in it)
+    let mut pending = vec![(PathBuf::from(&path), false)];
+    while let Some((dir, hidden)) = pending.pop() {
+        let Ok(read) = fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in read.flatten() {
+            if budget == 0 {
+                counts.truncated = true;
+                return Ok(counts);
+            }
+            budget -= 1;
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let hides = hidden || name.starts_with('.');
+            match entry.file_type() {
+                Ok(t) if t.is_dir() => {
+                    pending.push((entry.path(), hides || IGNORED_DIRS.contains(&name.as_str())));
+                }
+                Ok(t) if t.is_file() && !hides && is_notable_file(&name) => counts.notes += 1,
+                _ => counts.other_files += 1,
+            }
+        }
+    }
+    Ok(counts)
+}
+
+/// Renames a folder within its parent and returns the new path. Like
+/// `rename_note`, `new_name` is a bare name, so this can't move anything out
+/// of the granted folder it sits in, and the new path needs no grant of its
+/// own: `check_subfolder` already required its parent to be granted.
+pub fn rename_folder(path: String, new_name: &str, granted: &HashSet<PathBuf>) -> Result<String, Error> {
+    check_subfolder(&path, granted)?;
+    check_folder_name(new_name)?;
+    let from = Path::new(&path);
+    let to = from.with_file_name(new_name);
+    // Same no-clobber check as rename_note. On Unix, renaming onto an empty
+    // directory would otherwise silently replace it.
+    if fs::symlink_metadata(&to).is_ok() && fs::canonicalize(&to).ok() != fs::canonicalize(from).ok() {
+        return Err(Error::AlreadyExists(to.to_string_lossy().into_owned()));
+    }
+    fs::rename(from, &to).map_err(|source| Error::Rename {
+        path: path.clone(),
+        source,
+    })?;
+    Ok(to.to_string_lossy().into_owned())
+}
+
+/// Moves a folder and everything in it to the Recycle Bin / Trash. The
+/// caller is expected to have shown `folder_contents` first.
+pub fn trash_folder(path: String, granted: &HashSet<PathBuf>) -> Result<(), Error> {
+    check_subfolder(&path, granted)?;
+    trash::delete(&path).map_err(|source| Error::Trash { path, source })
+}
+
 /// Fails unless `path` exists and the user has granted it, for commands such
 /// as revealing a file in the OS file manager that do their own work.
 pub fn check_existing_access(path: &str, granted: &HashSet<PathBuf>) -> Result<(), Error> {
@@ -880,6 +982,96 @@ mod tests {
             "unexpected error: {err}"
         );
         assert!(tree.0.join("script.sh").exists());
+    }
+
+    #[test]
+    fn rename_folder_renames_and_keeps_its_contents() {
+        let tree = TempTree::new("rename_dir_ok");
+        tree.file("ideas/a.md").file("ideas/deep/b.txt");
+
+        let renamed = rename_folder(path_str(&tree.0.join("ideas")), "plans", &tree.granted())
+            .expect("rename should succeed");
+
+        assert_eq!(renamed, path_str(&tree.0.join("plans")));
+        assert!(tree.0.join("plans/deep/b.txt").is_file());
+        assert!(!tree.0.join("ideas").exists());
+    }
+
+    #[test]
+    fn rename_folder_refuses_bad_names_and_existing_targets() {
+        let tree = TempTree::new("rename_dir_bad");
+        tree.file("a/x.md").file("b/y.md");
+        fs::create_dir(tree.0.join("empty")).unwrap();
+        let from = path_str(&tree.0.join("a"));
+
+        for name in ["", " ", ".", "..", "x/y", "x\\y", "../out"] {
+            assert!(
+                rename_folder(from.clone(), name, &tree.granted()).is_err(),
+                "{name:?} should be refused"
+            );
+        }
+        // Not even onto an empty folder, which fs::rename would replace on Unix.
+        for taken in ["b", "empty"] {
+            let err = rename_folder(from.clone(), taken, &tree.granted()).unwrap_err();
+            assert!(err.to_string().contains("already exists"), "{taken}: {err}");
+        }
+        assert!(tree.0.join("a/x.md").is_file());
+    }
+
+    #[test]
+    fn folder_operations_need_a_granted_parent_and_a_real_folder() {
+        let tree = TempTree::new("dir_scope");
+        tree.file("sub/a.md").file("note.md");
+        let root = path_str(&tree.0);
+        let sub = path_str(&tree.0.join("sub"));
+
+        // The granted folder itself: its parent isn't granted.
+        assert!(rename_folder(root.clone(), "other", &tree.granted()).is_err());
+        assert!(trash_folder(root.clone(), &tree.granted()).is_err());
+        assert!(folder_contents(root, &tree.granted()).is_err());
+        // Nothing granted at all.
+        assert!(rename_folder(sub.clone(), "other", &HashSet::new()).is_err());
+        assert!(trash_folder(sub.clone(), &HashSet::new()).is_err());
+        // A note isn't a folder.
+        let note = path_str(&tree.0.join("note.md"));
+        assert!(rename_folder(note.clone(), "other", &tree.granted()).is_err());
+        assert!(trash_folder(note, &tree.granted()).is_err());
+        assert!(tree.0.join("sub/a.md").is_file());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn folder_operations_refuse_a_symlinked_folder() {
+        let tree = TempTree::new("dir_link");
+        tree.file("real/a.md");
+        std::os::unix::fs::symlink(tree.0.join("real"), tree.0.join("link")).unwrap();
+        let link = path_str(&tree.0.join("link"));
+
+        assert!(rename_folder(link.clone(), "other", &tree.granted()).is_err());
+        assert!(trash_folder(link.clone(), &tree.granted()).is_err());
+        assert!(folder_contents(link, &tree.granted()).is_err());
+    }
+
+    #[test]
+    fn folder_contents_counts_notes_and_what_the_tree_hides() {
+        let tree = TempTree::new("dir_count");
+        tree.file("sub/a.md")
+            .file("sub/deeper/b.txt")
+            .file("sub/image.png")
+            .file("sub/.hidden.md")
+            .file("sub/.git/notes.md")
+            .file("sub/node_modules/pkg/readme.md");
+
+        let counts = folder_contents(path_str(&tree.0.join("sub")), &tree.granted()).unwrap();
+
+        assert_eq!(
+            counts,
+            FolderContents {
+                notes: 2,
+                other_files: 4,
+                truncated: false
+            }
+        );
     }
 
     // Only the refusals are tested: a successful trash_note would fill the

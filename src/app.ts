@@ -18,6 +18,9 @@ import {
   renameNote,
   createNote,
   trashNote,
+  folderContents,
+  renameFolder,
+  trashFolder,
   revealPath,
   dirTreesEqual,
   type DirNode,
@@ -25,7 +28,7 @@ import {
 } from "./fs";
 import { createTabEditorState, isMarkdownPath, withLanguage, withTheme } from "./editor";
 import { THEMES, THEME_ORDER, applyChromeTheme, BASE_EDITOR_FONT_PX, type ThemeId } from "./themes";
-import { basename, joinPath, suggestedFileName } from "./pathutil";
+import { basename, joinPath, suggestedFileName, isUnder } from "./pathutil";
 import { detectLineEnding, textForDisk } from "./lineEndings";
 import { showToast } from "./toast";
 import type { Tab } from "./types";
@@ -34,7 +37,7 @@ import { renderTabs } from "./tabs";
 import { renderStatusBar, updateCursorLabel, updateDocStats } from "./statusbar";
 import { openCommandPalette } from "./commandPalette";
 import { unsavedChangesModal, showModal, confirmModal, promptModal } from "./modal";
-import { trashName } from "./sidebarMenu";
+import { folderContentsPhrase, trashName } from "./sidebarMenu";
 import { minimalChange } from "./textDiff";
 
 const RECENT_LIMIT = 30;
@@ -920,6 +923,93 @@ export class App {
     this.looseFiles = this.looseFiles.filter(others);
     this.recentFiles = this.recentFiles.filter(others);
     this.closedTabs = this.closedTabs.filter(others);
+    await this.refreshFolder();
+    renderSidebar(this);
+    this.persist();
+  }
+
+  /**
+   * Asks for a new name and renames a folder inside the open folder, then
+   * re-points everything that named a path under it: open tabs (unsaved
+   * edits included), Other Files, recent and closed tabs, expanded folders.
+   */
+  async renameFolder(dir: string) {
+    const name = basename(dir);
+    const entered = await promptModal({
+      title: "Rename Folder",
+      message: `New name for "${name}":`,
+      value: name,
+      confirmLabel: "Rename",
+    });
+    const newName = entered?.trim();
+    if (!newName || newName === name) return;
+
+    let newDir: string;
+    try {
+      newDir = await renameFolder(dir, newName);
+    } catch (e) {
+      showToast(`Couldn't rename: ${String(e)}`, "error");
+      return;
+    }
+    const move = (p: string) => (p === dir || isUnder(dir, p) ? newDir + p.slice(dir.length) : p);
+    // A snapshot: rekeyTab changes the map as this goes.
+    for (const [key, tab] of Array.from(this.tabs)) {
+      const moved = move(key);
+      if (moved !== key) this.rekeyTab(tab, key, moved);
+    }
+    this.looseFiles = this.looseFiles.map(move);
+    this.recentFiles = this.recentFiles.map(move);
+    this.closedTabs = this.closedTabs.map(move);
+    this.expandedDirs = new Set([...this.expandedDirs].map(move));
+    await this.refreshFolder();
+    this.renderAll();
+    this.persist();
+  }
+
+  /**
+   * Moves a folder inside the open folder to the Recycle Bin / Trash after a
+   * confirmation that says what goes with it, including the files the tree
+   * doesn't show, then closes the tabs that were inside it without the save
+   * prompt: there is nothing left to save them to.
+   */
+  async deleteFolder(dir: string) {
+    let contents;
+    try {
+      contents = await folderContents(dir);
+    } catch (e) {
+      showToast(`Couldn't delete: ${String(e)}`, "error");
+      return;
+    }
+    const inside = (p: string) => isUnder(dir, p);
+    const unsaved = [...this.tabs.values()].filter((t) => t.path && inside(t.path) && t.dirty).length;
+    const confirmed = await confirmModal({
+      title: "Delete folder?",
+      message:
+        `"${basename(dir)}" will be moved to the ${trashName()}${folderContentsPhrase(contents)}.` +
+        (unsaved === 1 ? " An open note in it has unsaved changes, which will be lost." : "") +
+        (unsaved > 1 ? ` ${unsaved} open notes in it have unsaved changes, which will be lost.` : ""),
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    try {
+      await trashFolder(dir);
+    } catch (e) {
+      showToast(`Couldn't delete: ${String(e)}`, "error");
+      return;
+    }
+    // A snapshot: closeTab removes entries as this goes.
+    for (const [key, tab] of Array.from(this.tabs)) {
+      if (!inside(key)) continue;
+      tab.dirty = false;
+      await this.closeTab(key);
+    }
+    const outside = (p: string) => p !== dir && !inside(p);
+    this.looseFiles = this.looseFiles.filter(outside);
+    this.recentFiles = this.recentFiles.filter(outside);
+    this.closedTabs = this.closedTabs.filter(outside);
+    this.expandedDirs = new Set([...this.expandedDirs].filter(outside));
     await this.refreshFolder();
     renderSidebar(this);
     this.persist();

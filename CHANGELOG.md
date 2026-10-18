@@ -7,6 +7,12 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Rename and delete folders** from the sidebar's right-click menu. Open
+  notes inside a renamed folder stay open, unsaved changes included.
+  Delete moves the folder to the Recycle Bin / Trash, and the confirmation
+  says what goes with it, including files the sidebar doesn't show.
+
 ## [0.7.5] - 2026-10-18
 
 ### Added
