@@ -15,7 +15,8 @@
 // 5. Follows the Release workflow and prints the release page.
 //
 // Safe to run again after a failure or Ctrl+C: steps already done (branch pushed, PR open,
-// PR merged, tag pushed) are picked up where they are. Needs git and gh (`gh auth login`).
+// PR merged, tag pushed) are picked up where they are. A bare `pnpm release` whose newest tag has
+// no GitHub Release yet follows that tag's Release run instead of starting the next patch. Needs git and gh (`gh auth login`).
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -58,11 +59,21 @@ export function compareVersions(a, b) {
   return 0;
 }
 
+/** The newest version among the `v*` tags in `tags`, without the v, or null if there's none. */
+export function newestVersion(tags) {
+  return (
+    tags
+      .filter((t) => /^v\d/.test(t))
+      .map((t) => t.slice(1))
+      .sort(compareVersions)
+      .at(-1) ?? null
+  );
+}
+
 /** Why `version` can't be released after the `v*` tags in `tags`, or null if it can. */
 export function versionProblem(version, tags) {
-  const released = tags.filter((t) => /^v\d/.test(t)).map((t) => t.slice(1));
-  if (released.includes(version)) return `v${version} is already tagged`;
-  const newest = released.sort(compareVersions).at(-1);
+  if (tags.includes(`v${version}`)) return `v${version} is already tagged`;
+  const newest = newestVersion(tags);
   if (newest && compareVersions(version, newest) < 0) return `${version} is older than the newest tag, v${newest}`;
   return null;
 }
@@ -72,11 +83,7 @@ export function versionProblem(version, tags) {
  * release of a pre-release tag (v0.3.0-beta.1 -> 0.3.0). Null when nothing is tagged yet.
  */
 export function nextPatch(tags) {
-  const newest = tags
-    .filter((t) => /^v\d/.test(t))
-    .map((t) => t.slice(1))
-    .sort(compareVersions)
-    .at(-1);
+  const newest = newestVersion(tags);
   if (!newest) return null;
   const [core, pre] = newest.split(/-(.*)/s);
   if (pre !== undefined) return core;
@@ -125,6 +132,16 @@ function findPr(branch) {
   return prs.find((p) => p.state === "MERGED") ?? prs.find((p) => p.state === "OPEN") ?? null;
 }
 
+/** Whether GitHub has a Release for `tag`; the Release workflow publishes it as its last step. */
+function hasRelease(tag) {
+  try {
+    gh("release", "view", "-R", REPO, tag, "--json", "tagName");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** The newest run of each of CI_WORKFLOWS for the PR's head commit, or null if GitHub hasn't started them all. */
 async function ciRuns(pr, branch) {
   for (let i = 0; i < 20; i++) {
@@ -161,10 +178,19 @@ async function main(argv) {
   } catch {
     fail("gh is not signed in. Run `gh auth login` first.");
   }
-  if (git("status", "--porcelain", "--untracked-files=no"))
-    fail("there are uncommitted changes. Commit or stash them first.");
   git("fetch", "--quiet", "--tags", "origin");
   const tags = () => git("tag", "--list", "v*").split("\n").filter(Boolean);
+  if (!arg) {
+    // A run stopped after pushing the tag: carry on with that release, not the next patch.
+    const newest = newestVersion(tags());
+    if (newest && !hasRelease(`v${newest}`)) {
+      console.log(
+        `v${newest} is tagged but not released yet, so following its Release run.` +
+          `\nTo release a different version instead, give it: pnpm release <version>`,
+      );
+      return followRelease(`v${newest}`);
+    }
+  }
   const version = arg ? parseVersion(arg) : nextPatch(tags());
   if (!version) fail("nothing is tagged yet, so there's no patch to bump. Give a version: pnpm release 0.1.0");
   const tag = `v${version}`;
@@ -173,6 +199,8 @@ async function main(argv) {
     console.log(`${tag} is already pushed; nothing to do but follow its Release run.`);
     return followRelease(tag);
   }
+  if (git("status", "--porcelain", "--untracked-files=no"))
+    fail("there are uncommitted changes. Commit or stash them first.");
   let pr = findPr(branch);
   if (!pr) {
     const problem = versionProblem(version, tags());
