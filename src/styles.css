@@ -287,6 +287,8 @@ kbd {
   border: none;
   padding: 5px 6px;
   margin-left: -6px;
+  /* Takes the free space, so the icon buttons group at the right. */
+  margin-right: auto;
   border-radius: var(--radius-sm);
   color: var(--fg-subtle);
   font-size: 11px;

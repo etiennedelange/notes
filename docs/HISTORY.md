@@ -45,6 +45,8 @@ which part of the repo it touched (`app` and/or `site`).
 - There was no way to create a note in the folder except Save As. Added
   a sidebar button and a folder **New Note…** menu item, backed by a Rust
   `create_note` that uses `create_new`, so it can never replace a file.
+  The folder header's icons now group at the right (`margin-right: auto`
+  on the title); with `space-between` a fourth button spread them out.
 - Smaller ones from the same audit: untitled tabs take the lowest free
   number ("Untitled 2"), closing the active tab activates its right-hand
   neighbour (was: the last tab), the tab menu uses the sidebar's
