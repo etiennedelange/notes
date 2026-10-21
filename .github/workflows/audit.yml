@@ -42,7 +42,7 @@ jobs:
       # anything.
       #
       # -D warnings makes any *new* unmaintained/unsound advisory fail too. The
-      # seven currently pinned by Tauri's dependency graph are listed in
+      # ten currently pinned by Tauri's dependency graph are listed in
       # .cargo/audit.toml; everything else is a red build on purpose.
       - name: cargo audit
         working-directory: src-tauri

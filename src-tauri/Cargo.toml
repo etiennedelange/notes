@@ -31,7 +31,11 @@ serde_json = "1"
 tauri-plugin-dialog = "2"
 tauri-plugin-opener = "2"
 tauri-plugin-clipboard-manager = "2"
-tauri-plugin-updater = "2"
+# Without the default `zip` feature: it only unpacks v1-style compressed update
+# artifacts, and this app ships Tauri v2 ones (the NSIS .exe, .app.tar.gz on
+# macOS, a bare .AppImage). It also pulled in `zip` 4.x, which cargo audit
+# flags (RUSTSEC-2026-0367/0368/0369).
+tauri-plugin-updater = { version = "2", default-features = false, features = ["rustls-tls", "system-proxy"] }
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]
