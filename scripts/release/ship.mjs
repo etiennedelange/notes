@@ -4,6 +4,7 @@
 //   pnpm release                the next patch after the newest tag (v0.2.0 -> 0.2.1)
 //   pnpm release 0.3.0          a given version; asks once, then does everything below
 //   pnpm release 0.3.0 --yes    without asking
+//   ... --no-follow             stop once the tag is pushed (the Cut release workflow does this)
 //
 // 1. Checks: no uncommitted changes to tracked files, gh signed in, the version is new, and the
 //    CHANGELOG has entries under [Unreleased].
@@ -168,8 +169,12 @@ async function ciRuns(pr, branch) {
   return null;
 }
 
+// Watching the Release run is only for the terminal; a workflow leaves it to its own run.
+let follow = true;
+
 async function main(argv) {
   const yes = argv.includes("--yes");
+  follow = !argv.includes("--no-follow");
   const arg = argv.find((a) => !a.startsWith("--"));
 
   step("Checking");
@@ -309,6 +314,12 @@ async function main(argv) {
 }
 
 async function followRelease(tag) {
+  if (!follow) {
+    console.log(
+      `\n${tag} is pushed. The Release workflow builds and publishes it: https://github.com/${REPO}/actions/workflows/release.yml`,
+    );
+    return;
+  }
   step("Following the Release workflow");
   let id = "";
   for (let i = 0; i < 20 && !id; i++) {

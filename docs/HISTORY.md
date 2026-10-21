@@ -15,6 +15,19 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-21 — Releases can be cut from GitHub [app]
+
+- New `cut-release.yml` (**Actions → Cut release**) runs `pnpm release`'s
+  `ship.mjs` on a runner, with a new `--no-follow` that stops once the tag
+  is pushed. One workflow, not a separate tagging one, because the script
+  already waits for CI and the merge and resumes after a failure.
+- It authenticates with `RELEASE_TOKEN`, a fine-grained PAT, not
+  `GITHUB_TOKEN`: PRs and tags made with the latter start no workflows,
+  so the required checks would never report and `release.yml` never run.
+- A fresh runner has no crates.io index, so `release.mjs version`'s
+  `cargo update --offline` failed; the workflow runs an online no-op
+  `cargo update --package notes` first.
+
 ## 2026-10-21 — Security audit green again [app]
 
 - `cargo audit` (`audit.yml`) had failed on `main` since 2026-10-18, as
