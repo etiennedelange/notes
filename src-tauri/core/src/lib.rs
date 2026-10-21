@@ -180,7 +180,7 @@ pub struct DirNode {
 
 pub fn is_notable_file(name: &str) -> bool {
     let lower = name.to_lowercase();
-    lower.ends_with(".txt") || lower.ends_with(".md") || lower.ends_with(".markdown")
+    lower.ends_with(".txt") || lower.ends_with(".md") || lower.ends_with(".markdown") || lower.ends_with(".json")
 }
 
 fn walk_dir(dir: &Path, depth: usize, budget: &mut usize, truncated: &mut bool) -> Vec<DirNode> {
@@ -758,6 +758,16 @@ mod tests {
             "unexpected error: {err}"
         );
         assert!(!target.exists(), "file must not be created");
+    }
+
+    #[test]
+    fn write_text_file_accepts_json() {
+        let tree = TempTree::new("write_json");
+        let target = tree.0.join("config.json");
+
+        write_text_file(path_str(&target), "{}".into(), &tree.granted()).expect("json is a note type");
+
+        assert_eq!(fs::read_to_string(&target).unwrap(), "{}");
     }
 
     fn path_str(p: &Path) -> String {

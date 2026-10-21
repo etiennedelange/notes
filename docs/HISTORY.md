@@ -15,6 +15,21 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-21 — Wrap at the window edge; open `.json` [app]
+
+- The 80-character cap on `.cm-content` (2026-10-14 UI pass) looked broken
+  in a wide window: a long line wrapped at about two-thirds of the width,
+  with the active-line background stopping there too. Removed it, so lines
+  wrap at the editor's edge as in Notepad++.
+- `.json` joins the note extensions (`is_notable_file` in core, which also
+  guards writes; `NOTE_EXT`; the Open dialog filter).
+- JSON gets `@codemirror/lang-json` (already in the lockfile through
+  `language-data`, now a direct dependency). The Markdown highlight style
+  already covered its tags, so keys, strings and literals take the same
+  colours as in fenced code. `languageName` in `editor.ts` is now the one
+  place that maps a path to Markdown, JSON or Plain Text, for the editor,
+  the status bar and re-highlighting after a rename.
+
 ## 2026-10-18 — `pnpm release` picks up a release stopped after its tag [app]
 
 - Ctrl+C while 0.7.5's Release workflow was being followed left it

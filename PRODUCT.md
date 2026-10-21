@@ -27,7 +27,7 @@ Sits deliberately between Notepad++ (fast but dated, no real markdown support) a
 - Desktop app, launched frequently for short sessions (open a file, jot something, close).
 - Files live wherever the user already keeps them on disk; the app does not require or create a dedicated folder structure.
 - A folder can optionally be opened in a sidebar tree for browsing, and files can be dragged in — but this is a convenience view, not a managed workspace.
-- Primary content types: plain `.txt` and `.md`.
+- Primary content types: plain `.txt` and `.md` (`.json` also opens, with syntax colouring).
 
 ## Capabilities and Constraints
 
