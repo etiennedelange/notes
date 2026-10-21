@@ -45,6 +45,19 @@ export const renameNote = (path: string, newName: string) => invoke<string>("ren
 export const createNote = (dir: string, name: string) => invoke<string>("create_note", { dir, name });
 /** Moves a note to the Recycle Bin / Trash. */
 export const trashNote = (path: string) => invoke<void>("trash_note", { path });
+export interface FolderContents {
+  notes: number;
+  /** Files the tree hides: non-notes, dotfiles, anything in hidden or ignored folders. */
+  otherFiles: number;
+  /** True when the count stopped early; the numbers are then a floor. */
+  truncated: boolean;
+}
+/** Counts what a folder inside the open folder holds, for the delete confirmation. */
+export const folderContents = (path: string) => invoke<FolderContents>("folder_contents", { path });
+/** Renames a folder inside a granted folder; `newName` is a bare name. Resolves to the new path. */
+export const renameFolder = (path: string, newName: string) => invoke<string>("rename_folder", { path, newName });
+/** Moves a folder inside a granted folder, and everything in it, to the Recycle Bin / Trash. */
+export const trashFolder = (path: string) => invoke<void>("trash_folder", { path });
 /** Shows a file or folder in the OS file manager. */
 export const revealPath = (path: string) => invoke<void>("reveal_path", { path });
 export const loadState = () => invoke<PersistedState>("load_state");

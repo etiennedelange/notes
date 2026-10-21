@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { basename, dirname, isDescendant, joinPath, suggestedFileName } from "./pathutil";
+import { basename, dirname, isDescendant, isUnder, joinPath, suggestedFileName } from "./pathutil";
 
 describe("basename", () => {
   it("returns the last segment for forward slashes", () => {
@@ -83,5 +83,18 @@ describe("joinPath", () => {
   it("keeps the folder's separator", () => {
     expect(joinPath("C:\\Notes", "a.md")).toBe("C:\\Notes\\a.md");
     expect(joinPath("/home/me/notes/", "a.md")).toBe("/home/me/notes/a.md");
+  });
+});
+
+describe("isUnder", () => {
+  it("matches paths inside the folder, with either separator", () => {
+    expect(isUnder("C:\\Notes\\work", "C:\\Notes\\work\\standup.txt")).toBe(true);
+    expect(isUnder("/home/me/notes/work/", "/home/me/notes/work/deep/a.md")).toBe(true);
+  });
+
+  it("doesn't match the folder itself, a sibling sharing its prefix, or one differing only in case", () => {
+    expect(isUnder("/notes/work", "/notes/work")).toBe(false);
+    expect(isUnder("/notes/work", "/notes/workshop/a.md")).toBe(false);
+    expect(isUnder("/notes/work", "/notes/Work/a.md")).toBe(false);
   });
 });

@@ -3,7 +3,7 @@
 //! touches the filesystem lives in the core crate; this file only translates
 //! between Tauri's world (managed state, `AppHandle`) and plain Rust values.
 
-use notes_core::{AppStateDto, DirNode, Error, ReadFileResult};
+use notes_core::{AppStateDto, DirNode, Error, FolderContents, ReadFileResult};
 use serde::Serialize;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -120,6 +120,26 @@ fn create_note(
 #[tauri::command(async)]
 fn trash_note(path: String, state: tauri::State<ConsentedPaths>) -> Result<(), Error> {
     notes_core::trash_note(path, &state.lock())
+}
+
+/// Counts what a folder holds, for the delete confirmation.
+#[tauri::command(async)]
+fn folder_contents(path: String, state: tauri::State<ConsentedPaths>) -> Result<FolderContents, Error> {
+    // A snapshot, as in read_dir_tree: the count can take a while.
+    let granted = state.lock().clone();
+    notes_core::folder_contents(path, &granted)
+}
+
+/// Renames a folder within its parent. Unlike rename_note there's nothing to
+/// grant: the parent was already granted, and it covers the new name.
+#[tauri::command(async)]
+fn rename_folder(path: String, new_name: String, state: tauri::State<ConsentedPaths>) -> Result<String, Error> {
+    notes_core::rename_folder(path, &new_name, &state.lock())
+}
+
+#[tauri::command(async)]
+fn trash_folder(path: String, state: tauri::State<ConsentedPaths>) -> Result<(), Error> {
+    notes_core::trash_folder(path, &state.lock())
 }
 
 /// Opens the OS file manager on the item's folder with the item selected.
@@ -269,6 +289,9 @@ pub fn run() {
             rename_note,
             create_note,
             trash_note,
+            folder_contents,
+            rename_folder,
+            trash_folder,
             reveal_path,
             load_state,
             save_state,

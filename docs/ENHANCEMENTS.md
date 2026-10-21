@@ -38,14 +38,8 @@ with `[app]`, `[site]`, or `[app, site]`.
   - Screen-reader wiring for the palette (combobox and
     `aria-activedescendant`), tabs (roving tabindex) and the tree
     (`aria-expanded`). Unchecked: these came from an automated critique.
-  - Adopt the rest of the brand's ground values: Noctis Lux's crimson
-    danger and the warning/orange colours with their text variants
-    (`design/brand.md`). Today's `#c73c00` is 4.25:1 as text on
-    `bgHighlight`.
   - Propose the less-yellow Noctis Lux surfaces to the brand
     (`design/brand.md`), or note them as the app's deliberate departure.
-  - Maybe make the 80-character text width a setting, if wide code blocks
-    wrap annoyingly.
 
   Deferred 2026-10-14.
 - **[app] Notes for every skipped version in the update dialog.** The
@@ -100,25 +94,26 @@ with `[app]`, `[site]`, or `[app, site]`.
   `src-tauri`) emitting an event the frontend applies incrementally would
   close that gap without polling. The same watcher could reload clean
   open tabs immediately; today they catch up on focus regain (2026-10-14).
-- **[app] Rename and delete folders from the sidebar.** The sidebar menu
-  (2026-10-14) renames and deletes notes only; a folder gets Reveal alone.
-  A folder can hold files the tree hides (non-notes, dotfiles), so deleting
-  one needs a confirm that says what else goes with it, and renaming one
-  has to re-key every open tab, pinned tab and recent file under it.
-- **[app] Switch a renamed tab's language mode.** Renaming `todo.txt` to
-  `todo.md` keeps the open tab in plain-text mode until it's reopened, since
-  the mode is fixed when the tab's editor state is created. Rebuilding the
-  state on rename would drop its undo history.
 
 ## Done
 
+- **[app] 80-character text width as a setting.** Moot since 2026-10-21:
+  the cap was removed, so lines wrap at the window edge (`HISTORY.md`,
+  "Wrap at the window edge; open `.json`").
+- **[app] Switch a renamed tab's language mode.** Done 2026-10-16:
+  `rekeyTab` reconfigures the language compartment when Save As or a
+  rename changes the file's kind, keeping undo history (`HISTORY.md`,
+  "Save As names new notes and switches highlighting").
+- **[app] Rename and delete folders from the sidebar.** Done 2026-10-18;
+  see the `HISTORY.md` entry of that date. The open folder itself still
+  can't be renamed or deleted from inside Notes, by design.
 - **[app] Rename "Pinned Files".** Done 2026-10-14: now "Other Files",
   filled only by the tab menu's "Add to Sidebar" (issue #8). See the
   2026-10-14 `HISTORY.md` entry.
 - **[app] A right-click menu for the sidebar.** Done 2026-10-14: Rename,
   Delete (to the Recycle Bin / Trash) and Reveal for notes, Reveal for
-  folders. See the 2026-10-14 `HISTORY.md` entry. Folders still can't be
-  renamed or deleted (under Open).
+  folders. See the 2026-10-14 `HISTORY.md` entry. Folder rename and
+  delete followed on 2026-10-18.
 
 - **[app] Delete the unreleased `v0.3.0` tag.** Decided against,
   2026-10-14. The "release tags" ruleset (repo settings, `refs/tags/v*`,

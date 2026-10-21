@@ -75,6 +75,35 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-18 — Rename and delete folders from the sidebar [app]
+
+- Folders in the tree get Rename… and Delete… on the right-click menu.
+  The open folder's own label doesn't: three new Rust commands in
+  `notes-core` (`rename_folder`, `trash_folder`, `folder_contents`) all
+  go through `check_subfolder`, which needs the folder's *parent* to be
+  granted and the folder to be a real directory, not a symlink. So
+  nothing that was itself the grant (the open folder, a dropped or picked
+  folder) can be renamed or deleted from inside Notes. Because the parent
+  is granted, the renamed folder needs no new grant, unlike `rename_note`.
+- Rename refuses an existing name, an empty folder included: on Unix
+  `fs::rename` would silently replace an empty directory. In the app,
+  every path under the old name is re-pointed in one pass: open tabs
+  (through `rekeyTab`, so unsaved edits go with them), Other Files, recent
+  and closed tabs, expanded folders. "Under the folder" is the new
+  `isUnder`, which matches case exactly. `isDescendant` ignores case, so
+  on Linux deleting `work` would also have closed the tabs under a
+  sibling `Work`, dropping their unsaved edits.
+- Delete moves the folder to the Recycle Bin / Trash, like notes. A
+  folder can hold files the tree hides, so the confirm first asks
+  `folder_contents` for a count: notes the tree shows, and "other files"
+  (non-notes, dotfiles, anything under a hidden or ignored folder like
+  `.git` or `node_modules`, symlinks). It walks without following
+  symlinks and stops at 20,000 entries, after which the counts read
+  "5+" etc. It also says how many open notes inside have unsaved
+  changes; their tabs close without the save prompt.
+- New `folders` block in `e2e/editing.test.mjs`; the web mock gained
+  folder handlers.
+
 ## 2026-10-16 — Upgrade the site to Astro 7.4; Node 26 everywhere [app, site]
 
 - Astro 7.4 raises the minimum Node to 22.22.0, and its CLI exits on
