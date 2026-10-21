@@ -21,7 +21,8 @@ export function renderStatusBar(app: App) {
     pathEl.textContent = tab.isUntitled ? label : tab.path!;
     dirtyEl.classList.toggle("hidden", !tab.dirty);
     // Untitled tabs are edited as Markdown (see newUntitledTab).
-    langEl.textContent = tab.isUntitled || isMarkdownPath(tab.path!) ? "Markdown" : "Plain Text";
+    langEl.textContent =
+      tab.isUntitled || isMarkdownPath(tab.path!) ? "Markdown" : /\.json$/i.test(tab.path!) ? "JSON" : "Plain Text";
     if (titlebarTitle) titlebarTitle.textContent = `${tab.dirty ? "● " : ""}${label} — Notes`;
 
     const pos = tab.state.selection.main.head;

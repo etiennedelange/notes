@@ -39,7 +39,7 @@ import { minimalChange } from "./textDiff";
 
 const RECENT_LIMIT = 30;
 const CLOSED_TABS_LIMIT = 20;
-const NOTE_EXT = /\.(txt|md|markdown)$/i;
+const NOTE_EXT = /\.(txt|md|markdown|json)$/i;
 /** `"a.md"`, `"a.md" and "b.md"`, or `"a.md", "b.md" and 3 others` for messages. */
 function quotedNames(paths: string[]): string {
   const names = paths.map((p) => `"${basename(p)}"`);
@@ -1209,7 +1209,7 @@ export class App {
         }
       }
       if (skipped.length > 0) {
-        showToast(`Couldn't open ${quotedNames(skipped)}: Notes opens .txt and .md files.`, "error");
+        showToast(`Couldn't open ${quotedNames(skipped)}: Notes opens .txt, .md and .json files.`, "error");
       }
     }).catch(() => {});
   }

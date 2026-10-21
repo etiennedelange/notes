@@ -7,6 +7,14 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Opens `.json` files** as plain text: from the Open dialog, the sidebar
+  and drag and drop.
+
+### Changed
+- **Long lines wrap at the window edge** again, instead of at 80
+  characters with empty space beside them.
+
 ## [0.7.5] - 2026-10-18
 
 ### Added
