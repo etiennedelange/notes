@@ -337,7 +337,7 @@ describe("files that can't be opened", () => {
   it("says why a dropped file wasn't opened", async () => {
     await page.evaluate(() => window.__MOCK__.emit("notes://drop", ["C:\\Users\\etienne\\Desktop\\photo.png"]));
     await toast().waitFor();
-    assert.match(await toast().textContent(), /Couldn't open "photo\.png": Notes opens \.txt and \.md files/);
+    assert.match(await toast().textContent(), /Couldn't open "photo\.png": Notes opens \.txt, \.md and \.json files/);
   });
 
   it("says which tabs from the last session are gone", async () => {
