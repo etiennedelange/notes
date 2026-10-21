@@ -1,4 +1,5 @@
-// End-to-end tests for editing, saving, outside changes and dropping files.
+// End-to-end tests for editing, saving, outside changes, dropping files and
+// the sidebar's folder menu.
 //
 // The real front end runs in headless Chromium against a Vite dev server,
 // with `scripts/screenshots/mock.js` standing in for the Rust backend (an
@@ -370,5 +371,78 @@ describe("other files", () => {
     await otherFiles().locator(".unpin-btn").click();
     assert.equal(await otherFiles().isHidden(), true);
     assert.equal(await tab("groceries.txt").count(), 1);
+  });
+});
+
+describe("folders", () => {
+  const WORK = `${NOTES}\\work`;
+  const JOBS = `${NOTES}\\jobs`;
+  /** Right-clicks `target` and returns the menu's items once it has opened (it opens on button release). */
+  async function menuOn(target) {
+    await target.click({ button: "right" });
+    await page.waitForFunction(() => document.getElementById("sidebar-menu").matches(":popover-open"));
+    return (await page.locator("#sidebar-menu .context-menu-item").allTextContents()).map((t) => t.trim());
+  }
+  const folderRow = (name) => page.locator("#folder-tree .tree-row-dir", { hasText: name });
+  const files = () => page.evaluate(() => Object.keys(window.__MOCK__.files));
+
+  async function folderMenu(name, item) {
+    await menuOn(folderRow(name));
+    await page.locator("#sidebar-menu .context-menu-item", { hasText: item }).click();
+    await page.waitForFunction(() => document.getElementById("confirm-modal").open);
+  }
+
+  async function editStandup() {
+    await tab("standup.txt").click();
+    await waitForText("Yesterday: release checklist\nToday: screenshots for the site\nBlockers: none\n");
+    await editEnd("more");
+  }
+
+  it("offers Rename and Delete on a folder inside, but not on the open folder", async () => {
+    const items = await menuOn(folderRow("work"));
+    assert.ok(items.includes("Rename…") && items.includes("Delete…"), items.join(", "));
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.getElementById("sidebar-menu").matches(":popover-open"));
+
+    const rootItems = await menuOn(page.locator("#folder-label"));
+    assert.ok(!rootItems.includes("Rename…") && !rootItems.includes("Delete…"), rootItems.join(", "));
+  });
+
+  it("renames a folder and carries its open tabs over, unsaved edits included", async () => {
+    await editStandup();
+    await folderMenu("work", "Rename…");
+    await page.locator("#confirm-input").fill("jobs");
+    await page.keyboard.press("Enter");
+
+    await folderRow("jobs").waitFor();
+    assert.equal(await folderRow("work").count(), 0);
+    assert.equal(await tab("standup.txt").getAttribute("title"), `${JOBS}\\standup.txt`);
+    assert.equal(await isDirty("standup.txt"), true);
+    await page.keyboard.press("Control+s");
+    await page.waitForFunction((p) => window.__MOCK__.writes.includes(p), `${JOBS}\\standup.txt`);
+    assert.ok(!(await writes()).includes(STANDUP), "saved to the old path");
+  });
+
+  it("deletes a folder after saying what goes with it, and closes its tabs", async () => {
+    await editStandup();
+    await folderMenu("work", "Delete…");
+    const message = await page.locator("#confirm-message").textContent();
+    assert.match(message, /"work" will be moved to the .*, with 2 notes in it\./);
+    assert.match(message, /unsaved changes, which will be lost/);
+    await page.locator('#confirm-actions [data-action="confirm"]').click();
+
+    await tab("standup.txt").waitFor({ state: "detached" });
+    assert.equal(await folderRow("work").count(), 0);
+    assert.ok(!(await files()).some((f) => f.startsWith(WORK + "\\")));
+    assert.equal(await modalOpen(), false);
+  });
+
+  it("keeps everything when the delete is cancelled", async () => {
+    await folderMenu("work", "Delete…");
+    await page.keyboard.press("Escape");
+
+    assert.equal(await folderRow("work").count(), 1);
+    assert.equal(await tab("standup.txt").count(), 1);
+    assert.ok((await files()).includes(STANDUP));
   });
 });

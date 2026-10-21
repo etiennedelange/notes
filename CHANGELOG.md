@@ -10,6 +10,10 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - **Opens `.json` files**, with syntax colouring and folding: from the
   Open dialog, the sidebar and drag and drop.
+- **Rename and delete folders** from the sidebar's right-click menu. Open
+  notes inside a renamed folder stay open, unsaved changes included.
+  Delete moves the folder to the Recycle Bin / Trash, and the confirmation
+  says what goes with it, including files the sidebar doesn't show.
 
 ### Security
 - **Updates check certificates more strictly.** The TLS libraries the

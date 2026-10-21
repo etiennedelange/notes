@@ -100,11 +100,6 @@ with `[app]`, `[site]`, or `[app, site]`.
   `src-tauri`) emitting an event the frontend applies incrementally would
   close that gap without polling. The same watcher could reload clean
   open tabs immediately; today they catch up on focus regain (2026-10-14).
-- **[app] Rename and delete folders from the sidebar.** The sidebar menu
-  (2026-10-14) renames and deletes notes only; a folder gets Reveal alone.
-  A folder can hold files the tree hides (non-notes, dotfiles), so deleting
-  one needs a confirm that says what else goes with it, and renaming one
-  has to re-key every open tab, pinned tab and recent file under it.
 - **[app] Switch a renamed tab's language mode.** Renaming `todo.txt` to
   `todo.md` keeps the open tab in plain-text mode until it's reopened, since
   the mode is fixed when the tab's editor state is created. Rebuilding the
@@ -112,13 +107,16 @@ with `[app]`, `[site]`, or `[app, site]`.
 
 ## Done
 
+- **[app] Rename and delete folders from the sidebar.** Done 2026-10-18;
+  see the `HISTORY.md` entry of that date. The open folder itself still
+  can't be renamed or deleted from inside Notes, by design.
 - **[app] Rename "Pinned Files".** Done 2026-10-14: now "Other Files",
   filled only by the tab menu's "Add to Sidebar" (issue #8). See the
   2026-10-14 `HISTORY.md` entry.
 - **[app] A right-click menu for the sidebar.** Done 2026-10-14: Rename,
   Delete (to the Recycle Bin / Trash) and Reveal for notes, Reveal for
-  folders. See the 2026-10-14 `HISTORY.md` entry. Folders still can't be
-  renamed or deleted (under Open).
+  folders. See the 2026-10-14 `HISTORY.md` entry. Folder rename and
+  delete followed on 2026-10-18.
 
 - **[app] Delete the unreleased `v0.3.0` tag.** Decided against,
   2026-10-14. The "release tags" ruleset (repo settings, `refs/tags/v*`,
