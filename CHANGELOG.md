@@ -11,6 +11,12 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Opens `.json` files**, with syntax colouring and folding: from the
   Open dialog, the sidebar and drag and drop.
 
+### Security
+- **Updates check certificates more strictly.** The TLS libraries the
+  updater uses now reject distrusted certificate authorities, and it no
+  longer bundles a zip library with known extraction flaws (it never
+  unpacked zip files for this app).
+
 ### Changed
 - **Long lines wrap at the window edge** again, instead of at 80
   characters with empty space beside them.

@@ -15,6 +15,23 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-21 — Security audit green again [app]
+
+- `cargo audit` (`audit.yml`) had failed on `main` since 2026-10-18, as
+  a red run in Actions only: GitHub's Security tab showed nothing.
+- `zip` 4.6.1 (RUSTSEC-2026-0367/0368/0369, critical) came only from
+  `tauri-plugin-updater`'s default `zip` feature, which unpacks v1-style
+  compressed update artifacts. The app ships v2 ones (NSIS `.exe`,
+  `.app.tar.gz`, bare `.AppImage`; macOS's tar/flate2 aren't behind the
+  feature), so the plugin now takes `rustls-tls` and `system-proxy`
+  without `zip`. If v1-compatible artifacts ever come back, so must the
+  feature.
+- `rustls-webpki` 0.103.16 and `webpki-root-certs` 1.0.10 fix
+  RUSTSEC-2026-0382/0383 (distrusted intermediates).
+- `zvariant`, `zbus_names` and `zvariant_derive` (unmaintained, via
+  `tauri-plugin-opener` -> `zbus` 5) join the ignore list in
+  `src-tauri/.cargo/audit.toml` until zbus moves off them.
+
 ## 2026-10-21 — Wrap at the window edge; open `.json` [app]
 
 - The 80-character cap on `.cm-content` (2026-10-14 UI pass) looked broken
