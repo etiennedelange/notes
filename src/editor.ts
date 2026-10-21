@@ -2,6 +2,7 @@ import { EditorState, Compartment, type Extension } from "@codemirror/state";
 import { EditorView, keymap, type ViewUpdate } from "@codemirror/view";
 import { basicSetup } from "codemirror";
 import { indentWithTab } from "@codemirror/commands";
+import { json } from "@codemirror/lang-json";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { editorTheme, type ThemeTokens } from "./themes";
@@ -15,10 +16,24 @@ export function isMarkdownPath(path: string): boolean {
   return /\.(md|markdown)$/i.test(path);
 }
 
+export type LanguageName = "Markdown" | "JSON" | "Plain Text";
+
+/** The language a path is edited as, also shown in the status bar. */
+export function languageName(path: string): LanguageName {
+  if (isMarkdownPath(path)) return "Markdown";
+  if (/\.json$/i.test(path)) return "JSON";
+  return "Plain Text";
+}
+
 function languageExtension(path: string): Extension {
-  return isMarkdownPath(path)
-    ? [markdown({ codeLanguages: languages }), codeSnippetPasteHandler(), codeBlockBackground()]
-    : [];
+  switch (languageName(path)) {
+    case "Markdown":
+      return [markdown({ codeLanguages: languages }), codeSnippetPasteHandler(), codeBlockBackground()];
+    case "JSON":
+      return json();
+    case "Plain Text":
+      return [];
+  }
 }
 
 export function createTabEditorState(

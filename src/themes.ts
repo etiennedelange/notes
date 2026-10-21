@@ -231,9 +231,6 @@ export function editorTheme(theme: ThemeTokens): Extension {
         caretColor: theme.caret,
         fontFamily: "var(--font-mono)",
         padding: "20px 0",
-        // Wrap prose at a readable measure instead of the window edge: 80
-        // characters plus the line's own 8px of side padding.
-        maxWidth: "calc(80ch + 8px)",
       },
       ".cm-scroller": {
         lineHeight: "1.65",

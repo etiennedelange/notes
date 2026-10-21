@@ -176,7 +176,7 @@ fn pick_folder(window: WebviewWindow, state: tauri::State<ConsentedPaths>) -> Op
 #[tauri::command(async)]
 fn pick_note_file(window: WebviewWindow, state: tauri::State<ConsentedPaths>) -> Option<String> {
     let picked = dialog(&window)
-        .add_filter("Notes", &["txt", "md", "markdown"])
+        .add_filter("Notes", &["txt", "md", "markdown", "json"])
         .blocking_pick_file();
     grant_pick(picked, &state)
 }

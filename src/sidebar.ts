@@ -7,7 +7,7 @@ function iconForFile(name: string): string {
   const dot = name.lastIndexOf(".");
   const ext = dot === -1 ? "" : name.slice(dot + 1).toLowerCase();
   if (ext === "md" || ext === "markdown") return "#icon-file-md";
-  if (ext === "txt") return "#icon-file";
+  if (ext === "txt" || ext === "json") return "#icon-file";
   return "#icon-file-unknown";
 }
 
@@ -56,7 +56,7 @@ export function renderSidebar(app: App) {
     refreshBtn.classList.remove("hidden");
     closeBtn.classList.remove("hidden");
     const rows = (app.tree.children ?? []).map((c) => renderNode(app, c, 0)).join("");
-    treeEl.innerHTML = rows || `<p class="tree-empty">No .txt or .md files here</p>`;
+    treeEl.innerHTML = rows || `<p class="tree-empty">No .txt, .md or .json files here</p>`;
     if (app.tree.truncated) {
       treeEl.innerHTML += `<p class="tree-empty">Folder is too large to show fully — some files are hidden.</p>`;
     }

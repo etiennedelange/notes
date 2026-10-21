@@ -1,6 +1,6 @@
 import type { App } from "./app";
 import { THEMES } from "./themes";
-import { isMarkdownPath } from "./editor";
+import { languageName } from "./editor";
 import { escapeHtml } from "./html";
 import { computeDocStats } from "./docStats";
 
@@ -21,7 +21,7 @@ export function renderStatusBar(app: App) {
     pathEl.textContent = tab.isUntitled ? label : tab.path!;
     dirtyEl.classList.toggle("hidden", !tab.dirty);
     // Untitled tabs are edited as Markdown (see newUntitledTab).
-    langEl.textContent = tab.isUntitled || isMarkdownPath(tab.path!) ? "Markdown" : "Plain Text";
+    langEl.textContent = tab.isUntitled ? "Markdown" : languageName(tab.path!);
     if (titlebarTitle) titlebarTitle.textContent = `${tab.dirty ? "● " : ""}${label} — Notes`;
 
     const pos = tab.state.selection.main.head;

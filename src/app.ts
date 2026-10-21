@@ -23,7 +23,7 @@ import {
   type DirNode,
   type PersistedState,
 } from "./fs";
-import { createTabEditorState, isMarkdownPath, withLanguage, withTheme } from "./editor";
+import { createTabEditorState, languageName, withLanguage, withTheme } from "./editor";
 import { THEMES, THEME_ORDER, applyChromeTheme, BASE_EDITOR_FONT_PX, type ThemeId } from "./themes";
 import { basename, joinPath, suggestedFileName } from "./pathutil";
 import { detectLineEnding, textForDisk } from "./lineEndings";
@@ -39,7 +39,7 @@ import { minimalChange } from "./textDiff";
 
 const RECENT_LIMIT = 30;
 const CLOSED_TABS_LIMIT = 20;
-const NOTE_EXT = /\.(txt|md|markdown)$/i;
+const NOTE_EXT = /\.(txt|md|markdown|json)$/i;
 /** `"a.md"`, `"a.md" and "b.md"`, or `"a.md", "b.md" and 3 others` for messages. */
 function quotedNames(paths: string[]): string {
   const names = paths.map((p) => `"${basename(p)}"`);
@@ -683,11 +683,11 @@ export class App {
   /**
    * Re-keys a tab's Map entry and order slot after Save As or a rename
    * changes its path, and switches its highlighting if the extension moved
-   * between Markdown and plain text (untitled tabs start as Markdown).
+   * to a different language (untitled tabs start as Markdown).
    */
   private rekeyTab(tab: Tab, oldKey: string, newKey: string) {
     const oldPath = tab.path ?? "untitled.md";
-    if (isMarkdownPath(oldPath) !== isMarkdownPath(newKey)) {
+    if (languageName(oldPath) !== languageName(newKey)) {
       tab.state = withLanguage(tab.state, newKey);
       if (this.activeKey === oldKey) this.view.setState(tab.state);
     }
@@ -1209,7 +1209,7 @@ export class App {
         }
       }
       if (skipped.length > 0) {
-        showToast(`Couldn't open ${quotedNames(skipped)}: Notes opens .txt and .md files.`, "error");
+        showToast(`Couldn't open ${quotedNames(skipped)}: Notes opens .txt, .md and .json files.`, "error");
       }
     }).catch(() => {});
   }
