@@ -1,3 +1,13 @@
+# Supply-chain hardening
+# Transitive deps may only come from the registry (no git:, file: or tarball URLs).
+blockExoticSubdeps: true
+# An install script that isn't approved in allowBuilds fails the install instead of being skipped.
+strictDepBuilds: true
+# Don't install versions published in the last 24 hours (minutes); most malicious releases are pulled within hours.
+minimumReleaseAge: 1440
+# Refuse a version published with weaker trust evidence (e.g. lost provenance) than earlier ones: the sign of a hijacked account.
+trustPolicy: no-downgrade
+
 allowBuilds:
   esbuild: true
   sharp: true
@@ -6,3 +16,9 @@ minimumReleaseAgeExclude:
   - '@astrojs/markdown-satteri@0.4.2'
   - astro@7.3.4
   - wrangler@4.136.3
+
+# Advisories `pnpm audit` (audit.yml) should skip. Each needs a reason, and goes once it's fixed.
+auditConfig:
+  ignoreGhsas:
+    # undici DoS (via astro > unifont): only runs while the static site builds, to fetch fonts.
+    - GHSA-xjj6-f33q-929c

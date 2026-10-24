@@ -1,5 +1,12 @@
 blockExoticSubdeps: true
 
+# An install script that isn't approved in allowBuilds fails the install instead of being skipped.
+strictDepBuilds: true
+# Don't install versions published in the last 24 hours (minutes); most malicious releases are pulled within hours.
+minimumReleaseAge: 1440
+# Refuse a version published with weaker trust evidence (e.g. lost provenance) than earlier ones: the sign of a hijacked account.
+trustPolicy: no-downgrade
+
 allowBuilds:
   esbuild: true
   sharp: true

@@ -15,6 +15,26 @@ which part of the repo it touched (`app` and/or `site`).
 
 ---
 
+## 2026-10-24 — Workflow and supply-chain hardening [app] [site]
+
+- Every checkout now drops the token (`persist-credentials: false`) except
+  `cut-release.yml`, whose push needs it, and `claude.yml`, where Claude
+  pushes. `cut-release.yml` passes `github.actor` through `env:` instead of
+  writing it into the script.
+- `claude.yml` can push, and anyone can comment on a public repo, so it now
+  only runs for the owner, members and collaborators (plus `claude[bot]`).
+- `audit.yml` gained a `pnpm audit --prod --audit-level high` job for the
+  app and the site. The site ignores GHSA-xjj6-f33q-929c (an undici DoS that
+  only runs while Astro fetches fonts at build time).
+- New `zizmor.yml` lints the workflows. The release build's caches are kept
+  and marked as accepted: only main writes the caches a tag restores.
+- Both `pnpm-workspace.yaml` files gained `strictDepBuilds`,
+  `minimumReleaseAge: 1440` and `trustPolicy: no-downgrade`; Dependabot got
+  a 7-day cooldown.
+- The cargo audit was already red on `main`: `tokio` 1.53.1 is flagged as
+  unsound and `clipboard-win` 5.4.1 was yanked. Both clear with a lockfile
+  update, which this change doesn't include.
+
 ## 2026-10-21 — Releases can be cut from GitHub [app]
 
 - New `cut-release.yml` (**Actions → Cut release**) runs `pnpm release`'s

@@ -38,7 +38,8 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The token stays in .git/config on purpose: ship.mjs pushes the release branch and tag with it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 # zizmor: ignore[artipacked]
         with:
           # ship.mjs reads the tags and branches from origin/main.
           fetch-depth: 0
@@ -58,9 +59,12 @@ jobs:
 
       # The release commit is yours, as from `pnpm release`; it's squashed into main anyway.
       - name: Configure git
+        env:
+          ACTOR: ${{ github.actor }}
+          ACTOR_ID: ${{ github.actor_id }}
         run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git config user.name "$ACTOR"
+          git config user.email "$ACTOR_ID+$ACTOR@users.noreply.github.com"
 
       - name: Release
         env:

@@ -15,6 +15,9 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    # Skip releases younger than this (supply-chain safety; pnpm-workspace.yaml has its own floor).
+    cooldown:
+      default-days: 7
     groups:
       app-minor-patch:
         update-types: [minor, patch]
@@ -25,6 +28,9 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    # Skip releases younger than this (supply-chain safety; pnpm-workspace.yaml has its own floor).
+    cooldown:
+      default-days: 7
     groups:
       site-minor-patch:
         update-types: [minor, patch]
@@ -35,6 +41,9 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    # Skip releases younger than this (supply-chain safety; pnpm-workspace.yaml has its own floor).
+    cooldown:
+      default-days: 7
     groups:
       cargo-minor-patch:
         update-types: [minor, patch]
@@ -43,6 +52,9 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
+    # Skip releases younger than this (supply-chain safety; pnpm-workspace.yaml has its own floor).
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns: ["*"]
@@ -52,3 +64,6 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
+    # Skip releases younger than this (supply-chain safety; pnpm-workspace.yaml has its own floor).
+    cooldown:
+      default-days: 7
