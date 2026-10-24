@@ -78,7 +78,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: stable
 
       # Caches made under a tag can't be read by later tags, so only restore here:
       # release-cache.yml saves both caches on main, where every tag can read them.
