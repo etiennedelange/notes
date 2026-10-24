@@ -38,6 +38,7 @@ jobs:
           # A PR checks out its merge commit; with its parents, HEAD^1 is main and
           # HEAD^1..HEAD is exactly the PR's change.
           fetch-depth: 2
+          persist-credentials: false
 
       # The job still runs and passes when there's nothing to test, so the
       # required check reports, but its steps are skipped.

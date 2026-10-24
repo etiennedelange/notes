@@ -38,6 +38,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: refs/tags/${{ env.TAG }}
+          persist-credentials: false
 
       # Only merged, CI-checked commits get released. GitHub compares the commits, so the
       # checkout needs no history: "behind" or "identical" means the tag is on main.
@@ -68,18 +69,22 @@ jobs:
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      # zizmor flags caches in a release build. Only workflows on main can write the caches a tag
+      # reads (no PR job here saves one), so they hold main's own builds.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0 # zizmor: ignore[cache-poisoning]
         with:
           node-version: "26"
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
-      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: stable
 
       # Caches made under a tag can't be read by later tags, so only restore here:
       # release-cache.yml saves both caches on main, where every tag can read them.
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2 # zizmor: ignore[cache-poisoning]
         with:
           workspaces: src-tauri
           shared-key: release-windows

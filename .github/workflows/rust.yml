@@ -33,6 +33,7 @@ jobs:
           # A PR checks out its merge commit; with its parents, HEAD^1 is main and
           # HEAD^1..HEAD is exactly the PR's change.
           fetch-depth: 2
+          persist-credentials: false
 
       - name: Anything to test?
         id: scope
@@ -57,9 +58,10 @@ jobs:
             librsvg2-dev \
             patchelf
 
-      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         if: steps.scope.outputs.rust != 'false'
         with:
+          toolchain: stable
           components: clippy
 
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
