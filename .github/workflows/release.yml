@@ -71,7 +71,7 @@ jobs:
 
       # zizmor flags caches in a release build. Only workflows on main can write the caches a tag
       # reads (no PR job here saves one), so they hold main's own builds.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0 # zizmor: ignore[cache-poisoning]
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.0.0 # zizmor: ignore[cache-poisoning]
         with:
           node-version: "26"
           cache: pnpm
