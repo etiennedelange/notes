@@ -32,8 +32,8 @@ which part of the repo it touched (`app` and/or `site`).
   `minimumReleaseAge: 1440` and `trustPolicy: no-downgrade`; Dependabot got
   a 7-day cooldown.
 - The cargo audit was already red on `main`: `tokio` 1.53.1 is flagged as
-  unsound and `clipboard-win` 5.4.1 was yanked. Both clear with a lockfile
-  update, which this change doesn't include.
+  unsound and `clipboard-win` 5.4.1 was yanked. A lockfile update moves them
+  to 1.53.3 and 5.4.3.
 
 ## 2026-10-21 — Releases can be cut from GitHub [app]
 
